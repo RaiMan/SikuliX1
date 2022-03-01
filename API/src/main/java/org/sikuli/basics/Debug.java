@@ -32,6 +32,29 @@ import java.util.Date;
  */
 public class Debug {
 
+  //TODO Logging from Commons
+  static String IDE_START_LOG = "";
+
+  public static synchronized void addlog(String msg, Object... args) {
+    String header = String.format("[SXLOG %4.3f] ", Commons.getSinceStart());
+    IDE_START_LOG += String.format(header + msg, args) + System.lineSeparator();
+  }
+
+  public static void runShutDown() {
+    if (!IDE_START_LOG.isEmpty()) {
+      File logFile = Commons.asFile(Commons.getUserHome(), "sikulixide_startlog.txt");
+      FileManager.writeStringToFile(IDE_START_LOG, logFile);
+    }
+  }
+
+  public static long timeNow() {
+    return new Date().getTime();
+  }
+
+  public static long timeSince(long start) {
+    return new Date().getTime() - start;
+  }
+
   private static int DEBUG_LEVEL = 0;
 
   private static PrintStream printout = null;
@@ -41,11 +64,7 @@ public class Debug {
     if (Commons.isDebug()) {
       DEBUG_LEVEL = 3;
     }
-    if (Commons.getLogFile() != null) {
-      printout = Commons.getLogStream();
-    } else {
-      setDebugLogFile();
-    }
+    setDebugLogFile();
     setUserLogFile();
   }
 
@@ -319,12 +338,12 @@ public class Debug {
         pln = privateLoggerErrorName;
       } else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
         prefix = privateLoggerPrefixAll ?
-                (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
+            (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
         plf = privateLoggerDebug;
         pln = privateLoggerDebugName;
       } else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
         prefix = privateLoggerPrefixAll ?
-                (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
+            (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
         plf = privateLoggerUser;
         pln = privateLoggerUserName;
       }
@@ -337,7 +356,7 @@ public class Debug {
         }
         if (isJython) {
           Object runLoggerCallback = Commons.runFunctionScriptingSupport("runLoggerCallback",
-                  new Object[]{privateLogger, pln, msg});
+              new Object[]{privateLogger, pln, msg});
           success = runLoggerCallback != null && (Boolean) runLoggerCallback;
         } else if (isJRuby) {
           success = false;
@@ -345,7 +364,7 @@ public class Debug {
           try {
             plf.invoke(privateLogger,
 
-                    new Object[]{msg});
+                new Object[]{msg});
             return true;
           } catch (Exception e) {
             error = ": " + e.getMessage();
@@ -373,6 +392,7 @@ public class Debug {
   //</editor-fold>
 
   //<editor-fold desc="logfiles">
+
   /**
    * specify, where the logs should be written:<br>
    * null - use from property sikuli.Logfile
@@ -463,6 +483,7 @@ public class Debug {
   //</editor-fold>
 
   //<editor-fold desc="debug level">
+
   /**
    * @return current debug level
    */
@@ -552,7 +573,7 @@ public class Debug {
       if (Settings.UserLogTime) {
 //TODO replace the hack -99 to filter user logs
         log(-99, String.format("%s (%s)",
-                Settings.UserLogPrefix, df.format(new Date())), message, args);
+            Settings.UserLogPrefix, df.format(new Date())), message, args);
       } else {
         log(-99, String.format("%s", Settings.UserLogPrefix), message, args);
       }
@@ -824,7 +845,7 @@ public class Debug {
     }
     if (!"".equals(message)) {
       profile(String.format((isLap ? "TLap:" : "TEnd") +
-              " (%.3f sec): ", (float) dt / 1000) + message, args);
+          " (%.3f sec): ", (float) dt / 1000) + message, args);
     }
     return dt;
   }

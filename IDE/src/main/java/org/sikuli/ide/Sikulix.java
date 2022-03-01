@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
@@ -45,6 +44,7 @@ public class Sikulix {
 
   public static void main(String[] args) {
     //region startup
+    Commons.isIDEstarting(true);
     Commons.setStartClass(Sikulix.class);
 
     //Commons.addlog("Sikulix::IDEDesktopSupport.initStart()");
@@ -123,7 +123,7 @@ public class Sikulix {
 
     Commons.checkAccessibility(); //TODO
 
-    Commons.show(); //TODO
+    //Commons.show(); //TODO
 
     if (Commons.hasStartArg(RUN)) {
       if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
@@ -182,7 +182,7 @@ public class Sikulix {
       }
     }
 
-    Commons.debug("IDE starting");
+    Debug.addlog("IDE starting");
 
     //TODO mouse not useable
     if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {

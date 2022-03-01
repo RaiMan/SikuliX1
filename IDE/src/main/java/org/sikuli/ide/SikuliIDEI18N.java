@@ -27,7 +27,7 @@ public class SikuliIDEI18N {
          i18nRB = ResourceBundle.getBundle("i18n/IDE",locale);
       }
       catch(MissingResourceException e){
-         Commons.error("SikuliIDEI18N: no locale for " + locale);
+         Debug.error("SikuliIDEI18N: no locale for " + locale);
          return false;
       }
       return true;

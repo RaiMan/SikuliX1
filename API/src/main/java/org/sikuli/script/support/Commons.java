@@ -60,7 +60,6 @@ public class Commons {
   protected static boolean RUNNINGIDE = false;
   static PrintStream SX_PRINTOUT;
   private static Options GLOBAL_OPTIONS = null;
-  static String IDE_START_LOG = "";
 
   private static final String SX_VERSION;
   private static final String SX_VERSION_LONG;
@@ -140,6 +139,7 @@ public class Commons {
   }
 
   private static boolean SNAPSHOT = false;
+
   public static boolean isSnapshot() {
     return SNAPSHOT;
   }
@@ -165,10 +165,7 @@ public class Commons {
     if (GLOBAL_OPTIONS != null) {
       saveGlobalOptions();
     }
-    if (!IDE_START_LOG.isEmpty()) {
-      File logFile = asFile(getUserHome(), "sikulixide_startlog.txt");
-      FileManager.writeStringToFile(IDE_START_LOG, logFile);
-    }
+    Debug.runShutDown();
     if (SX_PRINTOUT != null) {
       SX_PRINTOUT.close();
     }
@@ -274,15 +271,6 @@ Software:
   }
   //</editor-fold>
 
-  //<editor-fold desc="01 logging">
-  public static long timeNow() {
-    return new Date().getTime();
-  }
-
-  public static long timeSince(long start) {
-    return new Date().getTime() - start;
-  }
-
   private static final int DEBUG_LEVEL_QUIET = -9999;
   private static int debugLevel = 0;
   private static boolean verbose = false;
@@ -327,8 +315,9 @@ Software:
     return verbose;
   }
 
-  static File SX_LOGFILE = null;
+  static File SX_LOGFILE = null; //TODO
 
+/*
   public static void setLogFile(File file) {
     try {
       PrintStream printoutNew = new PrintStream(file);
@@ -364,46 +353,16 @@ Software:
     }
     return SX_PRINTOUT;
   }
-
-  private static void printlnOut(String msg, Object... args) {
-    printOut("",msg + "\n", args);
-  }
+*/
 
   private static void printOut(String type, String msg, Object... args) {
+    if (isIDEstarting()) {
+      Debug.addlog((type.isEmpty() ? "" : " " + type + ": ") + String.format(msg, args));
+      return;
+    }
     String header = type.isEmpty() ? "" : "[SX" + type + "] ";
     String message = String.format(msg, args);
-    if (Commons.runningIDE()) {
-      getLogStream().print(header + message);
-    }
-  }
-
-  public static synchronized void addlog(String msg, Object... args) {
-    String header = String.format("[SXLOG %4.3f] ", getSinceStart());
-    IDE_START_LOG += String.format(header + msg, args) + System.lineSeparator();
-  }
-
-  public static void print(String msg, Object... args) {
-    if (!isQuiet()) {
-      printOut("",msg + "%n", args);
-    }
-  }
-
-  public static void info(String msg, Object... args) {
-    if (isDebug()) {
-      printOut("INFO",msg + "%n", args);
-    }
-  }
-
-  public static void error(String msg, Object... args) {
-    if (isDebug()) {
-      printOut("ERROR",msg + "%n", args);
-    }
-  }
-
-  public static void debug(String msg, Object... args) {
-    if (isDebug()) {
-      printOut("DEBUG",msg + "%n", args);
-    }
+    System.out.println(header + message);
   }
 
   private static boolean traceEnterExit = false;
@@ -461,14 +420,14 @@ Software:
   public static String enter(String method, String parameter, Object... args) {
     String parms = String.format(parameter, args);
     if (isTraceEnterExit()) {
-      printOut("","[TRACE enter] " + method + "(" + parms + ")%n");
+      printOut("", "[TRACE enter] " + method + "(" + parms + ")%n");
     }
     return "parameter(" + parms.replace("%", "%%") + ")";
   }
 
   public static void exit(String method, String returns, Object... args) {
     if (isTraceEnterExit()) {
-      printOut("","[TRACE exit] " + method + ": " + returns + "%n", args);
+      printOut("", "[TRACE exit] " + method + ": " + returns + "%n", args);
     }
   }
   //</editor-fold>
@@ -573,9 +532,18 @@ Software:
     if (caller.startsWith("org.sikuli.ide.Sikulix") || caller.startsWith("org.sikuli.script.Sikulix")) {
       Commons.startClass = startClass;
     } else {
-      error("FATAL: setStartClass: not allowed from: %s", caller);
+      Debug.error("FATAL: setStartClass: not allowed from: %s", caller);
       System.exit(-1);
     }
+  }
+
+  private static boolean ideIsStarting = false;
+
+  public static boolean isIDEstarting(boolean... state) {
+    if (state.length > 0) {
+      ideIsStarting = state[0];
+    }
+    return ideIsStarting;
   }
 
   public static boolean isRunningFromJar() {
@@ -595,7 +563,7 @@ Software:
         jarName = codeSrc.getLocation().getPath();
         jarName = URLDecoder.decode(jarName, "utf8");
       } catch (UnsupportedEncodingException e) {
-        error("URLDecoder: not possible: %s", jarName);
+        Debug.error("URLDecoder: not possible: %s", jarName);
         System.exit(1);
       }
       jarFile = new File(jarName);
@@ -644,7 +612,7 @@ Software:
       pause(getSinceStart() / 4);
     }
 
-    if (STARTUPFILE != null) {
+    if (STARTUPFILE != null) { //TODO
       //Commons.addlog("Commons::setStartArgs(args): STARTUPFILE: " + STARTUPFILE);
       File startupFile = asFile(STARTUPFILE);
       if (!startupFile.exists()) {
@@ -653,7 +621,7 @@ Software:
         File startupLogFile = new File(startupFile.getParentFile(),
             startupFile.getName().replaceAll("\\.", "-") + ".log");
         FileManager.writeStringToFile("***** startupLogFile *****", startupLogFile);
-        Commons.setLogFile(startupLogFile);
+        //TODO Commons.setLogFile(startupLogFile);
         STARTUPINFO = FileManager.readFileToString(startupFile);
         String[] info = STARTUPINFO.split(System.lineSeparator());
         if (info.length > 0) {
@@ -682,8 +650,9 @@ Software:
         }
       }
     } else {
-      resetLogFile();
+      //TODO resetLogFile();
     }
+
     if (STARTUPARGS.size() > 0) {
       cmdArgs = new CommandArgs(Commons.RUNNINGIDE);
       cmdLine = cmdArgs.getCommandLine(STARTUPARGS.toArray(new String[0]));
@@ -746,7 +715,7 @@ Software:
     String outMsg = String.format(message, args);
     if (retval < 999) {
       if (!outMsg.isEmpty()) {
-        Commons.printlnOut("TERMINATING: " + outMsg);
+        Debug.print("TERMINATING: " + outMsg);
       }
       cleanUp();
       System.exit(retval);
@@ -811,7 +780,7 @@ Software:
       }
       if (appDataPath == null || !appDataPath.exists()) {
         setAppDataPath("");
-        error("Commons.getAppDataPath: standard place not possible - using: %s", appDataPath);
+        Debug.error("Commons.getAppDataPath: standard place not possible - using: %s", appDataPath);
       }
     }
     return appDataPath;
@@ -861,7 +830,7 @@ Software:
       }
     }
     if (userHome == null) {
-      error("Commons.getUserHome: env: user.home not valid: %s (trying work-dir)", userHomePath);
+      Debug.error("Commons.getUserHome: env: user.home not valid: %s (trying work-dir)", userHomePath);
       userHome = getWorkDir();
     }
     return userHome;
@@ -1026,21 +995,21 @@ Software:
     return String.format("%s/%s/Java %s", getSXVersionLong(), getOSInfo(), Commons.getJavaVersion());
   }
 
-  public static void getStatus() {
-    printlnOut("***** System Information Dump *****");
-    printlnOut(String.format("*** SystemInfo\n%s", getSystemInfo()));
-    System.getProperties().list(getLogStream());
-    printlnOut("*** System Environment");
+  public static void getStatus() { //TODO
+    Debug.print("***** System Information Dump *****");
+    Debug.print(String.format("*** SystemInfo\n%s", getSystemInfo()));
+    //System.getProperties().list(getLogStream());
+    Debug.print("*** System Environment");
     for (String key : System.getenv().keySet()) {
-      printlnOut(String.format("%s = %s", key, System.getenv(key)));
+      Debug.print(String.format("%s = %s", key, System.getenv(key)));
     }
-    printlnOut("*** Java Class Path");
+    Debug.print("*** Java Class Path");
     URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
     URL[] urls = sysLoader.getURLs();
     for (int i = 0; i < urls.length; i++) {
-      printlnOut(String.format("%d: %s", i, urls[i]));
+      Debug.print(String.format("%d: %s", i, urls[i]));
     }
-    printlnOut("***** System Information Dump ***** end *****");
+    Debug.print("***** System Information Dump ***** end *****");
   }
   //</editor-fold>
 
@@ -1077,9 +1046,9 @@ Software:
       }
     }
     String form = "%-" + eLen.toString() + "s = %s";
-    info("***** system properties (%s)", filter.isEmpty() ? "all" : filter);
+    Debug.info("***** system properties (%s)", filter.isEmpty() ? "all" : filter);
     for (String prop : propsKeys) {
-      info(form, prop, System.getProperty(prop));
+      Debug.info(form, prop, System.getProperty(prop));
     }
   }
 
@@ -1107,7 +1076,7 @@ Software:
     String enter = enter("makeURL", "main: %s, sub: %s", main, sub);
     //debug("makeURL: main: %s", main); //TODO
     if (main == null) {
-      error("makeURL: 1st parameter main is null");
+      Debug.error("makeURL: 1st parameter main is null");
       return null;
     }
     URL url = null;
@@ -1145,8 +1114,8 @@ Software:
           }
           return mainURL;
         } else {
-          error(enter);
-          error("makeURL: URL protocol not implemented");
+          Debug.error(enter);
+          Debug.error("makeURL: URL protocol not implemented");
         }
       }
       return mainURL;
@@ -1166,8 +1135,8 @@ Software:
       try {
         url = new URL(mainPath);
       } catch (MalformedURLException e) {
-        error(enter);
-        error("makeURL: net url malformed: %s (%s)", mainPath, e.getMessage());
+        Debug.error(enter);
+        Debug.error("makeURL: net url malformed: %s (%s)", mainPath, e.getMessage());
       }
     } else {
       if (mainFile.getPath().endsWith(".jar") || mainFile.getPath().contains(".jar!")) {
@@ -1180,7 +1149,7 @@ Software:
         try {
           mainFile = new File(URLDecoder.decode(mainFile.getPath(), "UTF-8"));
         } catch (Exception e) {
-          error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
+          Debug.error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
         }
       }
       try {
@@ -1194,8 +1163,8 @@ Software:
               url = makeClassURL((String) main);
             }
             if (url == null) {
-              error(enter);
-              error("makeURL(%s): file does not exist and is not a class resource", main);
+              Debug.error(enter);
+              Debug.error("makeURL(%s): file does not exist and is not a class resource", main);
             }
           } else {
             url = mainFile.toURI().toURL();
@@ -1218,11 +1187,11 @@ Software:
           url = new URL("jar:file:" + jarPart + subPart);
         }
       } catch (MalformedURLException e) {
-        error(enter);
-        error("makeURL: malformed: %s", mainFile);
+        Debug.error(enter);
+        Debug.error("makeURL: malformed: %s", mainFile);
       } catch (IOException e) {
-        error(enter);
-        error("makeURL: not found: %s", mainFile);
+        Debug.error(enter);
+        Debug.error("makeURL: not found: %s", mainFile);
       }
     }
 
@@ -1232,7 +1201,7 @@ Software:
   }
 
   public static URL makeClassURL(String sClass) {
-    //debug("makeClassURL: sClass: %s", sClass); //TODO
+    //Debug.log(3,"makeClassURL: sClass: %s", sClass); //TODO
     if (sClass == null || sClass.isEmpty()) {
       return null;
     }
@@ -1248,13 +1217,13 @@ Software:
       aClass = Class.forName(possibleClass);
       url = aClass.getResource("/" + possibleClass.replace(".", "/") + ".class");
     } catch (ClassNotFoundException e) {
-      error("makeURL(%s): class does not exist: %s", sClass, possibleClass);
+      Debug.error("makeURL(%s): class does not exist: %s", sClass, possibleClass);
       return null;
     }
     if (parts.length > 1) {
       url = aClass.getResource(sClass.substring(possibleClass.length()));
     }
-    //debug("makeClassURL returns: url: %s", url); //TODO
+    //Debug.log(3,"makeClassURL returns: url: %s", url); //TODO
     return url;
   }
 
@@ -1290,7 +1259,7 @@ Software:
         try {
           file = new File(URLDecoder.decode(path, "UTF-8"));
         } catch (Exception e) {
-          error("urlToFile: not decodable(UTF-8): %s (%s)", url, e.getMessage());
+          Debug.error("urlToFile: not decodable(UTF-8): %s (%s)", url, e.getMessage());
         }
       }
     }
@@ -1603,7 +1572,7 @@ Software:
   private static boolean areLibsExported = false;
 
   public static boolean loadLibrary(String libName) {
-    debug("loadLibrary: trying: %s", libName);
+    Debug.log(3,"loadLibrary: trying: %s", libName);
     if (libsLoaded.contains(libName)) {
       return true;
     }
@@ -1631,7 +1600,7 @@ Software:
       terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libFileName);
     }
     libsLoaded.add(libName);
-    debug("loadLibrary: success: %s%s", userLib, fLib);
+    Debug.log(3,"loadLibrary: success: %s%s", userLib, fLib);
     return true;
   }
 
@@ -1650,7 +1619,7 @@ Software:
         System.loadLibrary("" + fLib);
       }
     } catch (Exception e) {
-      error("loadLibrary: not useable: %s (%s)", fLib.getName(), e.getMessage());
+      Debug.error("loadLibrary: not useable: %s (%s)", fLib.getName(), e.getMessage());
       return null;
     }
     return fLib;
@@ -1663,7 +1632,7 @@ Software:
     if (fLibsFolder.exists()) {
       if (!hasVersionFile(fLibsFolder)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
-        debug("libsFolder: has wrong content: %s", fLibsFolder);
+        Debug.log(3,"libsFolder: has wrong content: %s", fLibsFolder);
       }
     }
     if (!fLibsFolder.exists()) {
@@ -1672,7 +1641,7 @@ Software:
         throw new SikuliXception("libsFolder: folder not available: " + fLibsFolder);
       }
       makeVersionFile(fLibsFolder); //TODO
-      debug("libsFolder: created %s (%s)", fLibsFolder, getSXVersionLong());
+      Debug.log(3,"libsFolder: created %s (%s)", fLibsFolder, getSXVersionLong());
       didExport = true;
     }
     if (!shouldExport()) { //TODO for what needed?
@@ -1718,10 +1687,10 @@ Software:
       }
       if (copyMsg.contains("failed")) {
         FileManager.deleteFileOrFolder(fLibsFolder);
-        error(copyMsg);
+        Debug.error(copyMsg);
         break;
       } else {
-        debug(copyMsg);
+        Debug.log(3,copyMsg);
       }
     }
     areLibsExported = true;
@@ -1905,18 +1874,18 @@ Software:
 
   public static void show() {
     if (STARTUPFILE != null) {
-      print("STARTUPFILE: %s", STARTUPFILE);
+      Debug.print("STARTUPFILE: %s", STARTUPFILE);
     }
     if (runningIDE()) {
-      print("IDE : %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
+      Debug.print("IDE : %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
     }
-    print("ON  : %s", Commons.getOSInfo());
-    print("JAVA: %s", Commons.getJavaInfo());
-    print("FROM: %s (%s)", getMainClassLocation(), getStartClass().getCanonicalName());
-    print("APP_DATA: %s", Commons.getAppDataPath());
-    print("WORK_DIR: %s", Commons.getWorkDir());
-    print("USER.HOME: %s", Commons.getUserHome());
-    print("JAVA.IO.TMPDIR: %s", Commons.getTempFolder());
+    Debug.print("ON  : %s", Commons.getOSInfo());
+    Debug.print("JAVA: %s", Commons.getJavaInfo());
+    Debug.print("FROM: %s (%s)", getMainClassLocation(), getStartClass().getCanonicalName());
+    Debug.print("APP_DATA: %s", Commons.getAppDataPath());
+    Debug.print("WORK_DIR: %s", Commons.getWorkDir());
+    Debug.print("USER.HOME: %s", Commons.getUserHome());
+    Debug.print("JAVA.IO.TMPDIR: %s", Commons.getTempFolder());
     Commons.showOptions("SX_", "_PREFS_", "_ARG_JAR");
   }
 
@@ -1935,7 +1904,7 @@ Software:
   static void doShowOptions(String prefix, String... except) {
     String lines = getOptionsAsLines(prefix, except);
     if (!lines.isEmpty()) {
-      print("%s", lines);
+      Debug.print("%s", lines);
     }
   }
 
@@ -2261,7 +2230,7 @@ Software:
       aMatBGR.put(0, 0, data);
       return aMatBGR;
     } else {
-      error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
+      Debug.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
     }
     return getNewMat();
   }
@@ -2285,7 +2254,7 @@ Software:
     try {
       bImg = ImageIO.read(in);
     } catch (IOException ex) {
-      error("getBufferedImage: %s error(%s)", mat, ex.getMessage());
+      Debug.error("getBufferedImage: %s error(%s)", mat, ex.getMessage());
     }
     return bImg;
   }
@@ -2371,7 +2340,7 @@ Software:
       }
     }
     if (!success) {
-      error("Parameters not valid!");
+      Debug.error("Parameters not valid!");
       return false;
     }
     return true;

@@ -754,10 +754,10 @@ public abstract class Element {
         Pattern pattern = pList.get(nCall);
         long duration = 0;
         if (pattern != null) {
-          long startFind = Commons.timeNow();
+          long startFind = Debug.timeNow();
           finders.get(nCall).findAll(pattern);
           if (finders.get(nCall).hasNext()) {
-            duration = Commons.timeSince(startFind);
+            duration = Debug.timeSince(startFind);
           }
         }
         return new Object[]{nCall, Long.valueOf(duration)};
@@ -766,7 +766,7 @@ public abstract class Element {
     }
 
     List<Future<Object[]>> fResults = new ArrayList<>();
-    startSearch = Commons.timeNow();
+    startSearch = Debug.timeNow();
     while (true) {
       try {
         fResults = executorService.invokeAll(callableTasks);
@@ -785,7 +785,7 @@ public abstract class Element {
           e.printStackTrace();
         }
       }
-      durationAll = Commons.timeSince(startSearch);
+      durationAll = Debug.timeSince(startSearch);
       if (maxDuration > 0) {
         break;
       }
@@ -852,7 +852,7 @@ public abstract class Element {
       }
       boolean findingText = false;
       String someText = "";
-      findTime = Commons.timeNow();
+      findTime = Debug.timeNow();
       searchTime = findTime;
       if (target instanceof String) {
         if (((String) target).startsWith("\t") && ((String) target).endsWith("\t")) {
@@ -882,7 +882,7 @@ public abstract class Element {
       } else {
         throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
       }
-      searchTime = Commons.timeSince(searchTime);
+      searchTime = Debug.timeSince(searchTime);
       boolean shouldRepeat = false;
       if (findtype.equals(FINDTYPE.VANISH)) {
         shouldRepeat = finder.hasNext();
@@ -898,7 +898,7 @@ public abstract class Element {
         rf.repeat(findTimeout);
         searchTime = rf.getSearchTime();
       }
-      findTime = Commons.timeSince(findTime);
+      findTime = Debug.timeSince(findTime);
       if (findtype.equals(FINDTYPE.VANISH)) {
         break;
       }
@@ -1026,12 +1026,12 @@ public abstract class Element {
       findTimeout = timeout;
       int MaxTimePerScan = (int) (1000.0 / waitScanRate);
       int timeoutMilli = (int) (timeout * 1000);
-      long begin_t = Commons.timeNow();
+      long begin_t = Debug.timeNow();
       boolean success = false;
       do {
-        long before_find = Commons.timeNow();
+        long before_find = Debug.timeNow();
         run();
-        findTime = Commons.timeSince(before_find);
+        findTime = Debug.timeSince(before_find);
         if (isSuccessful()) {
           success = true;
           break;
@@ -1041,7 +1041,7 @@ public abstract class Element {
         if (null != shouldStop && shouldStop.get()) {
           break;
         }
-        long after_find = Commons.timeNow();
+        long after_find = Debug.timeNow();
         if (after_find - before_find < MaxTimePerScan) {
           try {
             Thread.sleep(MaxTimePerScan - (after_find - before_find));
@@ -1055,7 +1055,7 @@ public abstract class Element {
             break;
           }
         }
-      } while (begin_t + timeout * 1000 > Commons.timeNow());
+      } while (begin_t + timeout * 1000 > Debug.timeNow());
       return success;
     }
   }
@@ -1072,9 +1072,9 @@ public abstract class Element {
     @Override
     public void run() {
       _finder.newShot();
-      long start = Commons.timeNow();
+      long start = Debug.timeNow();
       _finder.findAllRepeat();
-      searchTime = Commons.timeSince(start);
+      searchTime = Debug.timeSince(start);
     }
 
     @Override

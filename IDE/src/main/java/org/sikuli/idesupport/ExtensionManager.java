@@ -87,7 +87,7 @@ public class ExtensionManager {
       sxExtensions.mkdir();
     }
     if (!sxExtensions.exists()) {
-      Commons.info("folder extension not available: %s", sxExtensions);
+      Debug.info("folder extension not available: %s", sxExtensions);
       extensionsOK = false;
     }
 
@@ -107,9 +107,9 @@ public class ExtensionManager {
         for (File fJar : sxFolderList) {
           try {
             Files.move(fJar.toPath(), sxExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
-            Commons.info("moving to extensions: %s", fJar);
+            Debug.info("moving to extensions: %s", fJar);
           } catch (IOException e) {
-            Commons.error("moving to extensions: %s (%s)", fJar, e.getMessage());
+            Debug.error("moving to extensions: %s (%s)", fJar, e.getMessage());
           }
         }
       }
@@ -134,7 +134,7 @@ public class ExtensionManager {
               jrubyReady = true;
             }
           } else if (pExtension.contains("py4j")) {
-            Commons.error("Extension: py4j: not supported");
+            Debug.error("Extension: py4j: not supported");
             continue;
           } else {
             if (extensionClassPath.contains(pExtension)) {
@@ -145,7 +145,7 @@ public class ExtensionManager {
             extensionClassPath += separator;
           }
           extensionClassPath += pExtension;
-          Commons.info("adding extension file: %s", fExtension);
+          Debug.info("adding extension file: %s", fExtension);
         }
       }
     }
@@ -193,12 +193,12 @@ public class ExtensionManager {
         sxExtensionsFileContent.add(line);
       }
       if (sxExtensionsFileContent.size() > 0) {
-        Commons.info("extensions.txt\n%s", extlines.trim());
+        Debug.info("extensions.txt\n%s", extlines.trim());
       }
     }
     if (sxExtensionsFileContent.size() == 0) {
       if (!afterStart) {
-        Commons.info("no extensions.txt nor valid content");
+        Debug.info("no extensions.txt nor valid content");
       }
       return;
     }
@@ -216,13 +216,13 @@ public class ExtensionManager {
       File extFile = new File(extPath);
       if (extFile.isAbsolute()) {
         if (!extFile.exists() || !extFile.getName().endsWith(".jar")) {
-          Commons.error("extension path not valid: %s", line);
+          Debug.error("extension path not valid: %s", line);
           continue;
         }
       } else {
         extFile = new File(sxExtensions, extFile.getPath());
         if (!extFile.exists() || !extFile.getName().endsWith(".jar")) {
-          Commons.error("extension path not valid: %s", line);
+          Debug.error("extension path not valid: %s", line);
           continue;
         }
       }
@@ -232,7 +232,7 @@ public class ExtensionManager {
             continue;
           }
           if (!extFile.getName().endsWith(".jar")) {
-            Commons.error("Jython: extension is not jar: %s", line); //TODO search jar
+            Debug.error("Jython: extension is not jar: %s", line); //TODO search jar
             continue;
           }
           jythonReady = true;
@@ -243,7 +243,7 @@ public class ExtensionManager {
             continue;
           }
           if (!extFile.getName().endsWith(".jar")) {
-            Commons.error("JRuby: extension is not jar: %s", line); //TODO search jar
+            Debug.error("JRuby: extension is not jar: %s", line); //TODO search jar
             continue;
           }
           jrubyReady = true;
@@ -255,14 +255,14 @@ public class ExtensionManager {
           }
           if (extFile.isAbsolute()) {
             if (extFile.exists()) {
-              Commons.info("Python available at: %s", extPath);
+              Debug.info("Python available at: %s", extPath);
               python = extPath;
             }
           } else {
             String runOut = ProcessRunner.run(extPath, "-V");
             if (runOut.startsWith("0\n")) {
               python = extPath;
-              Commons.info("Python available as command: %s (%s)", extPath, runOut.substring(2));
+              Debug.info("Python available as command: %s (%s)", extPath, runOut.substring(2));
             }
           }
           continue;
@@ -273,7 +273,7 @@ public class ExtensionManager {
           extensionClassPath += File.pathSeparator;
         }
         extensionClassPath += new File(extPath).getAbsolutePath();
-        Commons.info("adding extension entry: %s", extPath);
+        Debug.info("adding extension entry: %s", extPath);
       }
     }
   }

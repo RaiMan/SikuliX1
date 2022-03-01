@@ -44,7 +44,7 @@ public class Sikulix {
         try {
           testRun(arg);
         } catch (Exception e) {
-          Commons.error("%s", e);
+          Debug.error("%s", e);
           System.exit(1);
         }
 
@@ -86,7 +86,7 @@ public class Sikulix {
       Region reg = new Region(35, 0, 100, 25);
       Image image = Image.get(reg);
       String text = image.text();
-      Commons.info("testxxx: %s", text);
+      Debug.info("testxxx: %s", text);
     }
 
     if ("find".equals(arg)) {

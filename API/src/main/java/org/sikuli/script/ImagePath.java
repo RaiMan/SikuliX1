@@ -171,7 +171,7 @@ public class ImagePath {
 
   private static void bundlePathValid(PathEntry entry) {
     if (!isBundlePathSupported() && !entry.isFile()) {
-      Commons.error("Not supported as BundlePath: %s", entry.getURL());
+      Debug.error("Not supported as BundlePath: %s", entry.getURL());
     }
   }
   //</editor-fold>
@@ -338,7 +338,7 @@ public class ImagePath {
     if (path == null) {
       return null;
     }
-    // Commons.debug("*** ImagePath::getPathEntry: %s", path); //TODO
+    // Debug.log(3, "*** ImagePath::getPathEntry: %s", path); //TODO
     PathEntry pathEntry = null;
     String special = null;
     if (null != path) {
@@ -367,7 +367,7 @@ public class ImagePath {
     if (special != null) {
       pathEntry.path = special;
     }
-    //Commons.debug("ImagePath::getPathEntry returns: %s", pathEntry); //TODO
+    //Debug.log(3, "ImagePath::getPathEntry returns: %s", pathEntry); //TODO
     return pathEntry;
   }
 
@@ -399,9 +399,9 @@ public class ImagePath {
       }
     }
     URL pathURL = Commons.makeURL(mainPath, altPathOrFolder); // createPathEntry
-    //Commons.debug("createPathEntry: mainPath: %s", mainPath); //TODO
+    //Debug.log(3, "createPathEntry: mainPath: %s", mainPath); //TODO
     PathEntry pathEntry = new PathEntry(mainPath, altPathOrFolder, pathURL);
-    //Commons.debug("createPathEntry returns: pathEntry: %s", pathEntry); //TODO
+    //Debug.log(3, "createPathEntry returns: pathEntry: %s", pathEntry); //TODO
     return pathEntry;
   }
 

@@ -81,7 +81,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   protected void doInit(String[] param) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      Commons.addlog("JythonRunner: starting initialization");
+      Debug.addlog("JythonRunner: starting initialization");
 
       jythonSupport = JythonSupport.get();
       if (jythonSupport.isReady()) {
@@ -97,9 +97,9 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
         if (interpreterVersion.isEmpty()) {
           interpreterVersion = "could not be evaluated";
         }
-        Commons.addlog("Jython ready: version %s", interpreterVersion);
+        Debug.addlog("Jython ready: version %s", interpreterVersion);
       } else {
-        Commons.error("Jython not ready --- scripts cannot be run");
+        Debug.error("Jython not ready --- scripts cannot be run");
       }
       SikulixIDE.isRunnerReady(true);
     }

@@ -11,7 +11,7 @@ import java.util.List;
 public class SikulixEvaluate {
   public static void main(String[] args) {
     if (args.length == 0) {
-      Commons.info("SikulixEvaluate: Nothing to do!");
+      Debug.info("SikulixEvaluate: Nothing to do!");
       return;
     }
     if ("test".equals(args[0])) {
@@ -27,7 +27,7 @@ public class SikulixEvaluate {
 //    Debug.off();
 //    Debug.on(3);
 
-    Commons.info("***** start of testing *****");
+    Debug.info("***** start of testing *****");
 
 //    Screen scr = new Screen();
 
@@ -70,7 +70,7 @@ public class SikulixEvaluate {
 //    url = Commons.makeURL("../API/target/sikulixapi-2.0.5.jar", "images");
 //    url = Commons.makeURL("../API/target/sikulixapi-2.0.5.jar!/images");
 //    url = Commons.makeURL("../API/target/sikulixapi-2.0.5.jar!/images", "subImages");
-//    Commons.info("%s", Commons.urlToFile(url));
+//    Debug.info("%s", Commons.urlToFile(url));
 //    url = Commons.makeURL("http://API/target/some.jar", "subImages");
 //    Commons.stopTrace();
 //    ImagePath.add(jar, "images");
@@ -79,13 +79,13 @@ public class SikulixEvaluate {
 //    ImagePath.dump(0);
 //    imageName = "img.png";
 //    url = ImagePath.find(imageName);
-//    Commons.info("%s url: %s", imageName, url);
+//    Debug.info("%s url: %s", imageName, url);
 //    imageName = "img1.png";
 //    url = ImagePath.find(imageName);
-//    Commons.info("%s url: %s", imageName, url);
+//    Debug.info("%s url: %s", imageName, url);
 //    imageName = "img2.png";
 //    url = ImagePath.find(imageName);
-//    Commons.info("%s url: %s", imageName, url);
+//    Debug.info("%s url: %s", imageName, url);
 //
 //    URL first = ImagePath.insert(classes);
 //    first = ImagePath.addBefore(jar, "images", first);
@@ -96,7 +96,7 @@ public class SikulixEvaluate {
 //    ImagePath.addJar(".", "images");
 //    ImagePath.dump(0);
 //    Image img1 = Image.create("img");
-//    Commons.info("%s (%s)", img1, img1.getURL());
+//    Debug.info("%s (%s)", img1, img1.getURL());
 //    ImagePath.add("sikulix.com:images", "moreImages");
 //    boolean has = ImagePath.has("sikulix.com:images", "moreImages");
 //    URL url = ImagePath.append("target/classes/images");
@@ -113,15 +113,15 @@ public class SikulixEvaluate {
 //    long time = new Date().getTime();
 //    scr.has(netImg);
 //    long lap = new Date().getTime() - time;
-//    Commons.info("%d", lap);
+//    Debug.info("%d", lap);
 //    scr.highlight(-2);
 //    time = new Date().getTime();
 //    scr.has(netImg);
 //    lap = new Date().getTime() - time;
-//    Commons.info("%d", lap);
+//    Debug.info("%d", lap);
 //    scr.highlight(-2);
 //    ImagePath.dump(0);
-//    Commons.info("%s (%s)", image, image.getURL());
+//    Debug.info("%s (%s)", image, image.getURL());
 
 //TEST: SX.pop... feature should return null, if timed out
 //    Object feedback = SX.popup("test timeout", 5);
@@ -149,7 +149,7 @@ public class SikulixEvaluate {
 //    Commons.printLog("%s", pat);
 
 //BREAKPOINT after test
-    Commons.info("***** end of testing *****");
+    Debug.info("***** end of testing *****");
   }
 //endregion
 }

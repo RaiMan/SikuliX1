@@ -33,7 +33,7 @@ public class Settings {
 
   public static void set(String fName, Object fValue) {
     if (!_FIELDS_LIST.containsKey(fName)) {
-      Commons.debug("Settings.%s: does not exist", fName);
+      Debug.log(3, "Settings.%s: does not exist", fName);
       return;
     }
     Field field = _FIELDS_LIST.get(fName);
@@ -68,11 +68,11 @@ public class Settings {
     }
     try {
       field.set(null, value);
-      Commons.debug("Settings.%s = %s", fName, value);
+      Debug.log(3, "Settings.%s = %s", fName, value);
     } catch (IllegalAccessException e) {
-      Commons.debug("Settings.%s = %s --- access not possible", fName, value);
+      Debug.log(3, "Settings.%s = %s --- access not possible", fName, value);
     } catch (IllegalArgumentException e) {
-      Commons.debug("Settings.%s = %s --- value not possible", fName, value);
+      Debug.log(3, "Settings.%s = %s --- value not possible", fName, value);
     }
   }
 

@@ -1745,10 +1745,10 @@ public class SXDialog extends JFrame {
         if (parts.length > 1) {
           what = parts[1].strip();
         } else {
-          Commons.error("ActionItem: show: no dialog");
+          Debug.error("ActionItem: show: no dialog");
         }
       } else {
-        Commons.error("ActionItem: not implemented: %s", aAction);
+        Debug.error("ActionItem: not implemented: %s", aAction);
       }
     }
 
@@ -1876,7 +1876,7 @@ public class SXDialog extends JFrame {
     BufferedImage img = null;
 
     ImageItem() {
-      Commons.error("ImageItem: no image given");
+      Debug.error("ImageItem: no image given");
     }
 
     ImageItem(URL url) {
@@ -1887,7 +1887,7 @@ public class SXDialog extends JFrame {
         }
       }
       if (img == null) {
-        Commons.error("ImageItem: %s", url);
+        Debug.error("ImageItem: %s", url);
       }
     }
 
