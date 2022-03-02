@@ -243,32 +243,32 @@ public class SikulixIDE extends JFrame {
   }
 
   private void startGUI() {
-    Debug.addlog("starting GUI");
+    Debug.log(-1, "", "starting GUI");
     setWindow();
 
     if (installCaptureHotkey()) {
-      Debug.addlog("IDE: Capture HotKey installed");
+      Debug.log(-1, "", "IDE: Capture HotKey installed");
     } else {
-      Debug.addlog("IDE: Capture HotKey not installed: %s", "PROBLEM?"); //TODO
+      Debug.log(-1, "", "IDE: Capture HotKey not installed: %s", "PROBLEM?"); //TODO
     }
     if (installStopHotkey()) {
-      Debug.addlog("IDE: Stop HotKey installed");
+      Debug.log(-1, "", "IDE: Stop HotKey installed");
     } else {
-      Debug.addlog("IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
+      Debug.log(-1, "", "IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
     }
 
     ideWindow.setSize(ideWindowRect.getSize());
     ideWindow.setLocation(ideWindowRect.getLocation());
 
-    Debug.addlog("Adding components to window");
+    Debug.log(-1, "", "Adding components to window");
     initMenuBars(ideWindow);
     final Container ideContainer = ideWindow.getContentPane();
     ideContainer.setLayout(new BorderLayout());
-    Debug.addlog("creating tabbed editor");
+    Debug.log(-1, "", "creating tabbed editor");
     initTabs();
-    Debug.addlog("creating message area");
+    Debug.log(-1, "", "creating message area");
     initMessageArea();
-    Debug.addlog("creating combined work window");
+    Debug.log(-1, "", "creating combined work window");
     JPanel codePane = new JPanel(new BorderLayout(10, 10));
     codePane.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     codePane.add(tabs, BorderLayout.CENTER);
@@ -280,23 +280,23 @@ public class SikulixIDE extends JFrame {
     mainPane.setResizeWeight(0.6);
     mainPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-    Debug.addlog("Putting all together");
+    Debug.log(-1, "", "Putting all together");
     JPanel editPane = new JPanel(new BorderLayout(0, 0));
 
     editPane.add(mainPane, BorderLayout.CENTER);
     ideContainer.add(editPane, BorderLayout.CENTER);
-    Debug.addlog("Putting all together - after main pane");
+    Debug.log(-1, "", "Putting all together - after main pane");
 
     JToolBar tb = initToolbar();
     ideContainer.add(tb, BorderLayout.NORTH);
-    Debug.addlog("Putting all together - after toolbar");
+    Debug.log(-1, "", "Putting all together - after toolbar");
 
     ideContainer.add(initStatusbar(), BorderLayout.SOUTH);
-    Debug.addlog("Putting all together - before layout");
+    Debug.log(-1, "", "Putting all together - before layout");
     ideContainer.doLayout();
     ideWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-    Debug.addlog("Putting all together - after layout");
+    Debug.log(-1, "", "Putting all together - after layout");
     initShortcutKeys();
     initWindowListener();
     initTooltip();
@@ -305,14 +305,14 @@ public class SikulixIDE extends JFrame {
     //TODO autoCheckUpdate();
 
     //waitPause();
-    Debug.addlog("Putting all together - Restore last Session");
+    Debug.log(-1, "", "Putting all together - Restore last Session");
     restoreSession(0);
     if (tabs.getTabCount() == 0) {
       newTabEmpty();
     }
     tabs.setSelectedIndex(0);
 
-    Debug.addlog("IDE ready: on Java %d",  Commons.getJavaVersion());
+    Debug.log(-1, "", "IDE ready: on Java %d",  Commons.getJavaVersion());
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }
@@ -514,9 +514,9 @@ public class SikulixIDE extends JFrame {
         File f = new File(loadScripts[i]);
         if (f.exists() && !filesToLoad.contains(f)) {
           if (f.getName().endsWith(".py")) {
-            Debug.addlog("Python script: %s", f.getName());
+            Debug.log(-1, "", "Python script: %s", f.getName());
           } else {
-            Debug.addlog("Sikuli script: %s", f);
+            Debug.log(-1, "", "Sikuli script: %s", f);
           }
           if (restoreScriptFromSession(f)) filesLoaded++;
         }

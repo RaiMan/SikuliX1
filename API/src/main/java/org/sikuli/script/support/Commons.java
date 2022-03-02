@@ -274,7 +274,7 @@ Software:
   //<editor-fold desc="01 trace">
   private static void printOut(String type, String msg, Object... args) {
     if (Debug.isIDEstarting()) {
-      Debug.addlog((type.isEmpty() ? "" : " " + type + ": ") + String.format(msg, args));
+      Debug.log(-1, "", (type.isEmpty() ? "" : " " + type + ": ") + String.format(msg, args));
       return;
     }
     String header = type.isEmpty() ? "" : "[SX" + type + "] ";

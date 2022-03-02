@@ -543,7 +543,7 @@ public class JythonSupport implements IRunnerSupport {
           if (sysPath.get(i).startsWith("__")) {
             continue;
           }
-          Debug.print("%2d: %s", i, sysPath.get(i));
+          Debug.log(-1, "", "%2d: %s", i, sysPath.get(i));
         }
       }
     }
