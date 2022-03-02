@@ -182,7 +182,7 @@ public class Sikulix {
       }
     }
 
-    Debug.log(-1, "", "IDE starting");
+    Debug.print("IDE starting");
 
     //TODO mouse not useable
     if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {

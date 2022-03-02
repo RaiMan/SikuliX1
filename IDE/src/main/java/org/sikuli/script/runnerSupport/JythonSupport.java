@@ -534,20 +534,19 @@ public class JythonSupport implements IRunnerSupport {
     }
   }
 
-  public void showSysPath() {
+  public void showSysPath() { //TODO
     synchronized (sysPath) {
-      if (Debug.is(lvl)) {
+      if (Debug.is(0)) {
         getSysPath();
         log(lvl, "***** sys.path");
         for (int i = 0; i < sysPath.size(); i++) {
           if (sysPath.get(i).startsWith("__")) {
             continue;
           }
-          Debug.log(-1, "", "%2d: %s", i, sysPath.get(i));
+          Debug.print(String.format("%2d: %s", i, sysPath.get(i)));
         }
       }
     }
-    Debug.print("");
   }
 
   public void addSitePackages() {

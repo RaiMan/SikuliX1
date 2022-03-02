@@ -66,11 +66,6 @@ public class Debug {
 
   static String IDE_START_LOG = "";
 
-  public static synchronized void addlog(String msg, Object... args) {
-    String header = String.format("[SXLOG %4.3f] ", Commons.getSinceStart());
-    IDE_START_LOG += String.format(header + msg, args) + System.lineSeparator();
-  }
-
   public static void runShutDown() {
     if (!IDE_START_LOG.isEmpty()) {
       File logFile = Commons.asFile(Commons.getUserHome(), "sikulixide_startlog.txt");
@@ -747,7 +742,8 @@ public class Debug {
           printout.println();
         } else {
           if (isIDEstarting()) {
-            addlog(prefix + sout);
+            String header = String.format("[SXLOG %4.3f] ", Commons.getSinceStart());
+            IDE_START_LOG += header + prefix + sout + System.lineSeparator();
           } else {
             System.out.println(prefix + sout);
           }

@@ -81,7 +81,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   protected void doInit(String[] param) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      Debug.log(-1, "", "JythonRunner: starting initialization");
+      Debug.print("JythonRunner: starting initialization");
 
       jythonSupport = JythonSupport.get();
       if (jythonSupport.isReady()) {
@@ -97,7 +97,8 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
         if (interpreterVersion.isEmpty()) {
           interpreterVersion = "could not be evaluated";
         }
-        //Debug.log(-1,  "", "Jython ready: version %s", interpreterVersion);
+        Debug.log(-1,  "", "Jython ready: version %s", interpreterVersion);
+        //Debug.print("Jython ready: version %s", interpreterVersion);
       } else {
         Debug.error("Jython not ready --- scripts cannot be run");
       }

@@ -272,16 +272,6 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="01 trace">
-  private static void printOut(String type, String msg, Object... args) {
-    if (Debug.isIDEstarting()) {
-      Debug.log(-1, "", (type.isEmpty() ? "" : " " + type + ": ") + String.format(msg, args));
-      return;
-    }
-    String header = type.isEmpty() ? "" : "[SX" + type + "] ";
-    String message = String.format(msg, args);
-    System.out.println(header + message);
-  }
-
   private static boolean traceEnterExit = false;
 
   public static boolean isTraceEnterExit() {
@@ -310,25 +300,20 @@ Software:
     trace = false;
   }
 
-  public static String trace() {
-    return trace(null);
-  }
-
-  public static String trace(String msg, Object... args) {
-    if (isTrace() || msg == null) {
+  public static String trace(String msg, Object... args) { //TODO
+    if (isTrace()) {
       int functionIndex = msg == null ? 3 : 2;
       StackTraceElement stackTrace = Thread.currentThread().getStackTrace()[functionIndex];
       String className = stackTrace.getFileName().replace(".java", "");
       String methodName = stackTrace.getMethodName();
       int lineNumber = stackTrace.getLineNumber();
-      printOut("", String.format("[%d_%s::%s] ", lineNumber, className, methodName));
+      Debug.print(String.format("[%d_%s::%s] ", lineNumber, className, methodName));
       if (msg != null && !msg.isEmpty()) {
         String out = String.format(msg, args);
         out = out.replace("\n\n", "\n");
         out = out.replace("\n\n", "\n");
-        printOut("", out);
+        Debug.print(out);
       }
-      printOut("", "\n");
       return methodName;
     }
     return "";
@@ -337,14 +322,14 @@ Software:
   public static String enter(String method, String parameter, Object... args) {
     String parms = String.format(parameter, args);
     if (isTraceEnterExit()) {
-      printOut("", "[TRACE enter] " + method + "(" + parms + ")%n");
+      Debug.print("[TRACE enter] " + method + "(" + parms + ")%n");
     }
     return "parameter(" + parms.replace("%", "%%") + ")";
   }
 
   public static void exit(String method, String returns, Object... args) {
     if (isTraceEnterExit()) {
-      printOut("", "[TRACE exit] " + method + ": " + returns + "%n", args);
+      Debug.print("[TRACE exit] " + method + ": " + returns + "%n", args);
     }
   }
   //</editor-fold>
