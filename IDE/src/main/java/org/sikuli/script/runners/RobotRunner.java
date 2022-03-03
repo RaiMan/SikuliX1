@@ -88,8 +88,7 @@ public class RobotRunner extends JythonRunner {
 
   @Override
   public boolean isSupported() {
-    File fLibRobot = new File(Commons.getLibFolder(), "robot");
-    return fLibRobot.exists();
+    return true;
   }
 
   @Override

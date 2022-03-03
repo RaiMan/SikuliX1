@@ -67,7 +67,7 @@
     </dependency>
     <dependency>
       <groupId>org.python</groupId>
-      <artifactId>jython-slim</artifactId>
+      <artifactId>jython-standalone</artifactId>
       <version>${sikulixjythonversion}</version>
 <!--      <optional>true</optional>-->
     </dependency>
