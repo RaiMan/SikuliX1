@@ -536,7 +536,7 @@ public class JythonSupport implements IRunnerSupport {
 
   public void showSysPath() { //TODO
     synchronized (sysPath) {
-      if (Debug.is(0)) {
+      if (Debug.isVerbose()) {
         getSysPath();
         log(lvl, "***** sys.path");
         for (int i = 0; i < sysPath.size(); i++) {

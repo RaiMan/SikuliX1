@@ -102,6 +102,7 @@ public class SikulixIDE extends JFrame {
     while (!isRunnerReady()) {
       Commons.pause(0.3);
     }
+    Debug.print(JythonRunner.version);
     showAfterStart();
   }
 
@@ -217,6 +218,7 @@ public class SikulixIDE extends JFrame {
         editorPane.requestFocusInWindow();
       } catch (Exception e) {
       }
+      Commons.show();
       Debug.isIDEstarting(false);
       get()._inited = true;
     }
@@ -243,7 +245,7 @@ public class SikulixIDE extends JFrame {
   }
 
   private void startGUI() {
-    Debug.print("starting GUI");
+    Debug.print("IDE: starting GUI");
     setWindow();
 
     if (installCaptureHotkey()) {
@@ -260,15 +262,15 @@ public class SikulixIDE extends JFrame {
     ideWindow.setSize(ideWindowRect.getSize());
     ideWindow.setLocation(ideWindowRect.getLocation());
 
-    Debug.print("Adding components to window");
+    Debug.print("IDE: Adding components to window");
     initMenuBars(ideWindow);
     final Container ideContainer = ideWindow.getContentPane();
     ideContainer.setLayout(new BorderLayout());
-    Debug.print("creating tabbed editor");
+    Debug.print("IDE: creating tabbed editor");
     initTabs();
-    Debug.print("creating message area");
+    Debug.print("IDE: creating message area");
     initMessageArea();
-    Debug.print("creating combined work window");
+    Debug.print("IDE: creating combined work window");
     JPanel codePane = new JPanel(new BorderLayout(10, 10));
     codePane.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     codePane.add(tabs, BorderLayout.CENTER);
@@ -280,23 +282,23 @@ public class SikulixIDE extends JFrame {
     mainPane.setResizeWeight(0.6);
     mainPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-    Debug.print("Putting all together");
+    Debug.print("IDE: Putting all together");
     JPanel editPane = new JPanel(new BorderLayout(0, 0));
 
     editPane.add(mainPane, BorderLayout.CENTER);
     ideContainer.add(editPane, BorderLayout.CENTER);
-    Debug.print("Putting all together - after main pane");
+    Debug.print("IDE: Putting all together - after main pane");
 
     JToolBar tb = initToolbar();
     ideContainer.add(tb, BorderLayout.NORTH);
-    Debug.print("Putting all together - after toolbar");
+    Debug.print("IDE: Putting all together - after toolbar");
 
     ideContainer.add(initStatusbar(), BorderLayout.SOUTH);
-    Debug.print("Putting all together - before layout");
+    Debug.print("IDE: Putting all together - before layout");
     ideContainer.doLayout();
     ideWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-    Debug.print("Putting all together - after layout");
+    Debug.print("IDE: Putting all together - after layout");
     initShortcutKeys();
     initWindowListener();
     initTooltip();
@@ -305,7 +307,7 @@ public class SikulixIDE extends JFrame {
     //TODO autoCheckUpdate();
 
     //waitPause();
-    Debug.print("Putting all together - Restore last Session");
+    Debug.print("IDE: Putting all together - Restore last Session");
     restoreSession(0);
     if (tabs.getTabCount() == 0) {
       newTabEmpty();
@@ -505,7 +507,7 @@ public class SikulixIDE extends JFrame {
         }
       }
     }
-    if (loadScripts != null && loadScripts.length > 0) {
+    if (loadScripts != null && loadScripts.length > 0) { //TODO
       log(3, "Preload given scripts");
       for (int i = 0; i < loadScripts.length; i++) {
         if (loadScripts[i].isEmpty()) {
@@ -514,9 +516,9 @@ public class SikulixIDE extends JFrame {
         File f = new File(loadScripts[i]);
         if (f.exists() && !filesToLoad.contains(f)) {
           if (f.getName().endsWith(".py")) {
-            Debug.print("Python script: %s", f.getName());
+            Debug.print("IDE: loadScripts: Python script: %s", f.getName());
           } else {
-            Debug.print("Sikuli script: %s", f);
+            Debug.print("IDE: loadScripts: Sikuli script: %s", f);
           }
           if (restoreScriptFromSession(f)) filesLoaded++;
         }

@@ -66,6 +66,14 @@ public class Debug {
 
   static String IDE_START_LOG = "";
 
+  public static String getIdeStartLog() {
+    return IDE_START_LOG;
+  }
+
+  public static String printIdeStartLog() {
+    return print(IDE_START_LOG);
+  }
+
   public static void runShutDown() {
     if (!IDE_START_LOG.isEmpty()) {
       File logFile = Commons.asFile(Commons.getUserHome(), "sikulixide_startlog.txt");
@@ -698,13 +706,11 @@ public class Debug {
   }
 
   public static String print(String msg, Object... args) {
-    String out;
+    String out = msg;
     if (args != null && args.length > 0) {
       out = String.format(msg, args);
-    } else {
-      out = msg;
     }
-    log(-1, "", msg);
+    log(-1, "", out);
     return out;
   }
 
