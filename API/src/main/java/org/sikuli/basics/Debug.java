@@ -99,8 +99,6 @@ public class Debug {
     return new Date().getTime() - start;
   }
 
-  private static int DEBUG_LEVEL = 0;
-
   private static PrintStream printout = null;
   private static PrintStream printoutuser = null;
 
@@ -524,21 +522,12 @@ public class Debug {
   //</editor-fold>
 
   //<editor-fold desc="debug level">
+  private static int DEBUG_LEVEL = 0;
 
   /**
    * @return current debug level
    */
   public static int getDebugLevel() {
-    return DEBUG_LEVEL;
-  }
-
-  /**
-   * set debug level to default level
-   *
-   * @return default level
-   */
-  public static int setDebugLevel() {
-    setDebugLevel(0);
     return DEBUG_LEVEL;
   }
 
@@ -560,10 +549,6 @@ public class Debug {
     setDebugLevel(level);
   }
 
-  public static void on(String level) {
-    setDebugLevel(level);
-  }
-
   public static boolean is(int level) {
     return DEBUG_LEVEL >= level;
   }
@@ -574,23 +559,6 @@ public class Debug {
 
   public static void off() {
     setDebugLevel(0);
-  }
-
-  /**
-   * set debug level to given number value as string (ignored if invalid)
-   *
-   * @param level valid number string
-   */
-  public static void setDebugLevel(String level) {
-    try {
-      DEBUG_LEVEL = Integer.parseInt(level);
-      if (DEBUG_LEVEL > 0) {
-        Settings.DebugLogs = true;
-      } else {
-        Settings.DebugLogs = false;
-      }
-    } catch (NumberFormatException e) {
-    }
   }
 
   public static void reset() {

@@ -3,6 +3,8 @@
  */
 package org.sikuli.hotkey;
 
+import org.sikuli.basics.Debug;
+
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
@@ -467,15 +469,15 @@ public class Keys {
 
   public static void dump() {
     Map<String, Integer> sortedNames = new TreeMap<String, Integer>(keyTexts);
-    System.out.println("[info] Key: dump keynames (tokens) used with Region write");
-    System.out.println("[info] Token to use --- KeyEvent::keycode --- KeyEvent::keyname");
+    Debug.print("[info] Key: dump keynames (tokens) used with Region write");
+    Debug.print("[info] Token to use --- KeyEvent::keycode --- KeyEvent::keyname");
     int keyN;
     for (String key : sortedNames.keySet()) {
       keyN = sortedNames.get(key);
       if (keyN < 1) {
         continue;
       }
-      System.out.println(String.format("%s = %d (%s)", key, keyN, namesVK.get(keyN)));
+      Debug.print(String.format("%s = %d (%s)", key, keyN, namesVK.get(keyN)));
     }
   }
 
