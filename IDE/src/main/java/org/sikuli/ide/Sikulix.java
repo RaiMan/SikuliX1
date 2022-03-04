@@ -55,10 +55,11 @@ public class Sikulix {
 
     if (Commons.hasStartArg(QUIET)) {
       Debug.setQuiet();
-    } else if (Commons.hasStartArg(VERBOSE)) {
+    } else if (Commons.hasStartArg(VERBOSE) || Commons.hasStartArg(DEBUG)) {
       Debug.setVerbose();
-    } else if (Commons.hasStartArg(DEBUG)) {
-      Debug.setVerbose();
+    }
+    if (Commons.hasStartArg(CONSOLE)) {
+      Debug.setConsole();
     }
 
     if (Commons.hasStartArg(APPDATA)) {

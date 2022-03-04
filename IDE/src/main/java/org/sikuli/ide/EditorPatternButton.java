@@ -181,7 +181,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Debug.log(3, "ThumbButtonLabel: open Pattern Settings");
+        Debug.log(4, "ThumbButtonLabel: open Pattern Settings");
         _pane.saveCaretPosition();
         if (usePreWin) {
             Map<String, Object> options = new HashMap<>();
@@ -318,7 +318,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
     public boolean setParameters(boolean exact, double similarity) {
         boolean dirty = false;
-        Debug.log(3, "ThumbButtonLabel: setParameters: " + exact + "," + similarity);
+        Debug.log(4, "ThumbButtonLabel: setParameters: " + exact + "," + similarity);
         dirty |= setExact(exact);
         dirty |= setSimilarity(similarity);
         setButtonText();
@@ -368,7 +368,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     }
 
     public boolean setTargetOffset(Location offset) {
-        Debug.log(3, "ThumbButtonLabel: setTargetOffset: " + offset.toStringShort());
+        Debug.log(4, "ThumbButtonLabel: setTargetOffset: " + offset.toStringShort());
         if (!_offset.equals(offset)) {
             _offset = offset;
             setButtonText();

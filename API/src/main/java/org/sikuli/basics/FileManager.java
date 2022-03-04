@@ -696,10 +696,9 @@ public class FileManager {
       if (path.startsWith("./")) {
         path = path.substring(2);
       }
-      log(lvl, "slashify: file: %s", path);
+      log(lvl + 1, "slashify: file: %s", path);
       return path;
     } else {
-      log(lvl, "slashify: file: null");
       return "";
     }
   }

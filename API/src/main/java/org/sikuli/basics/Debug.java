@@ -53,6 +53,16 @@ public class Debug {
   public static boolean isQuiet() {
     return quiet;
   }
+
+  static boolean console = false;
+
+  public static void setConsole() {
+    console = true;
+  }
+
+  public static boolean isConsole() {
+    return console;
+  }
   //</editor-fold>
 
   private static boolean ideIsStarting = false;
@@ -747,7 +757,7 @@ public class Debug {
           printout.print(prefix + sout);
           printout.println();
         } else {
-          if (isIDEstarting()) {
+          if (!isConsole() && isIDEstarting()) {
             String header = String.format("[SXLOG %4.3f] ", Commons.getSinceStart());
             IDE_START_LOG += header + prefix + sout + System.lineSeparator();
           } else {

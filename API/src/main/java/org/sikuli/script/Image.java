@@ -981,7 +981,7 @@ public class Image extends Element {
         image.setIsAbsolute(imageFile.isAbsolute());
       } else {
         if (image.bimg != null) {
-          log(3, "reused: %s (%s)", image.getName(), image.fileURL);
+          log(logLevel + 1, "reused: %s (%s)", image.getName(), image.fileURL);
         } else {
           if (Settings.getImageCache() > 0) {
             image.load();
@@ -1013,13 +1013,13 @@ public class Image extends Element {
         w = bImage.getWidth();
         h = bImage.getHeight();
         bsize = bImage.getData().getDataBuffer().getSize();
-        log(logLevel, "loaded: %s (%s)", getName(), fileURL);
+        log(logLevel + 1, "loaded: %s (%s)", getName(), fileURL);
         if (isCaching()) {
           int maxMemory = Settings.getImageCache() * MB;
           currentMemoryUp(bsize);
           bimg = bImage;
           images.add(this);
-          log(logLevel, "cached: %s (%d KB) (# %d KB %d -- %d %% of %d MB)",
+          log(logLevel + 1, "cached: %s (%d KB) (# %d KB %d -- %d %% of %d MB)",
               getName(), getKB(),
               images.size(), (int) (currentMemory / KB),
               (int) (100 * currentMemory / maxMemory), (int) (maxMemory / MB));
