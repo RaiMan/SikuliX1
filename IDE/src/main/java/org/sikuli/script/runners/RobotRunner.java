@@ -3,15 +3,13 @@
  */
 package org.sikuli.script.runners;
 
-import java.io.File;
-
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.App;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+
+import java.io.File;
 
 public class RobotRunner extends JythonRunner {
 
@@ -22,6 +20,13 @@ public class RobotRunner extends JythonRunner {
   @Override
   protected int doEvalScript(String code, IScriptRunner.Options options) {
     boolean showReport = true;
+    Object version = null;
+    try {
+      jythonSupport.interpreterExecString("import robot");
+      version = "" + jythonSupport.interpreterEval("robot.version.get_version()");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     if (code.length() > 7 && code.substring(0, 7).contains("silent\n")) {
       code = code.substring(7);
       showReport = false;
@@ -113,7 +118,6 @@ public class RobotRunner extends JythonRunner {
     if (null != Settings.BundlePath) {
       jythonSupport.appendSysPath(new File(Settings.BundlePath).getParent());
     }
-    jythonSupport.interpreterExecString("import robot");
   }
 
   /*
