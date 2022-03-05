@@ -40,7 +40,7 @@ public static void main(String[] args) throws FindFailed {
 	}
 
 	private void tearDown() {
-		System.out.println(guide.showNow(2f));
+		System.out.println(guide.showNow(2f)); //OK
 		guide = null;
 	}
 

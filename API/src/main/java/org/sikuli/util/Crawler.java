@@ -26,7 +26,7 @@ public class Crawler {
     if (message.isEmpty()) {
       message = "%s";
     }
-    System.out.println(String.format(message, args));
+    System.out.println(String.format(message, args)); //OK
   }
 
   static String className = "";

@@ -29,14 +29,14 @@ public class Sikulix {
     Commons.init();
     System.setProperty("sikuli.API_should_run", "develop");
     if (args.length == 1 && "buildDate".equals(args[0])) {
-      System.out.println(Commons.getSxBuildStamp());
+      System.out.println(Commons.getSxBuildStamp()); //OK
       System.exit(0);
     }
 
 //TODO place to test something in the API context
     if (args.length == 1) {
-      print("BuildStamp: %s", Commons.getSXBuild());
-      print("osVersion: %s", Commons.getOSInfo());
+      Debug.print("BuildStamp: %s", Commons.getSXBuild());
+      Debug.print("osVersion: %s", Commons.getOSInfo());
 
       String arg = args[0];
       if (arg.startsWith("test")) {
@@ -75,9 +75,9 @@ public class Sikulix {
 
       List<Region> windows = app.windows();
       //app.window(0).highlight(2);
-      print("app.getTitle(): %s", app.getTitle());
+      Debug.print("app.getTitle(): %s", app.getTitle());
       for (Region w : windows) {
-        print(w.getName());
+        Debug.print(w.getName());
       }
     }
 
@@ -139,12 +139,6 @@ public class Sikulix {
 
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, "Sikulix: " + message, args);
-  }
-
-  public static String print(String msg, Object... args) {
-    String outMsg = String.format(msg, args);
-    System.out.println(outMsg);
-    return outMsg;
   }
   //</editor-fold>
 

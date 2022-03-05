@@ -378,7 +378,7 @@ Software:
         try {
           Devices.start(Devices.TYPE.MOUSE);
         } catch (Exception e) {
-          System.out.println("");
+          Debug.error("Start MouseDevice: %s", e.getMessage());
         }
       }
     });
@@ -406,13 +406,13 @@ Software:
       pause(0.5); //Windows: wait for threaded Mouse check
     }
     if (!MouseDevice.isUseable()) {
-      System.out.println( //TODO mouse blocked message
+      Debug.print( //TODO mouse blocked message
           "*****************************************************\n" +
               "    Mouse/Key features are blocked - not useable\n" +
               "*****************************************************");
     }
     if (!ScreenDevice.isUseable()) {
-      System.out.println( //TODO screenshots blocked message
+      Debug.print( //TODO screenshots blocked message
           "*****************************************************\n" +
               "  Screenshots blocked - find on screen not useable\n" +
               "*****************************************************");

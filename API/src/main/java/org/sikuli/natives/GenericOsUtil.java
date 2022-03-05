@@ -6,6 +6,7 @@ package org.sikuli.natives;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.sikuli.basics.Debug;
 
 import java.io.File;
 import java.util.List;
@@ -109,7 +110,7 @@ public abstract class GenericOsUtil implements OSUtil {
         return new GenericOsProcess(pHandle);
       }
     } catch (Exception e) {
-      System.out.println("[error] GenericOSUtil.open:\n" + e.getMessage());
+      Debug.error("GenericOSUtil.open:\n" + e.getMessage());
       return null;
     }
   }
