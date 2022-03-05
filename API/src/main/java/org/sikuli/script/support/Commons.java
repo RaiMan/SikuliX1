@@ -1775,6 +1775,7 @@ Software:
     Debug.print("ON  : %s", Commons.getOSInfo());
     Debug.print("JAVA: %s", Commons.getJavaInfo());
     Debug.print("FROM: %s (%s)", getMainClassLocation(), getStartClass().getCanonicalName());
+    Debug.print("LOCALE: %s", Commons.getLocale());
     Debug.print("APP_DATA: %s", Commons.getAppDataPath());
     Debug.print("WORK_DIR: %s", Commons.getWorkDir());
     Debug.print("USER.HOME: %s", Commons.getUserHome());
