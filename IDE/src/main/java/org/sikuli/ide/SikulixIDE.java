@@ -59,6 +59,7 @@ public class SikulixIDE extends JFrame {
 
   static PreferencesUser prefs;
   static Rectangle ideWindowRect = null;
+
   public static Rectangle getWindowRect() {
     prefs = PreferencesUser.get();
     if (prefs.getUserType() < 0) {
@@ -224,6 +225,7 @@ public class SikulixIDE extends JFrame {
       if (Debug.isVerbose()) {
         Commons.show();
       }
+      Debug.getIdeStartLog();
       get()._inited = true;
     }
   }
@@ -249,7 +251,7 @@ public class SikulixIDE extends JFrame {
   }
 
   private void startGUI() {
-    log(3,"starting GUI");
+    log(3, "starting GUI");
     setWindow();
 
     if (installCaptureHotkey()) {
@@ -258,7 +260,7 @@ public class SikulixIDE extends JFrame {
       Debug.error("IDE: Capture HotKey not installed: %s", "PROBLEM?"); //TODO
     }
     if (installStopHotkey()) {
-      log(3,"Stop HotKey installed");
+      log(3, "Stop HotKey installed");
     } else {
       Debug.error("IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
     }
@@ -318,12 +320,11 @@ public class SikulixIDE extends JFrame {
     }
     tabs.setSelectedIndex(0);
 
-    Debug.log(3, "IDE ready: on Java %d",  Commons.getJavaVersion());
+    Debug.log(3, "IDE ready: on Java %d", Commons.getJavaVersion());
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }
   }
-
 
 
   private JSplitPane mainPane;
@@ -497,11 +498,11 @@ public class SikulixIDE extends JFrame {
           String shortName = fileToLoad.getName();
           if (fileToLoadClean.exists() && !filesToLoad.contains(fileToLoad)) {
             if (shortName.endsWith(".py")) {
-              log(3, "Restore Python script: %s", fileToLoad.getName());
+              log(4, "Restore Python script: %s", fileToLoad.getName());
             } else if (shortName.endsWith("###isText")) {
-              log(3, "Restore Text file: %s", fileToLoad.getName());
+              log(4, "Restore Text file: %s", fileToLoad.getName());
             } else {
-              log(3, "Restore Sikuli script: %s", fileToLoad);
+              log(4, "Restore Sikuli script: %s", fileToLoad);
             }
             filesToLoad.add(fileToLoad);
             if (restoreScriptFromSession(fileToLoad)) {
@@ -622,7 +623,7 @@ public class SikulixIDE extends JFrame {
         }
       }
     } else {
-      log(3, "selectFile: cancelled");
+      log(4, "selectFile: cancelled");
       removeCurrentTab();
       int alreadyOpen = tabs.getAlreadyOpen();
       if (alreadyOpen < 0) {
@@ -762,7 +763,7 @@ public class SikulixIDE extends JFrame {
   //<editor-fold desc="07 menu helpers">
   void recentAdd(String fPath) {
     if (Settings.experimental) {
-      log(3, "doRecentAdd: %s", fPath);
+      log(4, "doRecentAdd: %s", fPath);
       String fName = new File(fPath).getName();
       if (recentProjectsMenu.contains(fName)) {
         recentProjectsMenu.remove(fName);
@@ -803,39 +804,41 @@ public class SikulixIDE extends JFrame {
   }
 
   void openSpecial() {
-    log(lvl, "Open Special requested");
-    Map<String, String> specialFiles = new Hashtable<>();
-    specialFiles.put("1 SikuliX Settings & Options", Commons.getOptionFile().getAbsolutePath());
-    File extensionsFile = ExtensionManager.getExtensionsFile();
-    specialFiles.put("2 SikuliX Extensions Options", extensionsFile.getAbsolutePath());
+    log(lvl + 1, "Open Special requested");
+    List<String> specialFileNames = new ArrayList<>();
+    List<File> specialFiles = new ArrayList<>();
+
+    String SX_ADDITIONAL_SITES = "SikuliX Additional Sites";
     File sitesTxt = JythonSupport.getSitesTxt();
-    specialFiles.put("3 SikuliX Additional Sites", sitesTxt.getAbsolutePath());
-    String[] defaults = new String[specialFiles.size()];
-    defaults[0] = Options.getDefaultContent();
-    defaults[1] = ExtensionManager.getExtensionsFileDefault();
-    defaults[2] = JythonSupport.getSitesTxtDefault();
-    String msg = "";
-    int num = 1;
-    String[] files = new String[specialFiles.size()];
-    for (String specialFile : specialFiles.keySet()) {
-      files[num - 1] = specialFiles.get(specialFile).trim();
-      msg += specialFile + "\n";
-      num++;
+    specialFileNames.add(SX_ADDITIONAL_SITES);
+    specialFiles.add(sitesTxt);
+
+    String SX_START_LOG = "IDE start-up log";
+    File ideStartLog = Debug.getIdeStartLogFile();
+    if (null != ideStartLog) {
+      specialFileNames.add(SX_START_LOG);
+      specialFiles.add(ideStartLog);
     }
-    msg += "\n" + "Enter a number to select a file";
-    String answer = SX.input(msg, "Edit a special SikuliX file", false, 10);
-    if (null != answer && !answer.isEmpty()) {
-      try {
-        num = Integer.parseInt(answer.substring(0, 1));
-        if (num > 0 && num <= specialFiles.size()) {
-          String file = files[num - 1];
-          if (!new File(file).exists()) {
-            FileManager.writeStringToFile(defaults[num - 1], file);
-          }
-          log(lvl, "Open Special: should load: %s", file);
-          newTabWithContent(file);
+
+    String SX_SETTINGS_OPTIONS = "SikuliX Settings & Options";
+    File optFile = Commons.getOptionFile();
+    specialFileNames.add(SX_SETTINGS_OPTIONS);
+    specialFiles.add(optFile);
+
+    String selected = SX.popSelect("Select a special SikuliX file", "Edit a special SikuliX file", "", specialFileNames);
+    if (selected != null) {
+      Object selection = specialFiles.get(specialFileNames.indexOf(selected));
+      log(lvl, "Open Special: should load: %s", (selection == null ? selected : selection));
+      boolean success = true;
+      if (selected.equals(SX_ADDITIONAL_SITES)) {
+        if (!sitesTxt.exists()) {
+          success = FileManager.writeStringToFile(JythonSupport.getSitesTxtDefault(), (File) selection);
         }
-      } catch (NumberFormatException e) {
+      }
+      if (selection != null && success) {
+        newTabWithContent(((File) selection).getAbsolutePath());
+      } else {
+        log(-1, "Open Special: no avail: %s", (selection == null ? selected : selection));
       }
     }
   }
@@ -909,7 +912,7 @@ public class SikulixIDE extends JFrame {
     public void actionPerformed(ActionEvent e) {
       if (actMethod != null) {
         try {
-          log(3, "MenuAction." + action);
+          log(4, "MenuAction." + action);
           Object[] params = new Object[1];
           params[0] = e;
           actMethod.invoke(this, params);
@@ -1009,13 +1012,10 @@ public class SikulixIDE extends JFrame {
           new FileAction(FileAction.PREFERENCES)));
     }
 
-//TODO open special files needed?
-/*
     _fileMenu.addSeparator();
     _fileMenu.add(createMenuItem("Open Special Files",
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK | scMask),
         new FileAction(FileAction.OPEN_SPECIAL)));
-*/
 
 //TODO restart IDE
 /*
@@ -1086,7 +1086,7 @@ public class SikulixIDE extends JFrame {
 
     //TODO not used
     public void doRecent(ActionEvent ae) {
-      log(3, "doRecent: menuOpenRecent: %s", ae.getActionCommand());
+      log(4, "doRecent: menuOpenRecent: %s", ae.getActionCommand());
     }
 
     class OpenRecent extends MenuAction {
@@ -1907,15 +1907,13 @@ public class SikulixIDE extends JFrame {
       }
     }
 
-    boolean checkUpdate(boolean isAutoCheck) {
+    boolean checkUpdate(boolean isAutoCheck) { //TODO
       String ver = "";
       String details;
       AutoUpdater au = new AutoUpdater();
       PreferencesUser pref = PreferencesUser.get();
-      log(3, "being asked to check update");
       int whatUpdate = au.checkUpdate();
       if (whatUpdate >= AutoUpdater.SOMEBETA) {
-//TODO add Prefs wantBeta check
         whatUpdate -= AutoUpdater.SOMEBETA;
       }
       if (whatUpdate > 0) {
@@ -2055,7 +2053,7 @@ public class SikulixIDE extends JFrame {
     }
 
     boolean shouldRun() {
-      log(3, "TRACE: ButtonSubRegion triggered");
+      log(4, "ButtonSubRegion");
       if (Commons.isCaptureBlocked()) { // Button SubRegion
         Debug.error("FATAL: Capture is blocked");
         return false;
@@ -2200,7 +2198,7 @@ public class SikulixIDE extends JFrame {
               eval = "m = Screen.all().exists(" + item + ", 0); ";
               eval += "if (m != null) m.highlight(2);";
             }
-            log(3, "ButtonShow:\n%s", eval);
+            log(4, "ButtonShow:\n%s", eval);
             SikulixIDE.doShow();
           }
         }).start();
@@ -2227,7 +2225,7 @@ public class SikulixIDE extends JFrame {
 
     @Override
     public boolean shouldRun() {
-      log(3, "TRACE: ButtonShowIn triggered");
+      log(4, "ButtonShowIn");
       EditorPane codePane = getCurrentCodePane();
       String line = codePane.getLineTextAtCaret();
       item = codePane.parseLineText(line);
@@ -2264,7 +2262,7 @@ public class SikulixIDE extends JFrame {
         new Thread(new Runnable() {
           @Override
           public void run() {
-            log(3, "ButtonShowIn:\n%s", evalText);
+            log(4, "ButtonShowIn:\n%s", evalText);
             //TODO ButtonShowIn perform show
           }
         }).start();
@@ -2374,12 +2372,12 @@ public class SikulixIDE extends JFrame {
     void runCurrentScript() {
       log(4, "************** before RunScript");
       if (!trySaveScriptsBeforeRun()) {
-        log(3, "Run script cancelled or problems saving scripts");
+        log(-1, "Run script cancelled or problems saving scripts");
         return;
       }
       EditorPane editorPane = getCurrentCodePane();
       if (editorPane.getDocument().getLength() == 0) {
-        log(3, "Run script not possible: Script is empty");
+        log(-1, "Run script not possible: Script is empty");
         return;
       }
       File scriptFile = editorPane.getCurrentFile();
@@ -2418,10 +2416,10 @@ public class SikulixIDE extends JFrame {
                   + "\nYou may ignore this on your own risk!" +
                   "\nYes: continue  ---  No: back to IDE", "Fatal Error");
               if (!shouldContinue) {
-                log(3, "Run script aborted: System.out is broken (console output)");
+                log(-1, "Run script aborted: System.out is broken (console output)");
                 return;
               }
-              log(3, "Run script continued, though System.out is broken (console output)");
+              log(-1, "Run script continued, though System.out is broken (console output)");
             }
             sikulixIDE.setIsRunningScript(true);
           }
@@ -2688,7 +2686,7 @@ public class SikulixIDE extends JFrame {
 
   void onQuickCapture(String arg) {
     if (_inited) {
-      log(3, "QuickCapture");
+      log(4, "QuickCapture");
       _btnCapture.capture(0);
     }
   }

@@ -75,20 +75,28 @@ public class Debug {
   }
 
   static String IDE_START_LOG = "";
+  static File IDE_START_LOG_FILE = null;
 
   public static String getIdeStartLog() {
+    if (IDE_START_LOG_FILE == null & !isIDEstarting()) {
+      IDE_START_LOG_FILE = new File(Commons.getAppDataStore(), "SikulixIDEstartlog.txt");
+      if (!FileManager.writeStringToFile(IDE_START_LOG, IDE_START_LOG_FILE)) {
+        error("Debug::IDE_START_LOG_FILE: not saved (%s)", IDE_START_LOG_FILE);
+      }
+    }
     return IDE_START_LOG;
   }
 
+  public static File getIdeStartLogFile() {
+    return IDE_START_LOG_FILE;
+  }
+
   public static String printIdeStartLog() {
-    return print(IDE_START_LOG);
+    return print(getIdeStartLog());
   }
 
   public static void runShutDown() {
-    if (!IDE_START_LOG.isEmpty()) {
-      File logFile = Commons.asFile(Commons.getUserHome(), "sikulixide_startlog.txt");
-      FileManager.writeStringToFile(IDE_START_LOG, logFile);
-    }
+    //TODO DEBUG shutdown
   }
 
   public static long timeNow() {
