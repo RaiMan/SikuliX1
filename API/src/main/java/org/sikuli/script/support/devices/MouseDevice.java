@@ -2,6 +2,7 @@ package org.sikuli.script.support.devices;
 
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Location;
+import org.sikuli.script.support.Commons;
 
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,5 +76,17 @@ public class MouseDevice extends Devices {
     getMouseRobot().mouseMove(where.x, where.y);
     getMouseRobot().waitForIdle();
     return at();
+  }
+
+  public static boolean isMoving() {
+    PointerInfo mp = MouseInfo.getPointerInfo();
+    if (mp != null) {
+      Commons.pause(0.1);
+      Point before = mp.getLocation();
+      Point after = MouseInfo.getPointerInfo().getLocation();
+      return (before.x != after.x || before.y != after.y);
+    } else {
+      return false;
+    }
   }
 }
