@@ -56,7 +56,7 @@ public abstract class HotkeyManager {
     }
     int result = reset(hotkeys, isTerminating);
     if (result > 0) {
-      Debug.log(3, "HotkeyManager: reset: removed all user hotkeys.");
+      Debug.log(4, "HotkeyManager: reset: removed all user hotkeys.");
     }
     if (result < 0 && !isTerminating) {
       //RunTime.get().terminate(999, "HotkeyManager: reset: did not work");
@@ -67,7 +67,7 @@ public abstract class HotkeyManager {
     }
     result = reset(hotkeysGlobal, isTerminating);
     if (result > 0) {
-      Debug.log(3, "HotkeyManager: reset: removed all SikuliX hotkeys.");
+      Debug.log(4, "HotkeyManager: reset: removed all SikuliX hotkeys.");
     }
     if (isTerminating) {
       _instance.cleanUp();
@@ -182,7 +182,7 @@ public abstract class HotkeyManager {
     String txtMod = getKeyModifierText(mod);
     String txtCode = getKeyCodeText(key);
     String token = "" + key + mod;
-    Debug.log(3, "HotkeyManager: add %s Hotkey: %s %s (%d, %d)", hotkeyType, txtMod, txtCode, key, mod);
+    Debug.log(4, "HotkeyManager: add %s Hotkey: %s %s (%d, %d)", hotkeyType, txtMod, txtCode, key, mod);
     boolean checkGlobal = true;
     if (hotkeys.containsKey(token)) {
       res = _instance._removeHotkey(hotkeys.get(token)[0], hotkeys.get(token)[1]);
@@ -268,7 +268,7 @@ public abstract class HotkeyManager {
   private boolean uninstallHotkey(int key, int mod) {
     String txtMod = getKeyModifierText(mod);
     String txtCode = getKeyCodeText(key);
-    Debug.log("HotkeyManager: remove Hotkey: %s %s (%d, %d)", txtMod, txtCode, key, mod);
+    Debug.log(4,"HotkeyManager: remove Hotkey: %s %s (%d, %d)", txtMod, txtCode, key, mod);
     boolean res = _instance._removeHotkey(key, mod);
     if (res) {
       hotkeys.remove(key);

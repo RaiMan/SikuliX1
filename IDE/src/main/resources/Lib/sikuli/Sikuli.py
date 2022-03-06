@@ -9,7 +9,7 @@ class Debug(JDebug):
     pass
 
 
-Debug.log(3, "Jython: starting init")
+Debug.log(4, "Jython scripting support: starting init")
 import time
 # import __builtin__
 # import __main__
@@ -17,10 +17,10 @@ import sys
 import os
 import inspect
 
-# Debug.log(3, "Jython: sikuli: Sikuli: backports from Version 2: Do")
+Debug.log(4, "Jython: sikuli: Sikuli: backports from Version 2: Do")
 import org.sikuli.script.SX as Do
 
-# Debug.log(3, "Jython: sikuli: Sikuli: RunTime, Setting, Debug")
+Debug.log(4, "Jython: sikuli: Sikuli: import RunTime, Settings, Debug")
 import org.sikuli.script.support.RunTime as JRunTime
 
 
@@ -32,7 +32,7 @@ RUNTIME = JRunTime
 
 import org.sikuli.basics.Settings as Settings
 
-# Debug.log(3, "Jython: sikuli: Sikuli: constants")
+Debug.log(4, "Jython: sikuli: Sikuli: constants")
 import org.sikuli.script.FindFailed as FindFailed
 from org.sikuli.script.FindFailedResponse import *
 from org.sikuli.script.Constants import *
@@ -40,10 +40,10 @@ import org.sikuli.script.Button as Button
 from org.sikuli.script.Button import WHEEL_UP, WHEEL_DOWN
 from org.sikuli.basics import OS
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Region")
+Debug.log(4, "Jython: sikuli: Sikuli: import Region")
 from Region import *
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Screen")
+Debug.log(4, "Jython: sikuli: Sikuli: import Screen")
 # from Screen import *
 import org.sikuli.script.Screen as JScreen
 
@@ -70,10 +70,10 @@ def wait(target, timeout=None):
         return SCREEN.wait(target, timeout)
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import ScreenUnion")
+Debug.log(4, "Jython: sikuli: Sikuli: import ScreenUnion")
 # from org.sikuli.script import ScreenUnion
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Location, Offset")
+Debug.log(4, "Jython: sikuli: Sikuli: import Location, Offset")
 import org.sikuli.script.Location as JLocation
 
 
@@ -88,7 +88,7 @@ class Offset(JOffset):
     pass
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Finder")
+Debug.log(4, "Jython: sikuli: Sikuli: import Finder")
 import org.sikuli.script.Finder as JFinder
 
 
@@ -96,7 +96,7 @@ class Finder(JFinder):
     pass
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import TextRecognizer")
+Debug.log(4, "Jython: sikuli: Sikuli: import OCR")
 import org.sikuli.script.TextRecognizer as JTextOCR
 
 
@@ -111,7 +111,7 @@ class OCR(JOCR):
     pass
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Match")
+Debug.log(4, "Jython: sikuli: Sikuli: import Match")
 from org.sikuli.script import Match as JMatch
 
 
@@ -119,10 +119,10 @@ class Match(JMatch):
     pass
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import ImagePath")
+Debug.log(4, "Jython: sikuli: Sikuli: import ImagePath")
 from org.sikuli.script import ImagePath
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Pattern")
+Debug.log(4, "Jython: sikuli: Sikuli: import Pattern")
 from org.sikuli.script import Pattern as JPattern
 
 
@@ -130,7 +130,7 @@ class Pattern(JPattern):
     pass
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Image")
+Debug.log(4, "Jython: sikuli: Sikuli: import Image")
 import org.sikuli.script.Image as JImage
 
 
@@ -138,10 +138,10 @@ class Image(JImage):
     pass
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: Env.addHotkey")
+Debug.log(4, "Jython: sikuli: Sikuli: Env.addHotkey")
 from Env import *
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import App")
+Debug.log(4, "Jython: sikuli: Sikuli: import App")
 import org.sikuli.script.App as JApp
 
 
@@ -149,7 +149,7 @@ class App(JApp):
     pass
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import KeyBoard/Mouse")
+Debug.log(4, "Jython: sikuli: Sikuli: import KeyBoard/Mouse")
 from org.sikuli.script import Key as JKey
 
 
@@ -168,20 +168,21 @@ def at():
     return Mouse.at()
 
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import from compare")
+Debug.log(4, "Jython: sikuli: Sikuli: import from compare")
 from org.sikuli.script.compare import DistanceComparator
 from org.sikuli.script.compare import VerticalComparator
 from org.sikuli.script.compare import HorizontalComparator
 
-# Debug.log(3, "Jython: sikuli: Sikuli: init SikuliImporter")
+Debug.log(4, "Jython: sikuli: Sikuli: init SikuliImporter")
 import SikuliImporter
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Sikulix")
+Debug.log(4, "Jython: sikuli: Sikuli: import Sikulix")
 import org.sikuli.script.Sikulix as Sikulix
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import Runner")
+Debug.log(4, "Jython: sikuli: Sikuli: import Runner")
 import org.sikuli.script.runnerSupport.Runner as Runner
 
+Debug.log(4, "Jython: sikuli: Sikuli: import JythonHelper")
 import org.sikuli.script.runnerSupport.JythonSupport as JythonHelper
 
 
@@ -617,7 +618,7 @@ def vncStart(ip="127.0.0.1", port=5900, connectionTimeout=10, timeout=1000, pass
 #TODO convenience for an ADBScreen connection
 #TODO temporary switched off (2.0.6)
 
-# Debug.log(3, "Jython: sikuli: Sikuli: import ADBScreen")
+# Debug.log(4, "Jython: sikuli: Sikuli: import ADBScreen")
 # import org.sikuli.android.ADBScreen as JADBScreen
 #
 #
@@ -845,4 +846,4 @@ def _setSCREEN(scr, theGlobals):
 ############### set SCREEN as primary screen at startup ################
 ALL = JScreen.all().getRegion()
 resetToPrimaryScreen()
-Debug.log(3, "Jython: ending init")
+Debug.log(4, "Jython scripting support: ending init")

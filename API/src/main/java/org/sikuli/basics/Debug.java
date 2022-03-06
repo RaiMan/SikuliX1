@@ -726,10 +726,15 @@ public class Debug {
           printout.println();
         } else {
           if (!isConsole() && isIDEstarting()) {
-            String header = String.format("[SXLOG %4.3f] ", Commons.getSinceStart());
-            IDE_START_LOG += header + prefix + sout + System.lineSeparator();
+            IDE_START_LOG += (prefix.isEmpty() ? "" : String.format("[SXLOG %4.3f] ", Commons.getSinceStart()))
+                             + prefix + sout + System.lineSeparator();
           } else {
-            System.out.println(prefix + sout);
+            if (isIDEstarting()) {
+              System.out.println(
+                  (prefix.isEmpty() ? "" : String.format("[SXLOG %4.3f] ", Commons.getSinceStart())) + prefix + sout);
+            } else {
+              System.out.println(prefix + sout);
+            }
           }
         }
       }
