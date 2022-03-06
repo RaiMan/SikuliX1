@@ -89,7 +89,6 @@ public class Sikulix {
       PreferencesUser.get().remove("IDE_LOCATION");
       PreferencesUser.get().remove("IDE_SIZE");
       PreferencesUser.get().remove("IDE_SESSION");
-      PreferencesUser.get().remove("IDE_SESSION");
 
       System.exit(0);
     }
@@ -125,6 +124,7 @@ public class Sikulix {
     if (!popAnswer) {
       Commons.terminate(254, "User terminated IDE startup (Mouse/Screenshot blocked)");
     }
+
     if (Commons.hasStartArg(RUN)) {
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override
