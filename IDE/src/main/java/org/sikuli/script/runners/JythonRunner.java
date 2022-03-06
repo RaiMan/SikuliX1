@@ -25,9 +25,9 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   public static final String NAME = "Jython";
   public static final String TYPE = "text/jython";
   public static final String[] EXTENSIONS = new String[]{"py"};
-  public static String version = "Jython not ready";
+  static String interpreterVersion = null;
 
-  private int lvl = 3;
+  private final int lvl = 3;
 
   /**
    * {@inheritDoc}
@@ -82,28 +82,34 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   protected void doInit(String[] param) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      Debug.print("JythonRunner: starting initialization");
-      String interpreterVersion = "";
-      jythonSupport = JythonSupport.get();
-      if (jythonSupport.isReady()) {
-        jythonSupport.getSysPath();
-        if (!Commons.isRunningFromJar()) {
-          jythonSupport.putSysPath(new File(Commons.getMainClassLocation(), "Lib").getAbsolutePath(), 0);
+      if (interpreterVersion == null) {
+        log(3, "starting initialization");
+        interpreterVersion = "";
+        jythonSupport = JythonSupport.get();
+        if (jythonSupport.isReady()) {
+          jythonSupport.getSysPath();
+          if (!Commons.isRunningFromJar()) {
+            jythonSupport.putSysPath(new File(Commons.getMainClassLocation(), "Lib").getAbsolutePath(), 0);
+          }
+          jythonSupport.addSitePackages();
+          jythonSupport.showSysPath();
+          try {
+            jythonSupport.interpreterExecString("import sys");
+            jythonSupport.interpreterExecString("import org.sikuli.script.runnerSupport.Runner as Runner");
+            interpreterVersion = ("" + jythonSupport.interpreterEval("sys.version")).split(" ")[0];
+          } catch (Exception e) {
+
+          }
+        } else {
+          log(-1, "JythonSupport not ready --- scripts cannot be run");
         }
-        jythonSupport.addSitePackages();
-        jythonSupport.showSysPath();
-        jythonSupport.interpreterExecString("import sys");
-        jythonSupport.interpreterExecString("import org.sikuli.script.runnerSupport.Runner as Runner");
-        interpreterVersion = jythonSupport.interpreterEval("sys.version.split(\"(\")[0]\n").toString();
         if (interpreterVersion.isEmpty()) {
-          interpreterVersion = "could not be evaluated";
+          log(-1, "not ready --- scripts cannot be run");
+        } else {
+          log(3,"ready: %s", interpreterVersion);
         }
-      } else {
-        Debug.error("Jython not ready --- scripts cannot be run");
-        interpreterVersion = "not ready";
+        SikulixIDE.isRunnerReady(true);
       }
-      version = "Jython ready: " + interpreterVersion;
-      SikulixIDE.isRunnerReady(true);
     }
   }
 
@@ -163,6 +169,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       initAbort();
 
       File pyFile = new File(scriptFile);
+      log(3, "before: %s", pyFile);
 
       jythonSupport.interpreterFillSysArgv(pyFile, argv);
       jythonSupport.executeScriptHeader(codeBefore);
@@ -171,7 +178,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
 
       try {
         if (scriptFile.endsWith("$py.class")) {
-          jythonSupport.interpreterExecCode(new File(scriptFile));
+          jythonSupport.interpreterExecCode(pyFile);
         } else {
           jythonSupport.interpreterExecFile(pyFile.getAbsolutePath());
         }
@@ -202,6 +209,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
             + "\nSave your work and restart the IDE!", "Fatal Error");
       }
 
+      log(3, "after: %s (returns: %d)", pyFile, exitCode);
       return exitCode;
     }
   }

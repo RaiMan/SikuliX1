@@ -384,7 +384,7 @@ public class JythonSupport implements IRunnerSupport {
       "import time; start = time.time()",
       "from sikuli import *",
       "resetToPrimaryScreen()",
-      "Debug.log(3, 'Jython: BeforeScript: %s (%f)',  SCREEN, time.time()-start)",
+      "Debug.log(4, 'Jython: BeforeScript: %s (%f)',  SCREEN, time.time()-start)",
   };
   //</editor-fold>
 

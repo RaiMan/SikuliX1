@@ -102,7 +102,6 @@ public class SikulixIDE extends JFrame {
     while (!isRunnerReady()) {
       Commons.pause(0.3);
     }
-    Debug.print(JythonRunner.version);
     showAfterStart();
   }
 
@@ -218,8 +217,13 @@ public class SikulixIDE extends JFrame {
         editorPane.requestFocusInWindow();
       } catch (Exception e) {
       }
-      Commons.show();
+      if (!Debug.isVerbose()) {
+        Commons.show();
+      }
       Debug.isIDEstarting(false);
+      if (Debug.isVerbose()) {
+        Commons.show();
+      }
       get()._inited = true;
     }
   }
@@ -228,7 +232,7 @@ public class SikulixIDE extends JFrame {
     try {
       return SikuliIDEI18N._I(key, args);
     } catch (Exception e) {
-      //TODO log(4, "[I18N] " + key);
+      log(4, "[I18N] missing: " + key); //TODO
       return key;
     }
   }
@@ -245,32 +249,32 @@ public class SikulixIDE extends JFrame {
   }
 
   private void startGUI() {
-    Debug.print("IDE: starting GUI");
+    log(3,"starting GUI");
     setWindow();
 
     if (installCaptureHotkey()) {
-      Debug.print("IDE: Capture HotKey installed");
+      log(3, "Capture HotKey installed");
     } else {
-      Debug.print("IDE: Capture HotKey not installed: %s", "PROBLEM?"); //TODO
+      Debug.error("IDE: Capture HotKey not installed: %s", "PROBLEM?"); //TODO
     }
     if (installStopHotkey()) {
-      Debug.print("IDE: Stop HotKey installed");
+      log(3,"Stop HotKey installed");
     } else {
-      Debug.print("IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
+      Debug.error("IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
     }
 
     ideWindow.setSize(ideWindowRect.getSize());
     ideWindow.setLocation(ideWindowRect.getLocation());
 
-    Debug.print("IDE: Adding components to window");
+    Debug.log(4, "Adding components to window");
     initMenuBars(ideWindow);
     final Container ideContainer = ideWindow.getContentPane();
     ideContainer.setLayout(new BorderLayout());
-    Debug.print("IDE: creating tabbed editor");
+    Debug.log(4, "creating tabbed editor");
     initTabs();
-    Debug.print("IDE: creating message area");
+    Debug.log(4, "creating message area");
     initMessageArea();
-    Debug.print("IDE: creating combined work window");
+    Debug.log(4, "creating combined work window");
     JPanel codePane = new JPanel(new BorderLayout(10, 10));
     codePane.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     codePane.add(tabs, BorderLayout.CENTER);
@@ -282,23 +286,23 @@ public class SikulixIDE extends JFrame {
     mainPane.setResizeWeight(0.6);
     mainPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-    Debug.print("IDE: Putting all together");
+    Debug.log(4, "Putting all together");
     JPanel editPane = new JPanel(new BorderLayout(0, 0));
 
     editPane.add(mainPane, BorderLayout.CENTER);
     ideContainer.add(editPane, BorderLayout.CENTER);
-    Debug.print("IDE: Putting all together - after main pane");
+    Debug.log(4, "Putting all together - after main pane");
 
     JToolBar tb = initToolbar();
     ideContainer.add(tb, BorderLayout.NORTH);
-    Debug.print("IDE: Putting all together - after toolbar");
+    Debug.log(4, "Putting all together - after toolbar");
 
     ideContainer.add(initStatusbar(), BorderLayout.SOUTH);
-    Debug.print("IDE: Putting all together - before layout");
+    Debug.log(4, "Putting all together - before layout");
     ideContainer.doLayout();
     ideWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-    Debug.print("IDE: Putting all together - after layout");
+    Debug.log(4, "Putting all together - after layout");
     initShortcutKeys();
     initWindowListener();
     initTooltip();
@@ -307,14 +311,14 @@ public class SikulixIDE extends JFrame {
     //TODO autoCheckUpdate();
 
     //waitPause();
-    Debug.print("IDE: Putting all together - Restore last Session");
+    Debug.log(4, "Putting all together - Restore last Session");
     restoreSession(0);
     if (tabs.getTabCount() == 0) {
       newTabEmpty();
     }
     tabs.setSelectedIndex(0);
 
-    Debug.print("IDE ready: on Java %d",  Commons.getJavaVersion());
+    Debug.log(3, "IDE ready: on Java %d",  Commons.getJavaVersion());
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }
@@ -516,9 +520,9 @@ public class SikulixIDE extends JFrame {
         File f = new File(loadScripts[i]);
         if (f.exists() && !filesToLoad.contains(f)) {
           if (f.getName().endsWith(".py")) {
-            Debug.print("IDE: loadScripts: Python script: %s", f.getName());
+            Debug.log(4, "loadScripts: Python script: %s", f.getName());
           } else {
-            Debug.print("IDE: loadScripts: Sikuli script: %s", f);
+            Debug.log(4, "loadScripts: Sikuli script: %s", f);
           }
           if (restoreScriptFromSession(f)) filesLoaded++;
         }
@@ -2052,8 +2056,8 @@ public class SikulixIDE extends JFrame {
 
     boolean shouldRun() {
       log(3, "TRACE: ButtonSubRegion triggered");
-      if (Commons.isCaptureBlocked()) {
-        Debug.error("FATAL: Capture is blocked"); // Button SubRegion
+      if (Commons.isCaptureBlocked()) { // Button SubRegion
+        Debug.error("FATAL: Capture is blocked");
         return false;
       }
       return true;

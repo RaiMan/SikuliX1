@@ -63,7 +63,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   private void logNotSupported(String method) {
-    Debug.log(-1, "%s does not (yet) support %s", getName(), method);
+    log(-1, "does not (yet) support %s", method);
   }
 
   @Override
@@ -138,7 +138,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final void redirect(PrintStream stdout, PrintStream stderr) {
     synchronized (AbstractScriptRunner.class) {
-      Debug.log(4, "%s: Initiate IO redirect", getName());
+      log(4, "Initiate IO redirect");
 
       this.redirectedStdout = stdout;
       this.redirectedStderr = stderr;
@@ -156,7 +156,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   private final void redirectNow(PrintStream stdout, PrintStream stderr) {
     boolean ret = doRedirect(stdout, stderr);
     if (ret) {
-      Debug.log(3, "%s: IO redirect established", getName());
+      log(3, "IO redirect established");
     }
   }
 
@@ -357,7 +357,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         AbstractScriptRunner.class.wait();
 
       } catch (InterruptedException e) {
-        Debug.log(-1, "Script interrupted unexpectedly: %s", e.getMessage());
+        log(-1, "Script interrupted unexpectedly: %s", e.getMessage());
       } finally {
         if (timeoutFuture != null) {
           timeoutFuture.cancel(false);

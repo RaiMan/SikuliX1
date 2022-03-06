@@ -16,17 +16,28 @@ public class RobotRunner extends JythonRunner {
   public static final String NAME = "Robot";
   public static final String TYPE = "text/robot";
   public static final String[] EXTENSIONS = new String[] {"robot"};
+  private static Boolean robotAvailable = null;
 
   @Override
   protected int doEvalScript(String code, IScriptRunner.Options options) {
-    boolean showReport = true;
-    Object version = null;
-    try {
-      jythonSupport.interpreterExecString("import robot");
-      version = "" + jythonSupport.interpreterEval("robot.version.get_version()");
-    } catch (Exception e) {
-      e.printStackTrace();
+    //TODO check robot available on init already
+    if (robotAvailable == null) {
+      try {
+        jythonSupport.interpreterExecString("import robot");
+        String version = "" + jythonSupport.interpreterEval("robot.version.get_version()");
+        log(3, "Added: RobotFramework %s", version);
+        robotAvailable = true;
+      } catch (Exception e) {
+        robotAvailable = false;
+      }
     }
+    if (!robotAvailable) {
+      log(-1, "runScript::robot not possible: RobotFramework not available" +
+          "\nMake it ready via <APPDATA>/Lib/site-packages/sites.txt and restart the IDE");
+      return -1;
+    }
+
+    boolean showReport = true;
     if (code.length() > 7 && code.substring(0, 7).contains("silent\n")) {
       code = code.substring(7);
       showReport = false;
