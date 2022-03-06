@@ -371,6 +371,9 @@ Software:
   public static void checkAccessibility() {
     Devices.start(Devices.TYPE.SCREEN);
     //check Mouse
+    while(MouseDevice.isMoving()) {
+      Commons.pause(0.1);
+    }
     ExecutorService executorService = Executors.newFixedThreadPool(1);
     executorService.execute(new Runnable() {
       @Override
@@ -405,21 +408,9 @@ Software:
     } else {
       pause(0.5); //Windows: wait for threaded Mouse check
     }
-    if (!MouseDevice.isUseable()) {
-      Debug.print( //TODO mouse blocked message
-          "*****************************************************\n" +
-              "    Mouse/Key features are blocked - not useable\n" +
-              "*****************************************************");
-    }
-    if (!ScreenDevice.isUseable()) {
-      Debug.print( //TODO screenshots blocked message
-          "*****************************************************\n" +
-              "  Screenshots blocked - find on screen not useable\n" +
-              "*****************************************************");
-    }
   }
 
-  public static boolean isCaptureBlocked() {
+  public static boolean isCaptureBlocked() { //TODO
     return !ScreenDevice.isUseable();
   }
 

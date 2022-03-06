@@ -6,6 +6,7 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.*;
 import org.sikuli.idesupport.IDEDesktopSupport;
+import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
@@ -24,24 +25,6 @@ import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
 
-  static SXDialog ideSplash;
-  static int waitStart = 0;
-
-  public static void stopSplash() {
-    if (waitStart > 0) {
-      try {
-        Thread.sleep(waitStart * 1000);
-      } catch (InterruptedException e) {
-      }
-    }
-
-    if (ideSplash != null) {
-      ideSplash.setVisible(false);
-      ideSplash.dispose();
-      ideSplash = null;
-    }
-  }
-
   public static void main(String[] args) {
     //region startup
     Debug.isIDEstarting(true);
@@ -53,13 +36,20 @@ public class Sikulix {
     //Commons.addlog("Sikulix::Commons.setStartArgs(args)");
     Commons.setStartArgs(args);
 
-    if (Commons.hasStartArg(QUIET)) {
-      Debug.setQuiet();
-    } else if (Commons.hasStartArg(VERBOSE) || Commons.hasStartArg(DEBUG)) {
-      Debug.setVerbose();
-    }
     if (Commons.hasStartArg(CONSOLE)) {
       Debug.setConsole();
+    }
+
+    if (Commons.hasStartArg(QUIET)) {
+      Debug.setQuiet();
+    } else {
+      if (Commons.hasStartArg(VERBOSE) || Commons.hasStartArg(DEBUG)) {
+        Debug.setVerbose();
+      }
+      if (Commons.hasStartArg(VERBOSE) && Commons.hasStartArg(CONSOLE)
+          && Commons.hasStartArg(DEBUG) && Commons.getStartArg(DEBUG).equals("9")) {
+        Debug.setDebugLevel(9);
+      }
     }
 
     if (Commons.hasStartArg(APPDATA)) {
@@ -122,14 +112,20 @@ public class Sikulix {
       Debug.setUserLogFile(logfileName);
     }
 
-    Commons.checkAccessibility(); //TODO
-
-    //Commons.show(); //TODO
-
+    Commons.checkAccessibility();
+    boolean muse = !MouseDevice.isUseable();
+    boolean suse = !ScreenDevice.isUseable();
+    Boolean popAnswer = true;
+    if (muse || suse) {
+      String text = (muse ? "Mouse usage seems to be blocked!\n" : "") +
+                    (suse ? "Make screenshots seems to be blocked!\n" : "") +
+                    "\nDo you want to continue?\n(Be sure you know what you are doing!)";
+      popAnswer = SX.popAsk(text);
+    }
+    if (!popAnswer) {
+      Commons.terminate(254, "User terminated IDE startup (Mouse/Screenshot blocked)");
+    }
     if (Commons.hasStartArg(RUN)) {
-      if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
-        //TODO mouse not useable ??? System.exit(1);
-      }
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override
         public void hotkeyPressed(HotkeyEvent e) {
@@ -148,10 +144,6 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(RUNSERVER)) {
-      //TODO mouse not useable
-      if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
-        System.exit(1);
-      }
       Class cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
@@ -182,16 +174,9 @@ public class Sikulix {
 
       }
     }
-
-    Debug.print("IDE starting");
-
-    //TODO mouse not useable
-    if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
-      //System.exit(1);
-    }
     //endregion
 
-
+    Debug.log(3,"IDE starting");
     ideSplash = null;
     if (Commons.isRunningFromJar()) {
       if (!Debug.isQuiet()) {
@@ -264,73 +249,16 @@ public class Sikulix {
       }
     }
 
-//    System.setProperty("python.home", "");
-//    System.setProperty("python.import.site", "false");
-
-    //Commons.addlog("Sikulix::SikulixIDE.start(args)");
     SikulixIDE.start(args);
+  }
 
-    //region IDE subprocess
-    if (false) {
-      /*
-      if (false) {
-        RunTime.terminate(999, "start IDE in subprocess?");
-        List<String> cmd = new ArrayList<>();
-        System.getProperty("java.home");
-        if (Commons.runningWindows()) {
-          cmd.add(System.getProperty("java.home") + "\\bin\\java.exe");
-        } else {
-          cmd.add(System.getProperty("java.home") + "/bin/java");
-        }
-        if (!Commons.isJava8()) {
-      */
-//      Suppress Java 9+ warnings
-//      --add-opens
-//      java.desktop/javax.swing.plaf.basic=ALL-UNNAMED
-//      --add-opens
-//      java.base/sun.nio.ch=ALL-UNNAMED
-//      --add-opens
-//      java.base/java.io=ALL-UNNAMED
-/*
+  static SXDialog ideSplash;
 
-        IDE start: --add-opens supress warnings
-          cmd.add("--add-opens");
-          cmd.add("java.desktop/javax.swing.plaf.basic=ALL-UNNAMED");
-          cmd.add("--add-opens");
-          cmd.add("java.base/sun.nio.ch=ALL-UNNAMED");
-          cmd.add("--add-opens");
-          cmd.add("java.base/java.io=ALL-UNNAMED");
-        }
-
-        cmd.add("-Dfile.encoding=UTF-8");
-        cmd.add("-Dsikuli.IDE_should_run");
-
-        if (!classPath.isEmpty()) {
-          cmd.add("-cp");
-          cmd.add(classPath);
-        }
-
-        cmd.add("org.sikuli.ide.SikulixIDE");
-//      cmd.addAll(finalArgs);
-
-        RunTime.startLog(3, "*********************** leaving start");
-
-    if (shouldDetach()) {
-      ProcessRunner.detach(cmd);
-      System.exit(0);
-    } else {
-      int exitCode = ProcessRunner.runBlocking(cmd);
-      System.exit(exitCode);
+  public static void stopSplash() {
+    if (ideSplash != null) {
+      ideSplash.setVisible(false);
+      ideSplash.dispose();
+      ideSplash = null;
     }
-
-
-
-        int exitCode = ProcessRunner.runBlocking(cmd);
-        System.exit(exitCode);
-      }
-      //endregion
-*/
-    }
-    //endregion
   }
 }

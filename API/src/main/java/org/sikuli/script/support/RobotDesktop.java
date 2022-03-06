@@ -78,8 +78,8 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public ScreenImage captureScreen(Rectangle rect) {
-    if (Commons.isCaptureBlocked()) {
-      Commons.terminate(999, "Capture is blocked"); //TODO robot
+    if (Commons.isCaptureBlocked()) { //TODO robot captureScreen
+      Commons.terminate(999, "Capture is blocked");
     }
 //    Rectangle s = scr.getBounds();
     Rectangle cRect = new Rectangle(rect);
