@@ -219,12 +219,9 @@ public class SikulixIDE extends JFrame {
       } catch (Exception e) {
       }
       if (!Debug.isVerbose()) {
-        Commons.show();
       }
+      Commons.show();
       Debug.isIDEstarting(false);
-      if (Debug.isVerbose()) {
-        Commons.show();
-      }
       Debug.getIdeStartLog();
       get()._inited = true;
     }
@@ -815,10 +812,8 @@ public class SikulixIDE extends JFrame {
 
     String SX_START_LOG = "IDE start-up log";
     File ideStartLog = Debug.getIdeStartLogFile();
-    if (null != ideStartLog) {
-      specialFileNames.add(SX_START_LOG);
-      specialFiles.add(ideStartLog);
-    }
+    specialFileNames.add(SX_START_LOG);
+    specialFiles.add(ideStartLog);
 
     String SX_SETTINGS_OPTIONS = "SikuliX Settings & Options";
     File optFile = Commons.getOptionFile();
