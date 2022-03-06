@@ -177,11 +177,6 @@ public class Options {
     return true;
   }
 
-  public static String getDefaultContent() {
-    String defaultContent = "# key = value";
-    return defaultContent;
-  }
-
   public boolean has(String pName) {
     return null == options.getProperty(pName) ? false : true;
   }
