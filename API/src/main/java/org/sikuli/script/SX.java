@@ -15,10 +15,7 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -245,6 +242,10 @@ public class SX {
           if (options != null) {
             if (options instanceof Object[]) {
               realOptions = (Object[]) options;
+            } else if (options instanceof String[]) {
+              realOptions = (Object[]) options;
+            } else if (options instanceof Collection<?>) {
+              realOptions = ((Collection<?>) options).toArray();
             } else if (options instanceof String) {
               String optionString = (String) options;
               int slen;
