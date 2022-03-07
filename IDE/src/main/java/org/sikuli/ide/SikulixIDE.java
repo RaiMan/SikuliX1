@@ -410,9 +410,6 @@ public class SikulixIDE extends JFrame {
     for (int tabIndex = 0; tabIndex < nTab; tabIndex++) {
       try {
         editorPane = getPaneAtIndex(tabIndex);
-        if (editorPane.getType().equals(TYPE_SIKULIX_SPECIAL)) {
-          continue;
-        }
         String fileName = editorPane.editorPaneFileSelected;
         if (action == DO_NOT_SAVE) {
           if (quitting) {
@@ -430,6 +427,9 @@ public class SikulixIDE extends JFrame {
           }
         }
         if (action == DO_SAVE_ALL) {
+          continue;
+        }
+        if (editorPane.getType().equals(TYPE_SIKULIX_SPECIAL)) {
           continue;
         }
         if (sbuf.length() > 0) {
