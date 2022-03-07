@@ -372,7 +372,7 @@ Software:
     Devices.start(Devices.TYPE.SCREEN);
     //check Mouse
     while(MouseDevice.isMoving()) {
-      Commons.pause(0.1);
+      Commons.pause(1.0);
     }
     ExecutorService executorService = Executors.newFixedThreadPool(1);
     executorService.execute(new Runnable() {
@@ -387,6 +387,7 @@ Software:
     });
     if (Commons.runningMac()) {
       //macOS: check Screen capture
+      Devices.start(Devices.TYPE.SCREEN);
       Rectangle srect = ScreenDevice.primary().asRectangle();
       BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
       DataBuffer data = screenImage.getData(new Rectangle(200, 10, srect.width - 200, 1)).getDataBuffer();
@@ -497,15 +498,10 @@ Software:
     }
 
     if (STARTUPFILE != null) { //TODO
-      //Commons.addlog("Commons::setStartArgs(args): STARTUPFILE: " + STARTUPFILE);
       File startupFile = asFile(STARTUPFILE);
       if (!startupFile.exists()) {
         STARTUPFILE = null;
       } else {
-        File startupLogFile = new File(startupFile.getParentFile(),
-            startupFile.getName().replaceAll("\\.", "-") + ".log");
-        FileManager.writeStringToFile("***** startupLogFile *****", startupLogFile);
-        //TODO Commons.setLogFile(startupLogFile);
         STARTUPINFO = FileManager.readFileToString(startupFile);
         String[] info = STARTUPINFO.split(System.lineSeparator());
         if (info.length > 0) {
@@ -533,8 +529,6 @@ Software:
           STARTUPLINES = lines;
         }
       }
-    } else {
-      //TODO resetLogFile();
     }
 
     if (STARTUPARGS.size() > 0) {
@@ -555,20 +549,6 @@ Software:
   }
 
   public static boolean hasStartArg(CommandArgsEnum option) {
-    if (option.equals(DEBUG)) {
-      String prop = System.getProperty("sikuli.Debug");
-      if (prop != null) {
-        return true;
-      }
-    } else if (option.equals(CONSOLE)) {
-      if (isRunningPackage() && STARTUPFILE != null) {
-        return false;
-      }
-      String prop = System.getProperty("sikuli.console");
-      if (prop != null) {
-        return true;
-      }
-    }
     if (cmdLine != null && cmdLine.hasOption(option.shortname())) {
       return true;
     }
@@ -582,6 +562,19 @@ Software:
       val = val == null ? "" : val;
     }
     return val;
+  }
+
+  public static int getStartArgInt(CommandArgsEnum option) {
+    String val = getStartArg(option);
+    if (val.isEmpty()) {
+      return -1;
+    }
+    int intVal = -1;
+    try {
+      intVal = Integer.parseInt(val);
+    } catch (NumberFormatException e) {
+    }
+    return intVal;
   }
 
   public static boolean hasExtendedArg(String option) {
@@ -1456,7 +1449,7 @@ Software:
   private static boolean areLibsExported = false;
 
   public static boolean loadLibrary(String libName) {
-    Debug.log(3,"loadLibrary: trying: %s", libName);
+    Debug.log(3, "loadLibrary: trying: %s", libName);
     if (libsLoaded.contains(libName)) {
       return true;
     }
@@ -1484,7 +1477,7 @@ Software:
       terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libFileName);
     }
     libsLoaded.add(libName);
-    Debug.log(3,"loadLibrary: success: %s%s", userLib, fLib);
+    Debug.log(3, "loadLibrary: success: %s%s", userLib, fLib);
     return true;
   }
 
@@ -1516,7 +1509,7 @@ Software:
     if (fLibsFolder.exists()) {
       if (!hasVersionFile(fLibsFolder)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
-        Debug.log(3,"libsFolder: has wrong content: %s", fLibsFolder);
+        Debug.log(3, "libsFolder: has wrong content: %s", fLibsFolder);
       }
     }
     if (!fLibsFolder.exists()) {
@@ -1525,7 +1518,7 @@ Software:
         throw new SikuliXception("libsFolder: folder not available: " + fLibsFolder);
       }
       makeVersionFile(fLibsFolder); //TODO
-      Debug.log(3,"libsFolder: created %s (%s)", fLibsFolder, getSXVersionLong());
+      Debug.log(3, "libsFolder: created %s (%s)", fLibsFolder, getSXVersionLong());
       didExport = true;
     }
     if (!shouldExport()) { //TODO for what needed?
@@ -1574,7 +1567,7 @@ Software:
         Debug.error(copyMsg);
         break;
       } else {
-        Debug.log(3,copyMsg);
+        Debug.log(3, copyMsg);
       }
     }
     areLibsExported = true;
