@@ -1879,11 +1879,15 @@ public class Region extends Element {
     highlight(regs, 3);
   }
 
-  public static <E> void highlight(List<E> regs, int timeout) {
+  public static <E> void highlight(List<E> regs, int timeout) { //TODO possible out-of-memory with too many regions
     int lights = 0;
     for (Object reg : regs) {
       if (reg != null && reg instanceof Region) {
-        ((Region) reg).highlight();
+        try {
+          ((Region) reg).highlight();
+        } catch (Exception e) {
+          break;
+        }
         lights++;
       }
     }
