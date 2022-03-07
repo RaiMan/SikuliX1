@@ -363,6 +363,7 @@ public class EditorPane extends JTextPane {
       @Override
       public void run() {
         editorPaneRunner.init(null);
+        SikulixIDE.isRunnerReady(true);
       }
     }).start();
 

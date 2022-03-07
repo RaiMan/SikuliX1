@@ -410,6 +410,9 @@ public class SikulixIDE extends JFrame {
     for (int tabIndex = 0; tabIndex < nTab; tabIndex++) {
       try {
         editorPane = getPaneAtIndex(tabIndex);
+        if (editorPane.getType().equals(TYPE_SIKULIX_SPECIAL)) {
+          continue;
+        }
         String fileName = editorPane.editorPaneFileSelected;
         if (action == DO_NOT_SAVE) {
           if (quitting) {
@@ -593,11 +596,11 @@ public class SikulixIDE extends JFrame {
     return true;
   }
 
-  String newTabWithContent(String fname) {
+  EditorPane newTabWithContent(String fname) {
     return newTabWithContent(fname, -1);
   }
 
-  String newTabWithContent(String fname, int tabIndex) {
+  EditorPane newTabWithContent(String fname, int tabIndex) {
     int selectedTab = tabs.getSelectedIndex();
     EditorPane editorPane = makeTab(tabIndex);
     File tabFile;
@@ -632,7 +635,7 @@ public class SikulixIDE extends JFrame {
     if (null == tabFile) {
       return null;
     } else {
-      return tabFile.getAbsolutePath();
+      return editorPane;
     }
   }
 
@@ -800,6 +803,8 @@ public class SikulixIDE extends JFrame {
     pwin.setVisible(true);
   }
 
+  String TYPE_SIKULIX_SPECIAL = "text/sikulixspecial";
+
   void openSpecial() {
     log(lvl + 1, "Open Special requested");
     List<String> specialFileNames = new ArrayList<>();
@@ -820,7 +825,8 @@ public class SikulixIDE extends JFrame {
     specialFileNames.add(SX_SETTINGS_OPTIONS);
     specialFiles.add(optFile);
 
-    String selected = SX.popSelect("Select a special SikuliX file", "Edit a special SikuliX file", "", specialFileNames);
+    Region where = new Location(getWindowTop().x, getWindowTop().y + 150).grow(3);
+    String selected = SX.popSelect("Select a special SikuliX file", "Edit a special SikuliX file", "", where, specialFileNames);
     if (selected != null) {
       Object selection = specialFiles.get(specialFileNames.indexOf(selected));
       log(lvl, "Open Special: should load: %s", (selection == null ? selected : selection));
@@ -831,7 +837,8 @@ public class SikulixIDE extends JFrame {
         }
       }
       if (selection != null && success) {
-        newTabWithContent(((File) selection).getAbsolutePath());
+        EditorPane editorPane = newTabWithContent(((File) selection).getAbsolutePath());
+        editorPane.setType(TYPE_SIKULIX_SPECIAL);
       } else {
         log(-1, "Open Special: no avail: %s", (selection == null ? selected : selection));
       }

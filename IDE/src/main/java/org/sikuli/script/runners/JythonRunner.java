@@ -108,7 +108,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
         } else {
           log(3,"ready: %s", interpreterVersion);
         }
-        SikulixIDE.isRunnerReady(true);
       }
     }
   }
