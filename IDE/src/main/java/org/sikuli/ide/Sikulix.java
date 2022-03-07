@@ -30,25 +30,22 @@ public class Sikulix {
     Debug.isIDEstarting(true);
     Commons.setStartClass(Sikulix.class);
 
-    //Commons.addlog("Sikulix::IDEDesktopSupport.initStart()");
     IDEDesktopSupport.initStart();
 
-    //Commons.addlog("Sikulix::Commons.setStartArgs(args)");
     Commons.setStartArgs(args);
 
-    if (Commons.hasStartArg(CONSOLE)) {
+    if (Commons.hasStartArg(CONSOLE) || System.getProperty("sikuli.console") != null) {
       Debug.setConsole();
     }
 
     if (Commons.hasStartArg(QUIET)) {
       Debug.setQuiet();
     } else {
-      if (Commons.hasStartArg(VERBOSE) || Commons.hasStartArg(DEBUG)) {
+      if (Commons.hasStartArg(VERBOSE) || Commons.hasStartArg(DEBUG) || System.getProperty("sikuli.Debug") != null) {
         Debug.setVerbose();
       }
-      if (Commons.hasStartArg(VERBOSE) && Commons.hasStartArg(CONSOLE)
-          && Commons.hasStartArg(DEBUG) && Commons.getStartArg(DEBUG).equals("9")) {
-        Debug.setDebugLevel(9);
+      if (Commons.getStartArgInt(DEBUG) > Debug.getDebugLevel()) {
+        Debug.setDebugLevel(Commons.getStartArgInt(DEBUG));
       }
     }
 
