@@ -331,7 +331,6 @@ public abstract class Element {
 
   //<editor-fold desc="08 Handler imageMissing findFailed">
   Boolean handleImageMissing(Image img, boolean recap) {
-    Commons.trace("");
     log(logLevel, "handleImageMissing: %s", img.getName());
     ObserveEvent evt = null;
     FindFailedResponse response = findFailedResponse;
@@ -441,7 +440,6 @@ public abstract class Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    Commons.trace("");
     return executeFind(target, 0, 0, null, FINDTYPE.SINGLE).getMatch(); // find
   }
   //</editor-fold>
@@ -538,7 +536,6 @@ public abstract class Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
-    Commons.trace("");
     return executeFind(target, 0, 0, null, FINDTYPE.ALL); // findAll
   }
 
@@ -550,7 +547,6 @@ public abstract class Element {
    * @return All elements matching (empty list when FindFailed)
    */
   public <PSI> List<Match> getAll(PSI target) {
-    Commons.trace("");
     try {
       return executeFind(target, 0, 0, null, FINDTYPE.ALL).getMatches(); // getAll
     } catch (FindFailed e) {
@@ -567,7 +563,6 @@ public abstract class Element {
    * @return All elements matching (empty list when FindFailed)
    */
   public <PSI> List<Match> getAll(double timeout, PSI target) {
-    Commons.trace("");
     try {
       return executeFind(target, timeout, 0, null, FINDTYPE.ALL).getMatches(); // getAll wait
     } catch (FindFailed e) {
@@ -829,7 +824,6 @@ public abstract class Element {
   }
 
   <PSI> Finder executeFind(PSI target, double findTimeout, int index, Finder finder, FINDTYPE findtype) throws FindFailed {
-    Commons.trace("");
     findTimeout = (this instanceof Image) ? 0 : findTimeout;
     long findTime = -1;
     long searchTime = -1;
@@ -928,7 +922,6 @@ public abstract class Element {
   }
 
   private Finder runFirstFinder(Finder finder, Pattern target, FINDTYPE type) {
-    Commons.trace("");
     if (Debug.shouldHighlight()) { //TODO
 //      if (getScreen().getW() > w + 20 && getScreen().getH() > h + 20) {
 //        highlight(2, "#000255000");
@@ -949,7 +942,6 @@ public abstract class Element {
   }
 
   private Finder checkLastSeenAndCreateFinder(Pattern ptn) {
-    Commons.trace("");
     if (this instanceof Image) {
       return new Finder(this);
     }
@@ -1422,7 +1414,6 @@ public abstract class Element {
    * @return Image object
    */
   public static <PSI> Image getImageFromTarget(PSI target) {
-    Commons.trace("");
     if (target instanceof Pattern) {
       return ((Pattern) target).getImage();
     } else if (target instanceof String) {

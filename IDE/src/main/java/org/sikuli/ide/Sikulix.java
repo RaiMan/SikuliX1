@@ -123,6 +123,7 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(RUN)) {
+      Debug.isIDEstarting(false);
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override
         public void hotkeyPressed(HotkeyEvent e) {
@@ -141,6 +142,8 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(RUNSERVER)) {
+      Debug.isIDEstarting(false);
+      Debug.getIdeStartLog();
       Class cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");

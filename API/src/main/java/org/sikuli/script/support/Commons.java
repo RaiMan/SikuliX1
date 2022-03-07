@@ -1178,7 +1178,6 @@ Software:
   }
 
   private static List<String> doGetFileList(Object givenMainOrFolder, String givenSubfolder, Class classReference, Object... options) {
-    Commons.trace("ENTER: Main(%s) Sub(%s) Class(%s)", givenMainOrFolder, givenSubfolder, classReference);
     List<String> fileList = new ArrayList<>();
     String givenFolder = "/";
     int MAX_LEVEL = 5;

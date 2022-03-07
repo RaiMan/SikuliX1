@@ -598,16 +598,16 @@ public class Finder implements Iterator<Match> {
     static class Log {
       private static String prefix = "UnKnown";
 
-      public Log(String prefix) {
+      Log(String prefix) {
         this.prefix = prefix + ": ";
       }
 
-      public static void error(String msg, Object... args) {
+      static void error(String msg, Object... args) {
         Debug.error(prefix + msg, args);
       }
 
-      public static void trace(String msg, Object... args) {
-        Debug.log(3, prefix + msg, args);
+      static void log(String msg, Object... args) {
+        Debug.log(4, prefix + msg, args);
       }
     }
 
@@ -681,7 +681,7 @@ public class Finder implements Iterator<Match> {
     private FindResult2 doFindImage() {
       FindResult2 findResult = null;
       FindInput2 findInput = fInput;
-      log.trace("doFindImage: start %s", findInput);
+      log.log("doFindImage: start %s", findInput);
       mBase = findInput.getBase();
       boolean success = false;
       long begin_lap = 0;
@@ -719,8 +719,8 @@ public class Finder implements Iterator<Match> {
             break;
           }
         }
-        log.trace("downSizeFound: %s", downSizeFound);
-        log.trace("doFindImage: down: %%%.2f %d msec", 100 * mMinMax.maxVal, new Date().getTime() - begin_lap);
+        log.log("downSizeFound: %s", downSizeFound);
+        log.log("doFindImage: down: %%%.2f %d msec", 100 * mMinMax.maxVal, new Date().getTime() - begin_lap);
       }
       findWhere = this.mBase;
       trueOrFalse = !findInput.isFindAll() && downSizeFound;
@@ -748,7 +748,7 @@ public class Finder implements Iterator<Match> {
             findResult = new FindResult2(mResult, findInput, new int[]{rectSub.x, rectSub.y});
           }
           if (SX.isNotNull(findResult)) {
-            log.trace("doFindImage after down: %%%.2f(?%%%.2f) %d msec",
+            log.log("doFindImage after down: %%%.2f(?%%%.2f) %d msec",
                 maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
           }
         }
@@ -759,7 +759,7 @@ public class Finder implements Iterator<Match> {
         mResult = doFindMatch(findInput.getTarget(), findWhere, findInput);
         mMinMax = Core.minMaxLoc(mResult);
         if (!isCheckLastSeen) {
-          log.trace("doFindImage: in original: %%%.4f (?%.0f) %d msec %s",
+          log.log("doFindImage: in original: %%%.4f (?%.0f) %d msec %s",
               mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
               findInput.hasMask() ? " **withMask" : "");
         }
@@ -767,7 +767,7 @@ public class Finder implements Iterator<Match> {
           findResult = new FindResult2(mResult, findInput);
         }
       }
-      log.trace("doFindImage: end %d msec", new Date().getTime() - begin_find);
+      log.log("doFindImage: end %d msec", new Date().getTime() - begin_find);
       return findResult;
     }
 
@@ -907,16 +907,16 @@ public class Finder implements Iterator<Match> {
           }
         }
         if (wordsMatch.size() > 0) {
-          log.trace("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);
+          log.log("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);
           findResult = new FindResult2(wordsMatch, fInput);
         } else {
-          log.trace("doFindText: %s (%d msec): not found", text, timer);
+          log.log("doFindText: %s (%d msec): not found", text, timer);
         }
       } else {
         if (isWord()) {
-          log.trace("doFindText: listWords: %d words (%d msec) ", wordsFound.size(), timer);
+          log.log("doFindText: listWords: %d words (%d msec) ", wordsFound.size(), timer);
         } else {
-          log.trace("doFindText: listLines: %d lines (%d msec) ", wordsFound.size(), timer);
+          log.log("doFindText: listLines: %d lines (%d msec) ", wordsFound.size(), timer);
         }
         for (Match match : wordsFound) {
           Rectangle wordOrLine = match.getRect();
