@@ -3,9 +3,9 @@ Support/maven-deploy-API
 ver=2.0.6-SNAPSHOT
 echo ************************** deploy IDE Windows
 Support/maven-deploy-IDE win $ver
+echo ************************** deploy IDE Linux
+Support/maven-deploy-IDE lux $ver
 echo ************************** deploy IDE Mac
 Support/maven-deploy-IDE mac $ver
 echo ************************** deploy IDE Mac M1
 Support/maven-deploy-IDE macm1 $ver
-echo ************************** deploy IDE Linux
-Support/maven-deploy-IDE lux $ver
