@@ -33,7 +33,8 @@ public class RobotRunner extends JythonRunner {
     }
     if (!robotAvailable) {
       log(-1, "runScript::robot not possible: RobotFramework not available" +
-          "\nMake it ready via <APPDATA>/Lib/site-packages/sites.txt and restart the IDE");
+          "\nMake it ready via <APPDATA>/Lib/site-packages/sites.txt and restart the IDE" +
+          "\nHint: IDE: use menu File -> Open Special Files -> SikuliX Additional Sites");
       return -1;
     }
 
