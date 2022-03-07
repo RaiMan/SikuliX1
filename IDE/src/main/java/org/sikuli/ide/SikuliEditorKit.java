@@ -425,7 +425,7 @@ public class SikuliEditorKit extends StyledEditorKit {
         return;
       }
       new SXDialog("sxmenu", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-      Debug.log(3, "EditorPane: CompletionAction: [%d] |%s| (%d)", line + 1, segLine, dot);
+      Debug.log(4, "EditorPane: CompletionAction: [%d] |%s| (%d)", line + 1, segLine, dot);
     }
   }
 
@@ -465,7 +465,7 @@ public class SikuliEditorKit extends StyledEditorKit {
         } else {
           tarEndRect = txt.modelToView(txt.getDocument().getLength() - 1);
         }
-        Debug.log(9, "curRect: " + curRect + ", tarEnd: " + tarEndRect);
+        Debug.log(5, "curRect: " + curRect + ", tarEnd: " + tarEndRect);
 
         if (curRect.x > tarEndRect.x) {
           pos = txt.viewToModel(new Point(tarEndRect.x, tarEndRect.y));
@@ -637,7 +637,7 @@ public class SikuliEditorKit extends StyledEditorKit {
   @Override
   public void read(Reader in, Document doc, int pos)
           throws IOException, BadLocationException {
-    Debug.log(3, "SikuliEditorKit.read");
+    Debug.log(5, "SikuliEditorKit.read");
     super.read(in, doc, pos);
   }
 
@@ -649,7 +649,7 @@ public class SikuliEditorKit extends StyledEditorKit {
 
   public void write(Writer out, Document doc, int pos, int len, Map<String, String> copiedImgs)
           throws IOException, BadLocationException {
-    Debug.log(9, "SikuliEditorKit.write %d %d", pos, len);
+    Debug.log(5, "SikuliEditorKit.write %d %d", pos, len);
     DefaultStyledDocument sdoc = (DefaultStyledDocument) doc;
     int i = pos;
     String absPath;
@@ -670,7 +670,7 @@ public class SikuliEditorKit extends StyledEditorKit {
           }
           String fname = (new File(absPath)).getName();
           copiedImgs.put(fname, absPath);
-          Debug.log(3, "save image for copy&paste: " + fname + " -> " + absPath);
+          Debug.log(4, "save image for copy&paste: " + fname + " -> " + absPath);
         }
       } else {
         if (start < pos) {
