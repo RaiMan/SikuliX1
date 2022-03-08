@@ -108,6 +108,16 @@ public class Sikulix {
       Debug.setUserLogFile(logfileName);
     }
 
+    if (Commons.hasStartArg(LOAD)) { //TODO
+      String sx_arg_load = Commons.getOption("SX_ARG_LOAD");
+      String[] scripts = Runner.resolveRelativeFiles(Commons.asArray(sx_arg_load));
+      for (String script : scripts) {
+
+      }
+    }
+    //endregion
+
+    //region checkAccessibility
     Commons.checkAccessibility();
     boolean muse = !MouseDevice.isUseable();
     boolean suse = !ScreenDevice.isUseable();
@@ -121,8 +131,90 @@ public class Sikulix {
     if (!popAnswer) {
       Commons.terminate(254, "User terminated IDE startup (Mouse/Screenshot blocked)");
     }
+    //endregion
 
-    if (Commons.hasStartArg(RUN)) {
+    if (!Commons.hasStartArg(RUN) && !Commons.hasStartArg(RUNSERVER)) {
+      //region start IDE
+      Debug.log(3,"IDE starting");
+      ideSplash = null;
+      if (Commons.isRunningFromJar()) {
+        if (!Debug.isQuiet()) {
+          ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+          ideSplash.run();
+        }
+      }
+
+      //region IDE block second start
+      if (!Commons.hasStartArg(APPDATA)) {
+        File isRunning;
+        FileOutputStream isRunningFile;
+        String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
+        isRunning = new File(Commons.getTempFolder(), isRunningFilename);
+        boolean shouldTerminate = false;
+        try {
+          isRunning.createNewFile();
+          isRunningFile = new FileOutputStream(isRunning);
+          if (null == isRunningFile.getChannel().tryLock()) {
+            Class<?> classIDE = Class.forName("org.sikuli.ide.SikulixIDE");
+            Method stopSplash = classIDE.getMethod("stopSplash", new Class[0]);
+            stopSplash.invoke(null, new Object[0]);
+            org.sikuli.script.Sikulix.popError("Terminating: IDE already running");
+            shouldTerminate = true;
+          } else {
+            Commons.setIsRunning(isRunning, isRunningFile);
+          }
+        } catch (Exception ex) {
+          org.sikuli.script.Sikulix.popError("Terminating on FatalError: cannot access IDE lock for/n" + isRunning);
+          shouldTerminate = true;
+        }
+        if (shouldTerminate) {
+          System.exit(1);
+        }
+        for (String aFile : Commons.getTempFolder().list()) {
+          if ((aFile.startsWith("Sikulix"))
+              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
+            FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), aFile));
+          }
+        }
+      }
+      //endregion
+
+      //region IDE temp folder
+      File ideTemp = new File(Commons.getTempFolder(), String.format("Sikulix_%d", FileManager.getRandomInt()));
+      ideTemp.mkdirs();
+      try {
+        File tempTest = new File(ideTemp, "tempTest.txt");
+        FileManager.writeStringToFile("temp test", tempTest);
+        boolean success = true;
+        if (tempTest.exists()) {
+          tempTest.delete();
+          if (tempTest.exists()) {
+            success = false;
+          }
+        } else {
+          success = false;
+        }
+        if (!success) {
+          throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
+        }
+      } catch (Exception e) {
+        throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
+      }
+      Commons.setIDETemp(ideTemp);
+      //endregion
+
+      if (Commons.runningMac()) {
+        try {
+          System.setProperty("apple.laf.useScreenMenuBar", "true");
+        } catch (Exception e) {
+        }
+      }
+
+      SikulixIDE.start(args);
+      //endregion
+
+    } else if (Commons.hasStartArg(RUN)) {
+      //region run scripts
       Debug.isIDEstarting(false);
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override
@@ -139,9 +231,10 @@ public class Sikulix {
         exitCode = 254;
       }
       Commons.terminate(exitCode, "");
-    }
+      //endregion
 
-    if (Commons.hasStartArg(RUNSERVER)) {
+    } else if (Commons.hasStartArg(RUNSERVER)) {
+      //region run server
       Debug.isIDEstarting(false);
       Debug.getIdeStartLog();
       Class cServer = null;
@@ -165,91 +258,8 @@ public class Sikulix {
       } catch (NoSuchMethodException e) {
       }
       Commons.terminate();
+      //endregion
     }
-
-    if (Commons.hasStartArg(LOAD)) { //TODO
-      String sx_arg_load = Commons.getOption("SX_ARG_LOAD");
-      String[] scripts = Runner.resolveRelativeFiles(Commons.asArray(sx_arg_load));
-      for (String script : scripts) {
-
-      }
-    }
-    //endregion
-
-    Debug.log(3,"IDE starting");
-    ideSplash = null;
-    if (Commons.isRunningFromJar()) {
-      if (!Debug.isQuiet()) {
-        ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-        ideSplash.run();
-      }
-    }
-
-    if (!Commons.hasStartArg(APPDATA)) {
-      File isRunning;
-      FileOutputStream isRunningFile;
-      String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
-      isRunning = new File(Commons.getTempFolder(), isRunningFilename);
-      boolean shouldTerminate = false;
-      try {
-        isRunning.createNewFile();
-        isRunningFile = new FileOutputStream(isRunning);
-        if (null == isRunningFile.getChannel().tryLock()) {
-          Class<?> classIDE = Class.forName("org.sikuli.ide.SikulixIDE");
-          Method stopSplash = classIDE.getMethod("stopSplash", new Class[0]);
-          stopSplash.invoke(null, new Object[0]);
-          org.sikuli.script.Sikulix.popError("Terminating: IDE already running");
-          shouldTerminate = true;
-        } else {
-          Commons.setIsRunning(isRunning, isRunningFile);
-        }
-      } catch (Exception ex) {
-        org.sikuli.script.Sikulix.popError("Terminating on FatalError: cannot access IDE lock for/n" + isRunning);
-        shouldTerminate = true;
-      }
-      if (shouldTerminate) {
-        System.exit(1);
-      }
-      for (String aFile : Commons.getTempFolder().list()) {
-        if ((aFile.startsWith("Sikulix"))
-            || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
-          FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), aFile));
-        }
-      }
-    }
-
-    //region IDE temp folder
-    File ideTemp = new File(Commons.getTempFolder(), String.format("Sikulix_%d", FileManager.getRandomInt()));
-    ideTemp.mkdirs();
-    try {
-      File tempTest = new File(ideTemp, "tempTest.txt");
-      FileManager.writeStringToFile("temp test", tempTest);
-      boolean success = true;
-      if (tempTest.exists()) {
-        tempTest.delete();
-        if (tempTest.exists()) {
-          success = false;
-        }
-      } else {
-        success = false;
-      }
-      if (!success) {
-        throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
-      }
-    } catch (Exception e) {
-      throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
-    }
-    Commons.setIDETemp(ideTemp);
-    //endregion
-
-    if (Commons.runningMac()) {
-      try {
-        System.setProperty("apple.laf.useScreenMenuBar", "true");
-      } catch (Exception e) {
-      }
-    }
-
-    SikulixIDE.start(args);
   }
 
   static SXDialog ideSplash;
