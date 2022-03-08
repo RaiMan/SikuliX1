@@ -32,13 +32,18 @@ public class Sikulix {
 
     File parent = Commons.getMainClassLocation().getParentFile();
     if (parent != null) {
-      File jpackage = new File(parent, ".jpackage.xml");
       if (Commons.runningMac()) {
-        if (jpackage.exists()) {
+        if (new File(parent, ".jpackage.xml").exists()) {
           Commons.isRunningApp(true);
-          Debug.print("IDE : running as app");
+        }
+      } else if (Commons.runningWindows()) {
+        if (new File(parent, "SikulixIDE.cfg").exists()) {
+          Commons.isRunningApp(true);
         }
       }
+    }
+    if (Commons.isRunningApp()) {
+      Debug.print("IDE : running as app");
     }
 
     IDEDesktopSupport.initStart();

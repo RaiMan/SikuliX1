@@ -15,7 +15,7 @@ jpackage --type msi ^
 --main-class org.sikuli.ide.Sikulix ^
 --win-shortcut ^
 --win-dir-chooser ^
---file-associations sxfastartup.properties ^
 --add-launcher Sikulix=sxconsole.properties
 
+rem --file-associations sxfastartup.properties ^
 
