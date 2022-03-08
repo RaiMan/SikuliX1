@@ -30,6 +30,17 @@ public class Sikulix {
     Debug.isIDEstarting(true);
     Commons.setStartClass(Sikulix.class);
 
+    File parent = Commons.getMainClassLocation().getParentFile();
+    if (parent != null) {
+      File jpackage = new File(parent, ".jpackage.xml");
+      if (Commons.runningMac()) {
+        if (jpackage.exists()) {
+          Commons.isRunningApp(true);
+          Debug.print("IDE : running as app");
+        }
+      }
+    }
+
     IDEDesktopSupport.initStart();
 
     Commons.setStartArgs(args);

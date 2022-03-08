@@ -112,16 +112,6 @@ public class Commons {
     return false;
   }
 
-  public static boolean isRunningPackage() {
-    if (!RUNNINGIDE) return false;
-    File packFolder = getMainClassLocation().getParentFile().getParentFile();
-    if (new File(packFolder, "app").exists() && new File(packFolder, "runtime").exists()
-        && new File(packFolder, "runtime/release").exists()) {
-      return true;
-    }
-    return false;
-  }
-
   private static JFrame SXIDE = null;
 
   public static JFrame getSXIDE() {
@@ -433,6 +423,15 @@ Software:
 
   public static boolean isRunningFromJar() {
     return getMainClassLocation().getAbsolutePath().endsWith(".jar");
+  }
+
+ static boolean runningApp = false;
+
+  public static boolean isRunningApp(Object... state) {
+    if (state.length > 0) {
+      runningApp = (boolean) state[0];
+    }
+    return runningApp;
   }
 
   public static File getMainClassLocation() {

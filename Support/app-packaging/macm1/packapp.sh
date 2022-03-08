@@ -1,5 +1,5 @@
 version=2.0.6-SNAPSHOT
-mkdir app-package/app
+mkdir -p app-package/app
 rm -f app-package/app/*.app
 jpackage --input app-package/jar \
 --type app-image \

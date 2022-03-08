@@ -3,6 +3,7 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.SX;
 import org.sikuli.script.support.Commons;
 
 import java.io.File;
@@ -751,6 +752,10 @@ public class Debug {
         }
       }
     }
+  }
+
+  public static void pop(String msg, Object... args) {
+    SX.popup(print(msg, args), "Debug Message");
   }
   //</editor-fold>
 
