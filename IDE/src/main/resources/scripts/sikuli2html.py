@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright (c) 2010-2022, sikuli.org, sikulix.com - MIT license
 
 #TODO to be implemneted in Java (-> FileManager.java)
 import sys, cgi

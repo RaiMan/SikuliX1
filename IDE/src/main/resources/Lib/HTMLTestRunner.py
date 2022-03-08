@@ -66,7 +66,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright (c) 2010-2022, sikuli.org, sikulix.com - MIT license
 # about the modifications by RaiMan
 
 # URL: http://tungwaiyip.info/software/HTMLTestRunner.html

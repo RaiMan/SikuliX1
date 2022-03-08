@@ -1,4 +1,4 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright (c) 2010-2022, sikuli.org, sikulix.com - MIT license
 from org.sikuli.basics import HotkeyListener
 from org.sikuli.basics import HotkeyManager
 from org.sikuli.script import Env as JEnv

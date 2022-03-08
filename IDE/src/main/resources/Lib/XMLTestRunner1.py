@@ -4,7 +4,7 @@ XML Test Runner for PyUnit
 # Written by Sebastian Rittau <srittau@jroger.in-berlin.de> and placed in
 # the Public Domain. With contributions by Paolo Borelli and others.
 
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright (c) 2010-2022, sikuli.org, sikulix.com - MIT license
 # downloaded from: http://www.rittau.org/python/xmlrunner.py
 # modified by RaiMan at sikulix.com 
 # removed self runnable and self test
