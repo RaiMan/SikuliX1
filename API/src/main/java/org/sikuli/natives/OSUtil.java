@@ -45,6 +45,8 @@ public interface OSUtil {
 
 	List<OsProcess> findProcesses(String name);
 
+	List<OsProcess> findProcesses(long pid);
+
 	List<OsWindow> findWindows(String title);
 
 	List<OsWindow> getWindows(OsProcess process);

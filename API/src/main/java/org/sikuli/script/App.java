@@ -131,6 +131,15 @@ public class App {
     this.process = process;
   }
 
+  public static App withPID(long pid) {
+    OsProcess process = osUtil.findProcesses(pid).stream().findFirst().orElse(new NullProcess());
+    if (null == process) {
+      return null;
+    }
+    App app = new App(process);
+    return app;
+  }
+
   private String workDir = "";
 
   public boolean setWorkDir() {

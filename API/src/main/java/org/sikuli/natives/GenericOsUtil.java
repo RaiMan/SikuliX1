@@ -85,6 +85,17 @@ public abstract class GenericOsUtil implements OSUtil {
   }
 
   @Override
+  public List<OsProcess> findProcesses(long pidGiven) {
+    Stream<OsProcess> osProcessStream = allProcesses();
+    Stream<OsProcess> processStream = osProcessStream.filter((p) -> {
+      long pid = p.getPid();
+      return pid == pidGiven;
+    });
+    List<OsProcess> processList = processStream.collect(Collectors.toList());
+    return processList;
+  }
+
+  @Override
   public List<OsProcess> getProcesses() {
     return allProcesses().collect(Collectors.toList());
   }
