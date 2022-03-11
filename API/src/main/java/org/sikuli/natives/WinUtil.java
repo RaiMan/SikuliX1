@@ -24,7 +24,7 @@ public class WinUtil extends GenericOsUtil {
 
   static final SXUser32 user32 = SXUser32.INSTANCE;
 
-  private static final class WinWindow implements OsWindow {
+  private static final class WinWindow extends OsWindow {
     private HWND hWnd;
 
     public WinWindow(HWND hWnd) {

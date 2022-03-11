@@ -21,7 +21,7 @@ import org.sikuli.script.runnerSupport.IScriptRunner;
 
 public class LinuxUtil extends GenericOsUtil {
 
-	private static final class LinuxWindow implements OsWindow {
+	private static final class LinuxWindow extends OsWindow {
 		private long id;
 
 		public LinuxWindow(long id) {

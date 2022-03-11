@@ -8,33 +8,38 @@ import java.util.List;
 
 public interface OSUtil {
 
-	public interface OsProcess {
+	public abstract static class OsProcess {
 
-		long getPid();
+		public abstract long getPid();
 
-		String getExecutable();
+		public abstract String getExecutable();
 
-		boolean isRunning();
+		public abstract boolean isRunning();
 
-		boolean close(boolean force);
+		public abstract boolean close(boolean force);
 	}
 
-	public interface OsWindow {
-		OsProcess getProcess();
+	public abstract static class OsWindow {
+		public abstract OsProcess getProcess();
 
-		String getTitle();
+		public abstract String getTitle();
 
-		Rectangle getBounds();
+		public abstract Rectangle getBounds();
 
-		boolean focus();
+		public abstract boolean focus();
 
-		boolean focus(int winNum); //TODO macOS trick: window not directly focusable
+		public abstract boolean focus(int winNum); //TODO macOS trick: window not directly focusable
 
-		boolean minimize();
+		public abstract boolean minimize();
 
-		boolean maximize();
+		public abstract boolean maximize();
 
-		boolean restore();
+		public abstract boolean restore();
+
+		public String toString() {
+			Rectangle r = getBounds();
+			return String.format("%s (%d,%d %dx%d)", getTitle(), r.x, r.y, r.width, r.height);
+		}
 	}
 
 	/**

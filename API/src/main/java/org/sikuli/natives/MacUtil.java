@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 public class MacUtil extends GenericOsUtil {
 
-  private static final class MacWindow implements OsWindow {
+  private static final class MacWindow extends OsWindow {
     private long number;
     private String title;
     private long pid;

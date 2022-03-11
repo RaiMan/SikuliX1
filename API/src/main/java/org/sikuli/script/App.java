@@ -84,7 +84,7 @@ public class App {
   // </editor-fold>
 
   //<editor-fold desc="01 instance">
-  private static class NullProcess implements OsProcess {
+  private static class NullProcess extends OsProcess {
 
     @Override
     public long getPid() {

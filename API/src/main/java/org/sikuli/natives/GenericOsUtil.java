@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 public abstract class GenericOsUtil implements OSUtil {
 
-  protected static class GenericOsProcess implements OsProcess {
+  protected static class GenericOsProcess extends OsProcess {
 
     private ProcessHandle process;
 
