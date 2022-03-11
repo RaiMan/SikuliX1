@@ -62,7 +62,7 @@ public class MacUtil extends GenericOsUtil {
       if (pid > 0) {
         String script = "tell application \"System Events\" to set frontmost of first process in (processes where unix id is %d) to true";
         script = String.format(script, pid);
-        new AppleScriptRunner().evalScript(script, null);
+        new AppleScriptRunner().evalScript(script, new IScriptRunner.Options().setSilent(true));
         return true;
       }
       return false;
@@ -74,7 +74,7 @@ public class MacUtil extends GenericOsUtil {
         String script = "tell application \"System Events\" to perform action \"AXRaise\" " +
                 "of item %d of (windows of item 1 of (processes whose unix id is %d))";
         script = String.format(script, winNum + 1, pid);
-        new AppleScriptRunner().evalScript(script, null);
+        new AppleScriptRunner().evalScript(script, new IScriptRunner.Options().setSilent(true));
         return true;
       }
       return false;
