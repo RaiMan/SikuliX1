@@ -29,7 +29,6 @@ import java.util.Date;
 public class RobotDesktop extends Robot implements IRobot {
 
   final static int MAX_DELAY = 60000;
-  public static final int ALL_MODIFIERS = KeyModifier.SHIFT | KeyModifier.CTRL | KeyModifier.ALT | KeyModifier.META | KeyModifier.ALTGR;
 
   private static int heldButtons = 0;
   private static String heldKeys = "";
@@ -112,7 +111,6 @@ public class RobotDesktop extends Robot implements IRobot {
     smoothMove(Mouse.at(), dest, (long) (Settings.SlowMotionDelay * 1000L));
   }
 
-  //TODO macOS: allow mouse/keyboard usage
   @Override
   public void smoothMove(Location src, Location dest, long ms) {
     Debug.log(4, "RobotDesktop: smoothMove (%.1f): %s ---> %s", ms / 1000f, src, dest);
@@ -242,9 +240,6 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void pressModifiers(int modifiers) {
-    if (modifiers > ALL_MODIFIERS) { // TODO: Do we  really have to handle this?
-      return;
-    }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
       typeChar(Key.C_SHIFT, KeyMode.PRESS_ONLY);
     }
@@ -264,9 +259,6 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void releaseModifiers(int modifiers) {
-    if (modifiers > ALL_MODIFIERS) { // TODO: Do we  really have to handle this?
-      return;
-    }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
       typeChar(Key.C_SHIFT, KeyMode.RELEASE_ONLY);
     }
@@ -305,47 +297,6 @@ public class RobotDesktop extends Robot implements IRobot {
     }
   }
 
-  private void doKeyPress(int keyCode) {
-    Highlight fakeHighlight = null;
-    if (needsRobotFake()) {
-      fakeHighlight = Highlight.fakeHighlight();
-    }
-    logRobot(stdAutoDelay, "KeyPress: WaitForIdle: %s - Delay: %d");
-    setAutoDelay(stdAutoDelay);
-    if (null != fakeHighlight) {
-      delay(20);
-      fakeHighlight.close();
-      delay(20);
-    }
-
-    // on Windows we detect the current layout in KeyboardLayout.
-    // Since this layout is not compatible to AWT Robot, we have to use
-    // the User32 API to simulate the key press
-    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
-//      WinUser.INPUT input = new WinUser.INPUT();
-//      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-//      input.input.setType("ki");
-//      input.input.ki.wScan = new WinDef.WORD(0);
-//      input.input.ki.time = new WinDef.DWORD(0);
-//      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
-//      input.input.ki.wVk = new WinDef.WORD(keyCode);
-//      input.input.ki.dwFlags = new WinDef.DWORD(0);
-//
-//      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
-//          (WinUser.INPUT[]) input.toArray(1), input.size());
-      int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
-      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode, new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
-    } else {
-      keyPress(keyCode);
-    }
-
-
-    if (stdAutoDelay == 0) {
-      delay(stdDelay);
-    }
-    logRobot("KeyPress: extended delay: %d", stdMaxElapsed);
-  }
-
   @Override
   public void keyUp(String keys) {
     if (keys != null && !"".equals(keys)) {
@@ -377,48 +328,44 @@ public class RobotDesktop extends Robot implements IRobot {
     }
   }
 
-  private void doKeyRelease(int keyCode) {
-    logRobot(stdAutoDelay, "KeyRelease: WaitForIdle: %s - Delay: %d");
-    setAutoDelay(stdAutoDelay);
-    // on Windows we detect the current layout in KeyboardLayout.
-    // Since this layout is not compatible to AWT Robot, we have to use
-    // the User32 API to simulate the key release
-    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
-//      WinUser.INPUT input = new WinUser.INPUT();
-//      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-//      input.input.setType("ki");
-//      input.input.ki.wScan = new WinDef.WORD(0);
-//      input.input.ki.time = new WinDef.DWORD(0);
-//      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
-//      input.input.ki.wVk = new WinDef.WORD(keyCode);
-//      input.input.ki.dwFlags = new WinDef.DWORD(
-//          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
-//
-//      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
-//          (WinUser.INPUT[]) input.toArray(1), input.size());
-      int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
-      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode, new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
-    } else {
-      keyRelease(keyCode);
-    }
-
-    if (stdAutoDelay == 0) {
-      delay(stdDelay);
-    }
-    logRobot("KeyRelease: extended delay: %d", stdMaxElapsed);
-  }
-
   @Override
   public void typeChar(char character, KeyMode mode) {
-    Debug.log(4, "Robot: doType: %s ( %d )",
-        KeyEvent.getKeyText(Key.toJavaKeyCode(character)[0]).toString(),
-        Key.toJavaKeyCode(character)[0]);
+    int[] keyCode = new int[0];
+    try {
+      keyCode = Key.toJavaKeyCode(character);
+    } catch (IllegalArgumentException e) {
+      Debug.error("RobotDesktop::typeChar(%s): not possible", character);
+      if (Commons.runningWindows()) {
+        String cNum = String.format("%d", (((int) character) + 10000)).substring(1);
+        Debug.print("RobotDesktop::typeChar(%s): trying with ALT+NumPad(%s)", character, cNum);
+        typeAltNumPad(cNum);
+        return;
+      }
+      return;
+    }
+    if (Debug.getDebugLevel() > 3) {
+      Debug.log(4, "Robot: doType: %s ( %d )", KeyEvent.getKeyText(keyCode[0]), keyCode[0]);
+    }
     doType(mode, Key.toJavaKeyCode(character));
+  }
+
+  private static int[] numPad =
+      new int[]{KeyboardLayout.WindowsVkCodes.VK_NUMPAD0, KeyboardLayout.WindowsVkCodes.VK_NUMPAD1,
+      KeyboardLayout.WindowsVkCodes.VK_NUMPAD2, KeyboardLayout.WindowsVkCodes.VK_NUMPAD3,
+      KeyboardLayout.WindowsVkCodes.VK_NUMPAD4, KeyboardLayout.WindowsVkCodes.VK_NUMPAD5,
+      KeyboardLayout.WindowsVkCodes.VK_NUMPAD6, KeyboardLayout.WindowsVkCodes.VK_NUMPAD7,
+      KeyboardLayout.WindowsVkCodes.VK_NUMPAD8, KeyboardLayout.WindowsVkCodes.VK_NUMPAD9};
+
+  private void typeAltNumPad(String cNum) {
+    pressModifiers(KeyModifier.ALT);
+    for (int i = 0; i < 4; i++) {
+      doType(KeyMode.PRESS_RELEASE, numPad[Integer.parseInt(cNum.substring(i, i +1))]);
+    }
+    releaseModifiers(KeyModifier.ALT);
   }
 
   @Override
   public void typeKey(int key) {
-    Debug.log(4, "Robot: doType: %s ( %d )", KeyEvent.getKeyText(key), key);
     if (Settings.isMac()) {
       if (key == Key.toJavaKeyCodeFromText("#N.")) {
         doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#C."));
@@ -462,6 +409,77 @@ public class RobotDesktop extends Robot implements IRobot {
       }
     }
     waitForIdle();
+  }
+
+  private void doKeyPress(int keyCode) {
+    Highlight fakeHighlight = null;
+    if (needsRobotFake()) {
+      fakeHighlight = Highlight.fakeHighlight();
+    }
+    logRobot(stdAutoDelay, "KeyPress: WaitForIdle: %s - Delay: %d");
+    setAutoDelay(stdAutoDelay);
+    if (null != fakeHighlight) {
+      delay(20);
+      fakeHighlight.close();
+      delay(20);
+    }
+
+    // on Windows we detect the current layout in KeyboardLayout.
+    // Since this layout is not compatible to AWT Robot, we have to use
+    // the User32 API to simulate the key press
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+//      WinUser.INPUT input = new WinUser.INPUT();
+//      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+//      input.input.setType("ki");
+//      input.input.ki.wScan = new WinDef.WORD(0);
+//      input.input.ki.time = new WinDef.DWORD(0);
+//      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+//      input.input.ki.wVk = new WinDef.WORD(keyCode);
+//      input.input.ki.dwFlags = new WinDef.DWORD(0);
+//
+//      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+//          (WinUser.INPUT[]) input.toArray(1), input.size());
+      int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
+      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode, new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
+    } else {
+      keyPress(keyCode);
+    }
+
+    if (stdAutoDelay == 0) {
+      delay(stdDelay);
+    }
+    logRobot("KeyPress: extended delay: %d", stdMaxElapsed);
+  }
+
+  private void doKeyRelease(int keyCode) {
+    logRobot(stdAutoDelay, "KeyRelease: WaitForIdle: %s - Delay: %d");
+    setAutoDelay(stdAutoDelay);
+    // on Windows we detect the current layout in KeyboardLayout.
+    // Since this layout is not compatible to AWT Robot, we have to use
+    // the User32 API to simulate the key release
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+//      WinUser.INPUT input = new WinUser.INPUT();
+//      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+//      input.input.setType("ki");
+//      input.input.ki.wScan = new WinDef.WORD(0);
+//      input.input.ki.time = new WinDef.DWORD(0);
+//      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+//      input.input.ki.wVk = new WinDef.WORD(keyCode);
+//      input.input.ki.dwFlags = new WinDef.DWORD(
+//          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
+//
+//      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+//          (WinUser.INPUT[]) input.toArray(1), input.size());
+      int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
+      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode, new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
+    } else {
+      keyRelease(keyCode);
+    }
+
+    if (stdAutoDelay == 0) {
+      delay(stdDelay);
+    }
+    logRobot("KeyRelease: extended delay: %d", stdMaxElapsed);
   }
 
   @Override

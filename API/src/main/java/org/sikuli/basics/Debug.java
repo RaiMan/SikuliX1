@@ -620,6 +620,8 @@ public class Debug {
       } else {
         log(-1, actionPrefix, message, args);
       }
+    } else {
+      log(3, actionPrefix, message, args);
     }
   }
 
@@ -639,6 +641,8 @@ public class Debug {
         }
         log(-1, infoPrefix, message, args);
       }
+    } else {
+      log(3, infoPrefix, message, args);
     }
   }
 
@@ -699,6 +703,9 @@ public class Debug {
   }
 
   public static String print(String msg, Object... args) {
+    if (msg == null) {
+      return "";
+    }
     String out = msg;
     if (args != null && args.length > 0) {
       out = String.format(msg, args);

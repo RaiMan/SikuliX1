@@ -586,7 +586,7 @@ public class KeyboardLayout {
   private static Map<Character, int[]> getCurrentLayout() {
     Map<Character, int[]> layout = DEFAULT_KEYBOARD_LAYOUT;
 
-    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+    if (Settings.AutoDetectKeyboardLayout && Commons.runningWindows()) {
       int keyboarLayoutId = DEFAULT_KEYBOARD_LAYOUT_ID;
       HWND hwnd = SXUser32.INSTANCE.GetForegroundWindow();
       if (hwnd != null) {
@@ -611,11 +611,9 @@ public class KeyboardLayout {
 
   public static int[] toJavaKeyCode(char c) {
     int[] keyCodes = getCurrentLayout().get(c);
-
     if (keyCodes == null) {
       throw new IllegalArgumentException("Key: Not supported character: " + c);
     }
-
     return keyCodes;
   }
 }
