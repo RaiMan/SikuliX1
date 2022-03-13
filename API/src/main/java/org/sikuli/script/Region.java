@@ -3478,13 +3478,12 @@ public Match waitBestList(double time, List<Object> arg) {
         modWindows = "Windows";
       }
       if (modifiers != 0) {
-        modText = String.format("( %s ) ", KeyEvent.getKeyModifiersText(modifiers));
+        modText = String.format("( %s ) ", InputEvent.getModifiersExText(modifiers)); //KeyEvent.getKeyModifiersText(modifiers));
         if (modWindows != null) {
           modText = modText.replace("Meta", modWindows);
         }
       }
       Debug.action("%s TYPE \"%s\"", modText, showText);
-      log(logLevel, "%s TYPE \"%s\"", modText, showText);
       profiler.lap("before getting Robot");
       IRobot r = getRobotForRegion();
       int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
