@@ -338,7 +338,7 @@ public class RobotDesktop extends Robot implements IRobot {
       if (Commons.runningWindows()) {
         String cNum = String.format("%d", (((int) character) + 10000)).substring(1);
         Debug.print("RobotDesktop::typeChar(%s): trying with ALT+NumPad(%s)", character, cNum);
-        typeAltNumPad(cNum);
+        typex(cNum);
         return;
       }
       return;
@@ -350,16 +350,28 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   private static int[] numPad =
-      new int[]{KeyboardLayout.WindowsVkCodes.VK_NUMPAD0, KeyboardLayout.WindowsVkCodes.VK_NUMPAD1,
-      KeyboardLayout.WindowsVkCodes.VK_NUMPAD2, KeyboardLayout.WindowsVkCodes.VK_NUMPAD3,
-      KeyboardLayout.WindowsVkCodes.VK_NUMPAD4, KeyboardLayout.WindowsVkCodes.VK_NUMPAD5,
-      KeyboardLayout.WindowsVkCodes.VK_NUMPAD6, KeyboardLayout.WindowsVkCodes.VK_NUMPAD7,
-      KeyboardLayout.WindowsVkCodes.VK_NUMPAD8, KeyboardLayout.WindowsVkCodes.VK_NUMPAD9};
+      new int[]{KeyEvent.VK_NUMPAD0, KeyEvent.VK_NUMPAD1, KeyEvent.VK_NUMPAD2, KeyEvent.VK_NUMPAD3, KeyEvent.VK_NUMPAD4,
+          KeyEvent.VK_NUMPAD5, KeyEvent.VK_NUMPAD6, KeyEvent.VK_NUMPAD7, KeyEvent.VK_NUMPAD8, KeyEvent.VK_NUMPAD9};
 
-  private void typeAltNumPad(String cNum) {
+  public void typex(String cNum) {
+    if (cNum.length() > 4 ) {
+      cNum = cNum.substring(cNum.length() - 4);
+    } else if (cNum.length() < 4) {
+      cNum = "000".substring(0, 4 - cNum.length()) + cNum;
+    }
+    if (cNum.startsWith(" ")) {
+      cNum = cNum.substring(1);
+    }
     pressModifiers(KeyModifier.ALT);
-    for (int i = 0; i < 4; i++) {
-      doType(KeyMode.PRESS_RELEASE, numPad[Integer.parseInt(cNum.substring(i, i +1))]);
+    for (int i = 0; i < cNum.length(); i++) {
+      int iNum = 0;
+      try {
+        iNum = Integer.parseInt(cNum.substring(i, i + 1));
+      } catch (NumberFormatException e) {
+        return;
+      }
+      keyPress(numPad[iNum]);
+      keyRelease(numPad[iNum]);
     }
     releaseModifiers(KeyModifier.ALT);
   }

@@ -3353,6 +3353,27 @@ public Match waitBestList(double time, List<Object> arg) {
     return 0;
   }
 
+  public void typex(int uniCode) {
+    if (uniCode < 0) {
+      uniCode = -uniCode;
+      typex(" " + String.format("%d", (uniCode + 1000)).substring(1));
+    } else {
+      typex(String.format("%d", (uniCode + 10000)).substring(1));
+    }
+  }
+
+  public void typex(char uniChar) {
+    typex(String.format("%d", (((int) uniChar) + 10000)).substring(1));
+  }
+
+  public void typex(String uniCode) {
+    IRobot r = getRobotForRegion();
+    int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
+    Settings.TypeDelay = 0.0;
+    r.typex(uniCode);
+    r.delay(pause);
+  }
+
   /**
    * enters the given text one character/key after another using keyDown/keyUp
    * <br>about the usable Key constants see keyDown(keys) <br>Class Key only provides a subset of a US-QWERTY PC
