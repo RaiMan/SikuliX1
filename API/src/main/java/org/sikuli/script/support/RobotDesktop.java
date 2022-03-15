@@ -354,12 +354,11 @@ public class RobotDesktop extends Robot implements IRobot {
           KeyEvent.VK_NUMPAD5, KeyEvent.VK_NUMPAD6, KeyEvent.VK_NUMPAD7, KeyEvent.VK_NUMPAD8, KeyEvent.VK_NUMPAD9};
 
   public void typex(String cNum) {
-    if (cNum.length() > 4 ) {
+    if (cNum.length() > 4 ) { //TODO
       cNum = cNum.substring(cNum.length() - 4);
     } else if (cNum.length() < 4) {
       cNum = "000".substring(0, 4 - cNum.length()) + cNum;
-    }
-    if (cNum.startsWith(" ")) {
+    } else if (cNum.startsWith(" ")) {
       cNum = cNum.substring(1);
     }
     pressModifiers(KeyModifier.ALT);
