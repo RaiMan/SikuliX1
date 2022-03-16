@@ -221,6 +221,7 @@ public class KeyboardLayout {
   }
 
   private static final int[] AUTO_DETECT_VK_CODES = new int[] {
+//region AUTO_DETECT_VK_CODES
       // Numbers
       WindowsVkCodes.VK_KEY_1, WindowsVkCodes.VK_KEY_2, WindowsVkCodes.VK_KEY_3, WindowsVkCodes.VK_KEY_4,
       WindowsVkCodes.VK_KEY_5, WindowsVkCodes.VK_KEY_6, WindowsVkCodes.VK_KEY_7, WindowsVkCodes.VK_KEY_8,
@@ -270,10 +271,10 @@ public class KeyboardLayout {
       WindowsVkCodes.VK_OEM_RESET, // Reset
       WindowsVkCodes.VK_OEM_WSCTRL // WsCtrl
   };
-
-  private static final int MAPVK_VK_TO_VSC = 0;
+  //endregion
 
   private static Map<Character, int[]> mapKeyCodes(int[] modifiers, int keyboarLayoutId) {
+    final int MAPVK_VK_TO_VSC = 0;
     Map<Character, int[]> mappings = new HashMap<>();
 
     int spaceScanCode = SXUser32.INSTANCE.MapVirtualKeyExW(WindowsVkCodes.VK_SPACE, MAPVK_VK_TO_VSC, keyboarLayoutId);
@@ -452,7 +453,6 @@ public class KeyboardLayout {
     layout.put('Y', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_Y });
     layout.put('Z', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_Z });
     // Row 3 (below function keys)
-//	      layout.put('§', new int[]{192}); //not producable
     layout.put('1', new int[] { KeyEvent.VK_1 });
     layout.put('!', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_1 });
     layout.put('2', new int[] { KeyEvent.VK_2 });

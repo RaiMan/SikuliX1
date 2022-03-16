@@ -6,6 +6,7 @@ package org.sikuli.basics;
 import org.sikuli.script.Key;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.PreferencesUser;
 
 import java.awt.event.KeyEvent;
@@ -172,7 +173,7 @@ public abstract class HotkeyManager {
    * @return true if success. false otherwise.
    */
   public boolean addHotkey(String key, int modifiers, HotkeyListener callback) {
-    int[] keyCodes = Key.toJavaKeyCode(key.toLowerCase());
+    int[] keyCodes = KeyboardLayout.toJavaKeyCode(key.toLowerCase().charAt(0));
     int keyCode = keyCodes[0];
     return installHotkey(keyCode, modifiers, callback, "");
   }
@@ -250,7 +251,7 @@ public abstract class HotkeyManager {
    * @return true if success. false otherwise.
    */
   public boolean removeHotkey(String key, int modifiers) {
-    int[] keyCodes = Key.toJavaKeyCode(key.toLowerCase());
+    int[] keyCodes = KeyboardLayout.toJavaKeyCode(key.toLowerCase().charAt(0));
     int keyCode = keyCodes[0];
     return uninstallHotkey(keyCode, modifiers);
   }

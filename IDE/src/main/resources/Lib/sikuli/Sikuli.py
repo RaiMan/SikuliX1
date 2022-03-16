@@ -331,6 +331,15 @@ def unicd(s):
 def ucode(s):
     return (unicode(s, "utf8"))
 
+def typex(s):
+    if isinstance(s, str):
+        s = unicode(s, "utf8")
+    SCREEN.typex(s)
+
+def type(s, mod = 0):
+    if isinstance(s, str):
+        s = unicode(s, "utf8")
+    SCREEN.type(s, mod)
 
 ##
 # unzips the given input (string) to the given folder (string)
@@ -756,7 +765,7 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
                         'updateSelf', 'findNow', 'findAllNow', 'getEventManager',
                         'lastMatch', 'lastMatches', 'lastScreenImage', 'lastScreenImageFile',
                         'capture', 'wait', 'lineList', 'wordList', 'all', 'image',
-                        'reset'
+                        'reset', 'typex', 'type'
                         ]
     Debug.log(4, "Sikuli: _exposeAllMethods: %s called from: %s", anyObject, theGlobals['__name__'])
     tosave = []

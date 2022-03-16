@@ -241,38 +241,38 @@ public class RobotDesktop extends Robot implements IRobot {
   @Override
   public void pressModifiers(int modifiers) {
     if ((modifiers & KeyModifier.SHIFT) != 0) {
-      typeChar(Key.C_SHIFT, KeyMode.PRESS_ONLY);
+      typeChar(Key.C_SHIFT, KeyMode.PRESS_ONLY); // pressModifiers
     }
     if ((modifiers & KeyModifier.CTRL) != 0) {
-      typeChar(Key.C_CTRL, KeyMode.PRESS_ONLY);
+      typeChar(Key.C_CTRL, KeyMode.PRESS_ONLY); // pressModifiers
     }
     if ((modifiers & KeyModifier.ALT) != 0) {
-      typeChar(Key.C_ALT, KeyMode.PRESS_ONLY);
+      typeChar(Key.C_ALT, KeyMode.PRESS_ONLY); // pressModifiers
     }
     if ((modifiers & KeyModifier.META) != 0) {
-      typeChar(Key.C_META, KeyMode.PRESS_ONLY);
+      typeChar(Key.C_META, KeyMode.PRESS_ONLY); // pressModifiers
     }
     if ((modifiers & KeyModifier.ALTGR) != 0) {
-      typeChar(Key.C_ALTGR, KeyMode.PRESS_ONLY);
+      typeChar(Key.C_ALTGR, KeyMode.PRESS_ONLY); // pressModifiers
     }
   }
 
   @Override
   public void releaseModifiers(int modifiers) {
     if ((modifiers & KeyModifier.SHIFT) != 0) {
-      typeChar(Key.C_SHIFT, KeyMode.RELEASE_ONLY);
+      typeChar(Key.C_SHIFT, KeyMode.RELEASE_ONLY); // releaseModifiers
     }
     if ((modifiers & KeyModifier.CTRL) != 0) {
-      typeChar(Key.C_CTRL, KeyMode.RELEASE_ONLY);
+      typeChar(Key.C_CTRL, KeyMode.RELEASE_ONLY); // releaseModifiers
     }
     if ((modifiers & KeyModifier.ALT) != 0) {
-      typeChar(Key.C_ALT, KeyMode.RELEASE_ONLY);
+      typeChar(Key.C_ALT, KeyMode.RELEASE_ONLY); // releaseModifiers
     }
     if ((modifiers & KeyModifier.META) != 0) {
-      typeChar(Key.C_META, KeyMode.RELEASE_ONLY);
+      typeChar(Key.C_META, KeyMode.RELEASE_ONLY); // releaseModifiers
     }
     if ((modifiers & KeyModifier.ALTGR) != 0) {
-      typeChar(Key.C_ALTGR, KeyMode.RELEASE_ONLY);
+      typeChar(Key.C_ALTGR, KeyMode.RELEASE_ONLY); // releaseModifiers
     }
   }
 
@@ -282,7 +282,7 @@ public class RobotDesktop extends Robot implements IRobot {
       for (int i = 0; i < keys.length(); i++) {
         if (heldKeys.indexOf(keys.charAt(i)) == -1) {
           Debug.log(4, "press: " + keys.charAt(i));
-          typeChar(keys.charAt(i), IRobot.KeyMode.PRESS_ONLY);
+          typeChar(keys.charAt(i), IRobot.KeyMode.PRESS_ONLY); // KeyDown
           heldKeys += keys.charAt(i);
         }
       }
@@ -304,7 +304,7 @@ public class RobotDesktop extends Robot implements IRobot {
         int pos;
         if ((pos = heldKeys.indexOf(keys.charAt(i))) != -1) {
           Debug.log(4, "release: " + keys.charAt(i));
-          typeChar(keys.charAt(i), IRobot.KeyMode.RELEASE_ONLY);
+          typeChar(keys.charAt(i), IRobot.KeyMode.RELEASE_ONLY); // keyUp
           heldKeys = heldKeys.substring(0, pos)
               + heldKeys.substring(pos + 1);
         }
@@ -330,54 +330,73 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void typeChar(char character, KeyMode mode) {
-    int[] keyCode = new int[0];
+    int[] keyCode;
     try {
-      keyCode = Key.toJavaKeyCode(character);
+      keyCode = KeyboardLayout.toJavaKeyCode(character);
     } catch (IllegalArgumentException e) {
-      Debug.error("RobotDesktop::typeChar(%s): not possible", character);
-      if (Commons.runningWindows()) {
-        String cNum = String.format("%d", (((int) character) + 10000)).substring(1);
-        Debug.print("RobotDesktop::typeChar(%s): trying with ALT+NumPad(%s)", character, cNum);
-        typex(cNum);
-        return;
-      }
+      Debug.error("RobotDesktop::type(%s): not possible --- try with typex()", character);
       return;
     }
     if (Debug.getDebugLevel() > 3) {
       Debug.log(4, "Robot: doType: %s ( %d )", KeyEvent.getKeyText(keyCode[0]), keyCode[0]);
     }
-    doType(mode, Key.toJavaKeyCode(character));
+    doType(mode, keyCode);
   }
 
   private static int[] numPad =
       new int[]{KeyEvent.VK_NUMPAD0, KeyEvent.VK_NUMPAD1, KeyEvent.VK_NUMPAD2, KeyEvent.VK_NUMPAD3, KeyEvent.VK_NUMPAD4,
           KeyEvent.VK_NUMPAD5, KeyEvent.VK_NUMPAD6, KeyEvent.VK_NUMPAD7, KeyEvent.VK_NUMPAD8, KeyEvent.VK_NUMPAD9};
 
-  public void typex(String cNum) {
-    if (cNum.length() > 4 ) { //TODO
-      cNum = cNum.substring(cNum.length() - 4);
-    } else if (cNum.length() < 4) {
-      cNum = "000".substring(0, 4 - cNum.length()) + cNum;
-    } else if (cNum.startsWith(" ")) {
-      cNum = cNum.substring(1);
-    }
-    pressModifiers(KeyModifier.ALT);
-    for (int i = 0; i < cNum.length(); i++) {
-      int iNum = 0;
-      try {
-        iNum = Integer.parseInt(cNum.substring(i, i + 1));
-      } catch (NumberFormatException e) {
-        return;
+  public void typex(String text) {
+    String[] cNums = new String[text.length()];
+    boolean isCode = true;
+    if (text.length() > 4) {
+      isCode = false;
+    } else {
+      for (int ci = 0; ci < text.length(); ci++) {
+        if (ci == 0 && text.startsWith(" ")) {
+          continue;
+        }
+        if (!("0123456789").contains(text.substring(ci, ci + 1))) {
+          isCode = false;
+          break;
+        }
       }
-      keyPress(numPad[iNum]);
-      keyRelease(numPad[iNum]);
     }
-    releaseModifiers(KeyModifier.ALT);
+    if (isCode) {
+      String cNum = text;
+      if (text.startsWith(" ")) {
+        cNum = text.substring(1);
+        cNum = "00".substring(0, 3 - cNum.length()) + cNum;
+      } else if (text.length() < 4) {
+        cNum = "000".substring(0, 4 - text.length()) + text;
+      }
+      cNums = new String[]{cNum};
+    } else {
+      for (int ci = 0; ci < text.length(); ci++) {
+        cNums[ci] = String.format("%d", (((int) text.charAt(ci)) + 10000)).substring(1);
+      }
+    }
+    for (String code : cNums) {
+      pressModifiers(KeyModifier.ALT);
+      for (int i = 0; i < code.length(); i++) {
+        int iNum = 0;
+        try {
+          iNum = Integer.parseInt(code.substring(i, i + 1));
+        } catch (NumberFormatException e) {
+          return;
+        }
+        keyPress(numPad[iNum]);
+        keyRelease(numPad[iNum]);
+      }
+      releaseModifiers(KeyModifier.ALT);
+    }
   }
 
   @Override
   public void typeKey(int key) {
     if (Settings.isMac()) {
+/*
       if (key == Key.toJavaKeyCodeFromText("#N.")) {
         doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#C."));
         doType(KeyMode.PRESS_RELEASE, key);
@@ -397,6 +416,7 @@ public class RobotDesktop extends Robot implements IRobot {
         doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#A."));
         return;
       }
+*/
     }
     doType(KeyMode.PRESS_RELEASE, key);
   }
@@ -435,23 +455,10 @@ public class RobotDesktop extends Robot implements IRobot {
       delay(20);
     }
 
-    // on Windows we detect the current layout in KeyboardLayout.
-    // Since this layout is not compatible to AWT Robot, we have to use
-    // the User32 API to simulate the key press
     if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
-//      WinUser.INPUT input = new WinUser.INPUT();
-//      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-//      input.input.setType("ki");
-//      input.input.ki.wScan = new WinDef.WORD(0);
-//      input.input.ki.time = new WinDef.DWORD(0);
-//      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
-//      input.input.ki.wVk = new WinDef.WORD(keyCode);
-//      input.input.ki.dwFlags = new WinDef.DWORD(0);
-//
-//      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
-//          (WinUser.INPUT[]) input.toArray(1), input.size());
       int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
-      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode, new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
+      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode,
+          new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
     } else {
       keyPress(keyCode);
     }
@@ -465,24 +472,24 @@ public class RobotDesktop extends Robot implements IRobot {
   private void doKeyRelease(int keyCode) {
     logRobot(stdAutoDelay, "KeyRelease: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
-    // on Windows we detect the current layout in KeyboardLayout.
-    // Since this layout is not compatible to AWT Robot, we have to use
-    // the User32 API to simulate the key release
     if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
-//      WinUser.INPUT input = new WinUser.INPUT();
-//      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-//      input.input.setType("ki");
-//      input.input.ki.wScan = new WinDef.WORD(0);
-//      input.input.ki.time = new WinDef.DWORD(0);
-//      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
-//      input.input.ki.wVk = new WinDef.WORD(keyCode);
-//      input.input.ki.dwFlags = new WinDef.DWORD(
-//          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
-//
-//      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
-//          (WinUser.INPUT[]) input.toArray(1), input.size());
+/*
+      WinUser.INPUT input = new WinUser.INPUT();
+      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+      input.input.setType("ki");
+      input.input.ki.wScan = new WinDef.WORD(0);
+      input.input.ki.time = new WinDef.DWORD(0);
+      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+      input.input.ki.wVk = new WinDef.WORD(keyCode);
+      input.input.ki.dwFlags = new WinDef.DWORD(
+          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
+
+      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+          (WinUser.INPUT[]) input.toArray(1), input.size());
+*/
       int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
-      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode, new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
+      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode,
+          new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
     } else {
       keyRelease(keyCode);
     }

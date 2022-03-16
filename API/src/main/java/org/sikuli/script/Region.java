@@ -3321,7 +3321,7 @@ public Match waitBestList(double time, List<Object> arg) {
           }
           if (repeat > 1) {
             for (int n = 0; n < repeat; n++) {
-              robot.typeKey(key.intValue());
+              robot.typeKey(key.intValue()); //write
             }
             continue;
           }
@@ -3334,9 +3334,9 @@ public Match waitBestList(double time, List<Object> arg) {
         }
       }
       if (key > -1) {
-        robot.typeKey(key.intValue());
+        robot.typeKey(key.intValue()); // write
       } else {
-        robot.typeChar(c, IRobot.KeyMode.PRESS_RELEASE);
+        robot.typeChar(c, IRobot.KeyMode.PRESS_RELEASE); // write
       }
       if (!modifier.isEmpty()) {
         log(logLevel + 1, "write: modifier - " + modifier);
@@ -3354,7 +3354,7 @@ public Match waitBestList(double time, List<Object> arg) {
   }
 
   public void typex(int uniCode) {
-    if (uniCode < 0) {
+    if (uniCode < 0  && uniCode > -1000) {
       uniCode = -uniCode;
       typex(" " + String.format("%d", (uniCode + 1000)).substring(1));
     } else {
@@ -3513,7 +3513,7 @@ public Match waitBestList(double time, List<Object> arg) {
       r.typeStarts();
       for (int i = 0; i < text.length(); i++) {
         r.pressModifiers(modifiers);
-        r.typeChar(text.charAt(i), IRobot.KeyMode.PRESS_RELEASE);
+        r.typeChar(text.charAt(i), IRobot.KeyMode.PRESS_RELEASE); // type/keyin
         r.releaseModifiers(modifiers);
         r.delay(pause);
       }
