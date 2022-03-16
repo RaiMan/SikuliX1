@@ -2033,6 +2033,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="020 wait/waitVanish">
+
   /**
    * Waits for the Pattern, String or Image to appear or timeout (in second) is passed
    *
@@ -2113,12 +2114,12 @@ public class Region extends Element {
   /**
    * @deprecated use getBest
    */
-@Deprecated
-public Match waitBestList(double time, List<Object> arg) {
+  @Deprecated
+  public Match waitBestList(double time, List<Object> arg) {
     return getBest(time, arg); // waitBestList
   }
 
-  public List<Match> waitAny (double time, Object... args) {
+  public List<Match> waitAny(double time, Object... args) {
     if (args.length == 0) {
       return new ArrayList<>();
     }
@@ -3354,7 +3355,7 @@ public Match waitBestList(double time, List<Object> arg) {
   }
 
   public void typex(int uniCode) {
-    if (uniCode < 0  && uniCode > -1000) {
+    if (uniCode < 0 && uniCode > -1000) {
       uniCode = -uniCode;
       typex(" " + String.format("%d", (uniCode + 1000)).substring(1));
     } else {
@@ -3513,8 +3514,9 @@ public Match waitBestList(double time, List<Object> arg) {
       r.typeStarts();
       for (int i = 0; i < text.length(); i++) {
         r.pressModifiers(modifiers);
-        r.typeChar(text.charAt(i), IRobot.KeyMode.PRESS_RELEASE); // type/keyin
-        r.releaseModifiers(modifiers);
+        if (r.typeChar(text.charAt(i), IRobot.KeyMode.PRESS_RELEASE)) { // type/keyin
+          r.releaseModifiers(modifiers);
+        }
         r.delay(pause);
       }
       r.typeEnds();

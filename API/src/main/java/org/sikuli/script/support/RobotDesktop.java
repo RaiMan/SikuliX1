@@ -329,18 +329,28 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   @Override
-  public void typeChar(char character, KeyMode mode) {
+  public boolean typeChar(char character, KeyMode mode) {
     int[] keyCode;
     try {
       keyCode = KeyboardLayout.toJavaKeyCode(character);
+      doType(mode, keyCode);
     } catch (IllegalArgumentException e) {
-      Debug.error("RobotDesktop::type(%s): not possible --- try with typex()", character);
-      return;
+      if (Commons.runningWindows()) {
+        if (mode == KeyMode.PRESS_RELEASE) {
+          if (Debug.getDebugLevel() == 3) {
+            Debug.log(3, "Robot::type(%s): not possible --- trying with typex()", character);
+          }
+          keyUp();
+          typex("" + character);
+          return false;
+        } else {
+          Debug.error("Robot::typex(): not supported for PRESS_ONLY nor RELEASE_ONLY");
+        }
+      } else {
+        Debug.error( "Robot::type(%s): not possible and typex() not implemented", character);
+      }
     }
-    if (Debug.getDebugLevel() > 3) {
-      Debug.log(4, "Robot: doType: %s ( %d )", KeyEvent.getKeyText(keyCode[0]), keyCode[0]);
-    }
-    doType(mode, keyCode);
+    return true;
   }
 
   private static int[] numPad =
@@ -378,18 +388,23 @@ public class RobotDesktop extends Robot implements IRobot {
       }
     }
     for (String code : cNums) {
-      pressModifiers(KeyModifier.ALT);
-      for (int i = 0; i < code.length(); i++) {
-        int iNum = 0;
-        try {
-          iNum = Integer.parseInt(code.substring(i, i + 1));
-        } catch (NumberFormatException e) {
-          return;
+      if (Commons.runningWindows()) {
+        pressModifiers(KeyModifier.ALT);
+        for (int i = 0; i < code.length(); i++) {
+          int iNum = 0;
+          try {
+            iNum = Integer.parseInt(code.substring(i, i + 1));
+          } catch (NumberFormatException e) {
+            return;
+          }
+          keyPress(numPad[iNum]);
+          keyRelease(numPad[iNum]);
         }
-        keyPress(numPad[iNum]);
-        keyRelease(numPad[iNum]);
+        releaseModifiers(KeyModifier.ALT);
+      } else {
+        Debug.error("Robot::typex(): not supported (currently Windows only)");
+        break;
       }
-      releaseModifiers(KeyModifier.ALT);
     }
   }
 

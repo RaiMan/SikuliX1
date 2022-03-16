@@ -25,7 +25,7 @@ public interface IRobot {
    void pressModifiers(int modifiers);
    void releaseModifiers(int modifiers);
    void typex(String uniCode);
-   void typeChar(char character, KeyMode mode);
+   boolean typeChar(char character, KeyMode mode);
    void typeKey(int key);
    void typeStarts();
    void typeEnds();
