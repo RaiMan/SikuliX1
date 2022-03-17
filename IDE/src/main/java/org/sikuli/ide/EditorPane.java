@@ -346,12 +346,15 @@ public class EditorPane extends JTextPane {
         checkSource();
       }
       String text = getText();
-      String lastChar = text.substring(text.length() - 1);
-      if (!lastChar.equals("\n")) {
-        text += "\n";
-        setText(text);
+      if (text.isEmpty()) {
+        appendString("\n");
+      } else {
+        String lastChar = text.substring(text.length() - 1);
+        if (!lastChar.equals("\n")) {
+          appendString("\n");
+        }
+        doParse();
       }
-      doParse();
       setCaretPosition(0);
       setDirty(false);
     }
