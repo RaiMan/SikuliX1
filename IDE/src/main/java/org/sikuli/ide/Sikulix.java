@@ -99,7 +99,10 @@ public class Sikulix {
 
     if (Commons.hasExtendedArg("reset")) {
       System.out.println("[INFO] IDE: resetting global options and terminating --- see docs");
-
+      PreferencesUser.get().remove("CAPTURE_HOTKEY");
+      PreferencesUser.get().remove("CAPTURE_HOTKEY_MODIFIERS");
+      PreferencesUser.get().remove("STOP_HOTKEY");
+      PreferencesUser.get().remove("STOP_HOTKEY_MODIFIERS");
       PreferencesUser.get().remove("IDE_LOCATION");
       PreferencesUser.get().remove("IDE_SIZE");
       PreferencesUser.get().remove("IDE_SESSION");
