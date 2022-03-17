@@ -11,6 +11,7 @@ import org.sikuli.script.Sikulix;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Point;
+import java.awt.event.InputEvent;
 import java.io.*;
 import java.util.*;
 import java.util.prefs.*;
@@ -362,9 +363,9 @@ public class PreferencesUser {
   }
 
   private int defaultCaptureHotkeyModifiers() {
-    int mod = Event.SHIFT_MASK + Event.META_MASK;
+    int mod = InputEvent.SHIFT_DOWN_MASK + InputEvent.META_DOWN_MASK;
     if (!Settings.isMac()) {
-      mod = Event.SHIFT_MASK + Event.CTRL_MASK;
+      mod = InputEvent.SHIFT_DOWN_MASK + InputEvent.CTRL_DOWN_MASK;
     }
     return mod;
   }
@@ -395,9 +396,9 @@ public class PreferencesUser {
   }
 
   private int defaultStopHotkeyModifiers() {
-    int mod = Event.SHIFT_MASK + Event.META_MASK;
+    int mod = InputEvent.SHIFT_DOWN_MASK + InputEvent.META_DOWN_MASK;
     if (!Settings.isMac()) {
-      mod = Event.SHIFT_MASK + Event.ALT_MASK;
+      mod = InputEvent.SHIFT_DOWN_MASK + InputEvent.ALT_DOWN_MASK;
     }
     return mod;
   }
