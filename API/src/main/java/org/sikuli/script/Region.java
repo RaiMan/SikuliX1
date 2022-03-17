@@ -16,7 +16,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A Region is a rectengular area on a screen.
@@ -3241,7 +3240,6 @@ public class Region extends Element {
     IRobot robot = getRobotForRegion();
     int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
     Settings.TypeDelay = 0.0;
-    robot.typeStarts();
     for (int i = 0; i < text.length(); i++) {
       log(logLevel + 1, "write: (%d) %s", i, text.substring(i));
       c = text.charAt(i);
@@ -3349,7 +3347,6 @@ public class Region extends Element {
       modifier = "";
     }
 
-    robot.typeEnds();
     robot.waitForIdle();
     return 0;
   }
@@ -3385,7 +3382,7 @@ public class Region extends Element {
    */
   public int type(String text) {
     try {
-      return keyin(null, text, 0);
+      return doType(null, text, 0);
     } catch (FindFailed ex) {
       return 0;
     }
@@ -3402,7 +3399,7 @@ public class Region extends Element {
    */
   public int type(String text, int modifiers) {
     try {
-      return keyin(null, text, modifiers);
+      return doType(null, text, modifiers);
     } catch (FindFailed findFailed) {
       return 0;
     }
@@ -3427,7 +3424,7 @@ public class Region extends Element {
       text = modifiers;
     }
     try {
-      return keyin(target, text, modifiersNew);
+      return doType(target, text, modifiersNew);
     } catch (FindFailed findFailed) {
       return 0;
     }
@@ -3445,7 +3442,7 @@ public class Region extends Element {
    * @throws FindFailed if not found
    */
   public <PFRML> int type(PFRML target, String text) throws FindFailed {
-    return keyin(target, text, 0);
+    return doType(target, text, 0);
   }
 
   /**
@@ -3461,7 +3458,7 @@ public class Region extends Element {
    * @throws FindFailed if not found
    */
   public <PFRML> int type(PFRML target, String text, int modifiers) throws FindFailed {
-    return keyin(target, text, modifiers);
+    return doType(target, text, modifiers);
   }
 
   /**
@@ -3478,14 +3475,13 @@ public class Region extends Element {
    */
   public <PFRML> int type(PFRML target, String text, String modifiers) throws FindFailed {
     int modifiersNew = Key.convertModifiers(modifiers);
-    return keyin(target, text, modifiersNew);
+    return doType(target, text, modifiersNew);
   }
 
-  private <PFRML> int keyin(PFRML target, String text, int modifiers) throws FindFailed {
+  private <PFRML> int doType(PFRML target, String text, int modifiers) throws FindFailed {
     if (target != null && 0 == click(target, 0)) {
       return 0;
     }
-    Debug profiler = Debug.startTimer("Region.type");
     if (text != null && !"".equals(text)) {
       String showText = "";
       for (int i = 0; i < text.length(); i++) {
@@ -3506,12 +3502,9 @@ public class Region extends Element {
         }
       }
       Debug.action("%s TYPE \"%s\"", modText, showText);
-      profiler.lap("before getting Robot");
       IRobot r = getRobotForRegion();
       int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
       Settings.TypeDelay = 0.0;
-      profiler.lap("before typing");
-      r.typeStarts();
       for (int i = 0; i < text.length(); i++) {
         r.pressModifiers(modifiers);
         if (r.typeChar(text.charAt(i), IRobot.KeyMode.PRESS_RELEASE)) { // type/keyin
@@ -3519,10 +3512,7 @@ public class Region extends Element {
         }
         r.delay(pause);
       }
-      r.typeEnds();
-      profiler.lap("after typing, before waitForIdle");
       r.waitForIdle();
-      profiler.end();
       return 1;
     }
 

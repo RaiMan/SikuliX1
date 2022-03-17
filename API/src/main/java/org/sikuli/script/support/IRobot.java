@@ -27,8 +27,6 @@ public interface IRobot {
    void typex(String uniCode);
    boolean typeChar(char character, KeyMode mode);
    void typeKey(int key);
-   void typeStarts();
-   void typeEnds();
    void mouseMove(int x, int y);
    void mouseDown(int buttons);
    int mouseUp(int buttons);

@@ -516,14 +516,6 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   @Override
-  public void typeStarts() {
-  }
-
-  @Override
-  public void typeEnds() {
-  }
-
-  @Override
   public void cleanup() {
   }
 }
