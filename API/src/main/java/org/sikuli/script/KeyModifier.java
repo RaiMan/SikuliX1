@@ -10,13 +10,13 @@ import java.awt.event.InputEvent;
  * only still there for backward compatibility (is already duplicated in Key)
  */
 public class KeyModifier {
-  public static final int CTRL = InputEvent.CTRL_MASK; //ctrl
-  public static final int SHIFT = InputEvent.SHIFT_MASK; //shift
-  public static final int ALT = InputEvent.ALT_MASK; //alt
-  public static final int ALTGR = InputEvent.ALT_GRAPH_MASK; //altGraph
-  public static final int META = InputEvent.META_MASK; //meta
-  public static final int CMD = InputEvent.META_MASK;
-  public static final int WIN = InputEvent.META_MASK;
+  public static final int CTRL = InputEvent.CTRL_DOWN_MASK; //ctrl
+  public static final int SHIFT = InputEvent.SHIFT_DOWN_MASK; //shift
+  public static final int ALT = InputEvent.ALT_DOWN_MASK; //alt
+  public static final int ALTGR = InputEvent.ALT_GRAPH_DOWN_MASK; //altGraph
+  public static final int META = InputEvent.META_DOWN_MASK; //meta
+  public static final int CMD = InputEvent.META_DOWN_MASK; //meta CMD
+  public static final int WIN = InputEvent.META_DOWN_MASK; //meta WIN
 
   @Deprecated
   public static final int KEY_CTRL = InputEvent.CTRL_MASK;
