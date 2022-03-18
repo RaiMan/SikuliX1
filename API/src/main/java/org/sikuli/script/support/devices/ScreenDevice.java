@@ -31,6 +31,9 @@ public class ScreenDevice extends Devices {
   static AtomicBoolean useable = null;
 
   public static boolean isUseable(boolean... state) {
+    if (useable == null) {
+      Commons.checkAccessibility();
+    }
     if (state.length > 0) {
       useable.set(state[0]);
     }

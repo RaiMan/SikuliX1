@@ -1526,9 +1526,10 @@ Software:
     List<String> nativesList = Commons.getFileList(fpJarLibs, COMMONS_CLASS);
     for (String aFile : nativesList) {
       String copyMsg = "";
-
+      boolean isExecutable = false;
       String inFile;
-      if (aFile.startsWith("//") || aFile.startsWith("#")) {
+      File outFile = null;
+      if (aFile.startsWith("//")) {
         continue;
       } else if (aFile.startsWith("/")) {
         String[] parts = aFile.split("@");
@@ -1545,6 +1546,10 @@ Software:
         }
         aFile = new File(inFile).getName();
       } else {
+        if (aFile.startsWith("#")) {
+          isExecutable = true;
+          aFile = aFile.substring(1);
+        }
         inFile = new File(fpJarLibs, aFile).getPath();
       }
       if (inFile != null) {
@@ -1552,9 +1557,10 @@ Software:
           inFile = inFile.replace(OPENCV_JAVA, getLibFilename(libOpenCV));
           aFile = new File(inFile).getName();
         }
-        try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
+        outFile = new File(fLibsFolder, aFile);
+        try (FileOutputStream outFileStream = new FileOutputStream(outFile);
              InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
-          RunTime.copy(inStream, outFile);
+          RunTime.copy(inStream, outFileStream);
         } catch (Exception ex) {
           copyMsg = String.format(": failed: %s", ex.getMessage());
         }
@@ -1565,6 +1571,9 @@ Software:
         Debug.error(copyMsg);
         break;
       } else {
+        if (isExecutable) {
+          outFile.setExecutable(true);
+        }
         Debug.log(3, copyMsg);
       }
     }
