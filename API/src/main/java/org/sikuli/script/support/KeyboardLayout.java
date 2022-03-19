@@ -20,6 +20,10 @@ public class KeyboardLayout {
   private static final int DEFAULT_KEYBOARD_LAYOUT_ID = 0x0409; // en-US;
   private static final Map<Character, int[]> DEFAULT_KEYBOARD_LAYOUT = buildAwtEnUs(); // en-US;
 
+  public static Map<Character, int[]> getAwtEnUS() {
+    return DEFAULT_KEYBOARD_LAYOUT;
+  }
+
   private static final Map<Integer, Map<Character, int[]>> LAYOUTS = new HashMap<>();
 
   class WindowsVkCodes {

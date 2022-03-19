@@ -23,9 +23,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -432,6 +430,8 @@ public class RobotDesktop extends Robot implements IRobot {
           ProcessRunner.runCommand(keyboard.getAbsolutePath(), kbHex);
         } catch (Exception e) {
         }
+      } else {
+        Debug.error("Robot::typex(): KeyboardLayout UnicodeHexInput not available");
       }
     }
     for (String code : cNums) {
@@ -449,6 +449,9 @@ public class RobotDesktop extends Robot implements IRobot {
         }
         releaseModifiers(KeyModifier.ALT);
       } else if (Commons.runningMac()) {
+        if (!hasUnicode) {
+          break;
+        }
         int nCode = -1;
         String hCode = "";
         try {
@@ -459,9 +462,18 @@ public class RobotDesktop extends Robot implements IRobot {
         if (hCode.length() < 4) {
           hCode = "000".substring(0, 4 - hCode.length()) + hCode;
         }
-        Debug.print("%s", hCode);
+        Map<Character, int[]> keys = KeyboardLayout.getAwtEnUS();
+        pressModifiers(KeyModifier.ALT);
+        for (int i = 0; i < hCode.length(); i++) {
+          Character c = hCode.charAt(i);
+          int kcode = keys.get(c)[0];
+          keyPress(kcode);
+          keyRelease(kcode);
+        }
+        releaseModifiers(KeyModifier.ALT);
+        Debug.print("typex: %s", hCode);
       } else {
-        Debug.error("Robot::typex(): not supported (currently Windows only)");
+        Debug.error("Robot::typex(): not supported (currently Windows/Mac only)");
         break;
       }
     }
