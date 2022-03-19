@@ -3361,7 +3361,7 @@ public class Region extends Element {
   }
 
   public void typex(char uniChar) {
-    typex(String.format("%d", (((int) uniChar) + 10000)).substring(1));
+    typex(String.format("%d", (((int) uniChar) + 100000)).substring(1));
   }
 
   public void typex(String uniCode) {
