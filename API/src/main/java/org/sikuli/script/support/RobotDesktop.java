@@ -339,7 +339,7 @@ public class RobotDesktop extends Robot implements IRobot {
       keyCode = KeyboardLayout.toJavaKeyCode(character);
       doType(mode, keyCode);
     } catch (IllegalArgumentException e) {
-      if (Commons.runningWindows()) {
+      if (Commons.runningWindows() || Commons.runningMac()) {
         if (mode == KeyMode.PRESS_RELEASE) {
           if (Debug.getDebugLevel() == 3) {
             Debug.log(3, "Robot::type(%s): not possible --- trying with typex()", character);
@@ -362,6 +362,7 @@ public class RobotDesktop extends Robot implements IRobot {
                   KeyEvent.VK_NUMPAD5, KeyEvent.VK_NUMPAD6, KeyEvent.VK_NUMPAD7, KeyEvent.VK_NUMPAD8, KeyEvent.VK_NUMPAD9};
 
   public void typex(String text) {
+    String retVal = "";
     String[] cNums = new String[text.length()];
     boolean isCode = true;
     if (text.length() > 5) {
@@ -393,7 +394,7 @@ public class RobotDesktop extends Robot implements IRobot {
     }
     String kbCurrent = "";
     boolean hasUnicode = false;
-    List<String> kbs = null;
+    Map<String, String> kbs = new HashMap<>();
     String KEYLAYOUT = "com.apple.keylayout.";
     String UNI_HEX_INP = "UnicodeHexInput";
     File keyboard = null;
@@ -412,17 +413,17 @@ public class RobotDesktop extends Robot implements IRobot {
           List<String> kbList = Arrays.stream(kblines.substring("success ".length()).split("\n")).collect(Collectors.toList());
           kbCurrent = kbList.remove(kbList.size() - 1).split("\\(")[0].strip();
           kbCurrent = kbCurrent.replace(" ", "").replace(".", "");
-          kbs = new ArrayList<>();
+          kbCurrent = kbCurrent.split("[^A-Za-z]")[0];
           for (String line : kbList) {
             if (line.startsWith(KEYLAYOUT)) {
               String kb = line.strip();
               if (kb.endsWith(UNI_HEX_INP)) {
-                hasUnicode = true;
+                hasUnicode = true;;
               }
-              kbs.add(kb.substring(KEYLAYOUT.length()));
+              kbs.put(kb.substring(KEYLAYOUT.length()).split("[^A-Za-z]")[0], kb);
             }
           }
-          if (!kbs.contains(kbCurrent)) {
+          if (!kbs.keySet().contains(kbCurrent)) {
             hasUnicode = false;
           }
         }
@@ -465,16 +466,21 @@ public class RobotDesktop extends Robot implements IRobot {
         if (hCode.length() < 4) {
           hCode = "000".substring(0, 4 - hCode.length()) + hCode;
         }
-        Map<Character, int[]> keys = KeyboardLayout.getAwtEnUS();
-        pressModifiers(KeyModifier.ALT);
-        for (int i = 0; i < hCode.length(); i++) {
-          Character c = hCode.charAt(i);
-          int kcode = keys.get(c)[0];
-          keyPress(kcode);
-          keyRelease(kcode);
+        retVal = hCode;
+        if (hCode.charAt(0) == '0' && hCode.charAt(3) == '0') {
+          Debug.error("Robot::typex(): cannot be typed (macOS problem): %s (0x%s)", (char) nCode, hCode);
+        } else {
+          Map<Character, int[]> keys = KeyboardLayout.getAwtEnUS();
+          pressModifiers(KeyModifier.ALT);
+          for (int i = 0; i < hCode.length(); i++) {
+            Character c = hCode.charAt(i);
+            int kcode = keys.get(c)[0];
+            keyPress(kcode);
+            keyRelease(kcode);
+          }
+          releaseModifiers(KeyModifier.ALT);
+          Debug.log(3, "typex: %s", hCode);
         }
-        releaseModifiers(KeyModifier.ALT);
-        Debug.print("typex: %s", hCode);
       } else {
         Debug.error("Robot::typex(): not supported (currently Windows/Mac only)");
         break;
@@ -482,7 +488,7 @@ public class RobotDesktop extends Robot implements IRobot {
     }
     if (hasUnicode) {
       try {
-        ProcessRunner.runCommand(keyboard.getAbsolutePath(), KEYLAYOUT + kbCurrent);
+        ProcessRunner.runCommand(keyboard.getAbsolutePath(), kbs.get(kbCurrent));
       } catch (Exception e) {
       }
     }
