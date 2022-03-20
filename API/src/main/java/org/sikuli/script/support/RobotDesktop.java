@@ -399,6 +399,9 @@ public class RobotDesktop extends Robot implements IRobot {
     File keyboard = null;
     if (Commons.runningMac()) {
       keyboard = new File(Commons.getLibsFolder(), "keyboard");
+      if (!keyboard.exists()) {
+        Commons.loadOpenCV();
+      }
       if(keyboard.exists()) {
         String kblines = "";
         try {
