@@ -173,6 +173,13 @@ public class App {
     String executable = getExecutable();
     return String.format("[%d:%s%s] %s %s", getPID(), executable, windowTitle, givenExecutable, arguments);
   }
+
+  public void print() {
+    System.out.println(this);
+    for (Region win : windows()) {
+      System.out.println("     " + win);
+    };
+  }
   //</editor-fold>
 
   // <editor-fold desc="02 running/valid">
@@ -197,13 +204,16 @@ public class App {
     return false;
   }
 
-  public static List<App> allUserApps() {
+  public static List<App> allWithWindow() {
     List<App> apps = new ArrayList<>();
     List<OsProcess> processes = osUtil.getProcesses().stream()
         .filter((p) -> osUtil.isUserApp(p))
         .collect(Collectors.toList());
     for (OsProcess proc : processes) {
-      apps.add(new App(proc));
+      App app = new App(proc);
+      if (app.hasWindows()) {
+        apps.add(app);
+      }
     }
     return apps;
   }

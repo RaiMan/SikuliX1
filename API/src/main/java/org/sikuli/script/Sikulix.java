@@ -61,7 +61,7 @@ public class Sikulix {
       new AppleScriptRunner().evalScript("display dialog \"hello\"", options);
       if (!options.getOutput().strip().contains("OK")) System.exit(-1);
 
-      List<App> apps = App.allUserApps();
+      List<App> apps = App.allWithWindow();
       App app = new App("finder");
       if (!app.isRunning()) {
         app.open();
