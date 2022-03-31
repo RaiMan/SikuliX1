@@ -5,9 +5,12 @@
 package org.sikuli.script.support;
 
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.SXUser32;
@@ -15,6 +18,7 @@ import org.sikuli.natives.SXUser32;
 import com.sun.jna.platform.win32.WinDef.HKL;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import org.sikuli.script.Key;
+import org.sikuli.script.runners.ProcessRunner;
 
 public class KeyboardLayout {
   private static final int DEFAULT_KEYBOARD_LAYOUT_ID = 0x0409; // en-US;
@@ -620,4 +624,74 @@ public class KeyboardLayout {
     }
     return keyCodes;
   }
+
+  static File keyboardChanger = null;
+  static boolean hasUnicodeKeyboard = false;
+  static String kbCurrent = null;
+  static Map<String, String> kbs = new HashMap<>();
+  static String KEYLAYOUT = "com.apple.keylayout.";
+  static String UNI_HEX_INP = "UnicodeHexInput";
+
+  //region Mac-only: eval and change keyboard
+  public static void changeKeyboard(String... kbNew) {
+    if (!Commons.runningMac()) {
+      return;
+    }
+    if (kbs.size() == 0) {
+      evalKeyboards();
+    }
+    if (kbNew.length == 0) {
+      if (kbCurrent == null) {
+        return;
+      }
+      kbNew = new String[]{kbCurrent};
+    }
+    String kbName = kbs.get(kbNew[0]);
+    if (kbName == null) {
+      return;
+    }
+    try {
+      ProcessRunner.runCommand(keyboardChanger.getAbsolutePath(), kbName);
+    } catch (Exception e) {
+    }
+  }
+
+  static void evalKeyboards() {
+    if (!Commons.runningMac()) {
+      return;
+    }
+    if (keyboardChanger == null) {
+      keyboardChanger = new File(Commons.getLibsFolder(), "keyboard");
+      if (!keyboardChanger.exists()) {
+        Commons.loadOpenCV();
+      }
+      if (!keyboardChanger.exists()) {
+        Commons.terminate(999, "RobotDesktop::evalKeyboards: keyboardChanger not available");
+      }
+    }
+    String kblines = "";
+    try {
+      kblines = ProcessRunner.runCommand(keyboardChanger.getAbsolutePath(), "list");
+    } catch (Exception e) {
+    }
+    if (!kblines.isEmpty() && kblines.startsWith("success")) {
+      List<String> kbList = Arrays.stream(kblines.substring("success ".length()).split("\n")).collect(Collectors.toList());
+      kbCurrent = kbList.remove(kbList.size() - 1).split("\\(")[0].strip();
+      kbCurrent = kbCurrent.replace(" ", "").replace(".", "");
+      kbCurrent = kbCurrent.split("[^A-Za-z]")[0];
+      for (String kb : kbList) {
+        kb = kb.strip();
+        if (kb.startsWith(KEYLAYOUT)) {
+          if (kb.endsWith(UNI_HEX_INP)) {
+            hasUnicodeKeyboard = true;
+          }
+          kbs.put(kb.substring(KEYLAYOUT.length()).split("[^A-Za-z]")[0], kb);
+        }
+      }
+      if (!kbs.keySet().contains(kbCurrent)) {
+        hasUnicodeKeyboard = false;
+      }
+    }
+  }
+  //endregion
 }

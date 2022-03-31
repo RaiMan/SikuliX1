@@ -22,7 +22,6 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -128,9 +127,9 @@ public class RobotDesktop extends Robot implements IRobot {
       y = dest.y;
     } else {
       Animator aniX = new AnimatorTimeBased(
-              new AnimatorOutQuarticEase(src.x, dest.x, ms));
+          new AnimatorOutQuarticEase(src.x, dest.x, ms));
       Animator aniY = new AnimatorTimeBased(
-              new AnimatorOutQuarticEase(src.y, dest.y, ms));
+          new AnimatorOutQuarticEase(src.y, dest.y, ms));
       while (aniX.running()) {
         x = aniX.step();
         y = aniY.step();
@@ -156,10 +155,10 @@ public class RobotDesktop extends Robot implements IRobot {
       actualPos = mp.getLocation();
       if (Settings.checkMousePosition && !MouseDevice.nearby(targetPos, actualPos)) {
         Debug.error("RobotDesktop: checkMousePosition: should be %s - but is (%d, %d)!"
-                        + "\nIf you did not move the mouse while script was running:\n"
-                        + " Mouse actions might be blocked generally or by the target application."
-                        + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff from commandline in admin-mode." : ""),
-                targetPos, actualPos.x, actualPos.y);
+                + "\nIf you did not move the mouse while script was running:\n"
+                + " Mouse actions might be blocked generally or by the target application."
+                + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff from commandline in admin-mode." : ""),
+            targetPos, actualPos.x, actualPos.y);
       }
     }
   }
@@ -310,7 +309,7 @@ public class RobotDesktop extends Robot implements IRobot {
           Debug.log(4, "release: " + keys.charAt(i));
           typeChar(keys.charAt(i), IRobot.KeyMode.RELEASE_ONLY); // keyUp
           heldKeys = heldKeys.substring(0, pos)
-                  + heldKeys.substring(pos + 1);
+              + heldKeys.substring(pos + 1);
         }
       }
     }
@@ -358,15 +357,19 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   private static int[] numPad =
-          new int[]{KeyEvent.VK_NUMPAD0, KeyEvent.VK_NUMPAD1, KeyEvent.VK_NUMPAD2, KeyEvent.VK_NUMPAD3, KeyEvent.VK_NUMPAD4,
-                  KeyEvent.VK_NUMPAD5, KeyEvent.VK_NUMPAD6, KeyEvent.VK_NUMPAD7, KeyEvent.VK_NUMPAD8, KeyEvent.VK_NUMPAD9};
+      new int[]{KeyEvent.VK_NUMPAD0, KeyEvent.VK_NUMPAD1, KeyEvent.VK_NUMPAD2, KeyEvent.VK_NUMPAD3, KeyEvent.VK_NUMPAD4,
+          KeyEvent.VK_NUMPAD5, KeyEvent.VK_NUMPAD6, KeyEvent.VK_NUMPAD7, KeyEvent.VK_NUMPAD8, KeyEvent.VK_NUMPAD9};
 
   public void typex(String text) {
     String retVal = "";
     String[] cNums = new String[text.length()];
     boolean isCode = true;
+    boolean isHex = false;
     if (text.length() > 5) {
       isCode = false;
+      if (text.length() == 6 && text.startsWith("0x")) {
+        isHex = true;
+      }
     } else {
       for (int ci = 0; ci < text.length(); ci++) {
         if (ci == 0 && text.startsWith(" ")) {
@@ -378,8 +381,9 @@ public class RobotDesktop extends Robot implements IRobot {
         }
       }
     }
+    String cNum;
     if (isCode) {
-      String cNum = text;
+      cNum = text;
       if (text.startsWith(" ")) {
         cNum = text.substring(1);
         cNum = "00".substring(0, 3 - cNum.length()) + cNum;
@@ -387,57 +391,15 @@ public class RobotDesktop extends Robot implements IRobot {
         cNum = "000".substring(0, 4 - text.length()) + text;
       }
       cNums = new String[]{cNum};
+    } else if (isHex) {
+      int hexVal = Integer.parseInt(text.substring(2), 16);
+      cNums = new String[]{String.format("%d", (hexVal + 100000)).substring(1)};
     } else {
       for (int ci = 0; ci < text.length(); ci++) {
         cNums[ci] = String.format("%d", (((int) text.charAt(ci)) + 100000)).substring(1);
       }
     }
-    String kbCurrent = "";
-    boolean hasUnicode = false;
-    Map<String, String> kbs = new HashMap<>();
-    String KEYLAYOUT = "com.apple.keylayout.";
-    String UNI_HEX_INP = "UnicodeHexInput";
-    File keyboard = null;
-    if (Commons.runningMac()) {
-      keyboard = new File(Commons.getLibsFolder(), "keyboard");
-      if (!keyboard.exists()) {
-        Commons.loadOpenCV();
-      }
-      if(keyboard.exists()) {
-        String kblines = "";
-        try {
-          kblines = ProcessRunner.runCommand(keyboard.getAbsolutePath(), "list");
-        } catch (Exception e) {
-        }
-        if (!kblines.isEmpty() && kblines.startsWith("success")) {
-          List<String> kbList = Arrays.stream(kblines.substring("success ".length()).split("\n")).collect(Collectors.toList());
-          kbCurrent = kbList.remove(kbList.size() - 1).split("\\(")[0].strip();
-          kbCurrent = kbCurrent.replace(" ", "").replace(".", "");
-          kbCurrent = kbCurrent.split("[^A-Za-z]")[0];
-          for (String line : kbList) {
-            if (line.startsWith(KEYLAYOUT)) {
-              String kb = line.strip();
-              if (kb.endsWith(UNI_HEX_INP)) {
-                hasUnicode = true;;
-              }
-              kbs.put(kb.substring(KEYLAYOUT.length()).split("[^A-Za-z]")[0], kb);
-            }
-          }
-          if (!kbs.keySet().contains(kbCurrent)) {
-            hasUnicode = false;
-          }
-        }
-      }
-      if (hasUnicode) {
-        String kbHex = KEYLAYOUT + UNI_HEX_INP;
-        try {
-          ProcessRunner.runCommand(keyboard.getAbsolutePath(), kbHex);
-        } catch (Exception e) {
-        }
-      } else {
-        Debug.error("Robot::typex(): KeyboardLayout UnicodeHexInput not available");
-      }
-    }
+    KeyboardLayout.changeKeyboard(KeyboardLayout.UNI_HEX_INP);
     for (String code : cNums) {
       if (Commons.runningWindows()) {
         pressModifiers(KeyModifier.ALT);
@@ -453,14 +415,15 @@ public class RobotDesktop extends Robot implements IRobot {
         }
         releaseModifiers(KeyModifier.ALT);
       } else if (Commons.runningMac()) {
-        if (!hasUnicode) {
+        if (!KeyboardLayout.hasUnicodeKeyboard) {
+          Debug.error("Robot::typex: not possible: Keyboardlayout(Unicode Hex Input) not available.");
           break;
         }
         int nCode = -1;
         String hCode = "";
         try {
           nCode = Integer.parseInt(code);
-          hCode = String.format("%h",nCode).strip();
+          hCode = String.format("%h", nCode).strip();
         } catch (NumberFormatException e) {
         }
         if (hCode.length() < 4) {
@@ -468,7 +431,7 @@ public class RobotDesktop extends Robot implements IRobot {
         }
         retVal = hCode;
         if (hCode.charAt(0) == '0' && hCode.charAt(3) == '0') {
-          Debug.error("Robot::typex(): cannot be typed (macOS problem): %s (0x%s)", (char) nCode, hCode);
+          Debug.error("Robot::typex: cannot be typed using ALT+ABCD (macOS problem: 0x0..0): %s (0x%s)", (char) nCode, hCode);
         } else {
           Map<Character, int[]> keys = KeyboardLayout.getAwtEnUS();
           pressModifiers(KeyModifier.ALT);
@@ -486,11 +449,8 @@ public class RobotDesktop extends Robot implements IRobot {
         break;
       }
     }
-    if (hasUnicode) {
-      try {
-        ProcessRunner.runCommand(keyboard.getAbsolutePath(), kbs.get(kbCurrent));
-      } catch (Exception e) {
-      }
+    if (KeyboardLayout.hasUnicodeKeyboard) {
+      KeyboardLayout.changeKeyboard();
     }
   }
 
@@ -559,7 +519,7 @@ public class RobotDesktop extends Robot implements IRobot {
     if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
       int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
       SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode,
-              new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
+          new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
     } else {
       keyPress(keyCode);
     }
@@ -590,7 +550,7 @@ public class RobotDesktop extends Robot implements IRobot {
 */
       int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
       SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode,
-              new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
+          new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
     } else {
       keyRelease(keyCode);
     }
