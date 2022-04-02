@@ -72,7 +72,7 @@ public class Region extends Element {
    */
   public Region setX(int X) {
     x = X;
-    initScreen(null);
+    initScreen(null); //setX
     return this;
   }
 
@@ -82,7 +82,7 @@ public class Region extends Element {
    */
   public Region setY(int Y) {
     y = Y;
-    initScreen(null);
+    initScreen(null); //setY
     return this;
   }
 
@@ -92,7 +92,7 @@ public class Region extends Element {
    */
   public Region setW(int W) {
     w = W > 1 ? W : 1;
-    initScreen(null);
+    initScreen(null); //setW
     return this;
   }
 
@@ -102,7 +102,7 @@ public class Region extends Element {
    */
   public Region setH(int H) {
     h = H > 1 ? H : 1;
-    initScreen(null);
+    initScreen(null); //setH
     return this;
   }
   //</editor-fold>
@@ -142,7 +142,12 @@ public class Region extends Element {
     if (!getName().isEmpty()) {
       nameText = " (" + getName() + ")";
     }
-    return String.format("R[%d,%d %dx%d%s]@S(%s)", x, y, w, h, nameText, scrText);
+    if (scrText.equals("?")) {
+      scrText = "@OUTSIDE";
+    } else {
+      scrText = "@S(" + scrText + ")";
+    }
+    return String.format("R[%d,%d %dx%d%s]%s", x, y, w, h, nameText, scrText);
   }
 
   /**
@@ -165,6 +170,10 @@ public class Region extends Element {
    * @param iscr screen
    */
   public void initScreen(IScreen iscr) {
+    doInitScreen(iscr, false);
+  }
+
+  void doInitScreen(IScreen iscr, boolean silent) {
     // check given screen first
     Rectangle rect, screenRect;
     IScreen screen, screenOn;
@@ -232,7 +241,9 @@ public class Region extends Element {
     } else {
       // no screen found
       this.scr = null;
-      Debug.error("Region(%d,%d,%d,%d) outside any screen - subsequent actions might not work as expected", x, y, w, h);
+      if (!silent) {
+        Debug.error("Region(%d,%d,%d,%d) outside any screen - actions might not work", x, y, w, h);
+      }
     }
   }
 
@@ -389,7 +400,16 @@ public class Region extends Element {
     this.y = Y;
     this.w = W > 1 ? W : 1;
     this.h = H > 1 ? H : 1;
-    initScreen(parentScreen);
+    initScreen(parentScreen); //Region(int X, int Y, int W, int H, IScreen parentScreen)
+  }
+
+  public Region(int X, int Y, int W, int H, IScreen parentScreen, boolean silent) {
+    this.rows = 0;
+    this.x = X;
+    this.y = Y;
+    this.w = W > 1 ? W : 1;
+    this.h = H > 1 ? H : 1;
+    doInitScreen(parentScreen, silent); //Region(int X, int Y, int W, int H, IScreen parentScreen)
   }
 
   /**
@@ -422,6 +442,11 @@ public class Region extends Element {
    */
   public Region(Rectangle r) {
     this(r.x, r.y, r.width, r.height, null);
+    this.rows = 0;
+  }
+
+  public Region(Rectangle r, boolean silent) {
+    this(r.x, r.y, r.width, r.height, null,  silent);
     this.rows = 0;
   }
 
@@ -747,7 +772,7 @@ public class Region extends Element {
    * @return the region itself
    */
   protected Region setScreen(IScreen scr) {
-    initScreen(scr);
+    initScreen(scr); //setScreen
     return this;
   }
 
@@ -795,7 +820,7 @@ public class Region extends Element {
     Location c = getCenter();
     x = x - c.x + loc.x;
     y = y - c.y + loc.y;
-    initScreen(null);
+    initScreen(null); //setCenter
     return this;
   }
 
@@ -833,7 +858,7 @@ public class Region extends Element {
     Location c = getTopRight();
     x = x - c.x + loc.x;
     y = y - c.y + loc.y;
-    initScreen(null);
+    initScreen(null); //setTopRight
     return this;
   }
 
@@ -854,7 +879,7 @@ public class Region extends Element {
     Location c = getBottomLeft();
     x = x - c.x + loc.x;
     y = y - c.y + loc.y;
-    initScreen(null);
+    initScreen(null); //setBottomLeft
     return this;
   }
 
@@ -875,7 +900,7 @@ public class Region extends Element {
     Location c = getBottomRight();
     x = x - c.x + loc.x;
     y = y - c.y + loc.y;
-    initScreen(null);
+    initScreen(null); //setBottomRight
     return this;
   }
 
@@ -890,7 +915,7 @@ public class Region extends Element {
   public Region setSize(int W, int H) {
     w = W > 1 ? W : 1;
     h = H > 1 ? H : 1;
-    initScreen(null);
+    initScreen(null); //setSize
     return this;
   }
 
@@ -925,7 +950,7 @@ public class Region extends Element {
     y = Y;
     w = W > 1 ? W : 1;
     h = H > 1 ? H : 1;
-    initScreen(null);
+    initScreen(null); //setRect
     return this;
   }
 
@@ -967,7 +992,7 @@ public class Region extends Element {
     y = Y;
     w = W > 1 ? W : 1;
     h = H > 1 ? H : 1;
-    initScreen(null);
+    initScreen(null); //setROI
   }
 
   /**
@@ -1037,7 +1062,7 @@ public class Region extends Element {
   public Region setLocation(Location loc) {
     x = loc.x;
     y = loc.y;
-    initScreen(null);
+    initScreen(null); //setLocation
     return this;
   }
 
@@ -1073,7 +1098,7 @@ public class Region extends Element {
     if (h < 1) {
       h = 1;
     }
-    initScreen(null);
+    initScreen(null); //add
     return this;
   }
 
@@ -1087,7 +1112,7 @@ public class Region extends Element {
     Rectangle rect = getRect();
     rect.add(r.getRect());
     setRect(rect);
-    initScreen(null);
+    initScreen(null); //add
     return this;
   }
 
@@ -1101,7 +1126,7 @@ public class Region extends Element {
     Rectangle rect = getRect();
     rect.add(loc.x, loc.y);
     setRect(rect);
-    initScreen(null);
+    initScreen(null); //add
     return this;
   }
   //</editor-fold>

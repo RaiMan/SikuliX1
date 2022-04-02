@@ -686,7 +686,7 @@ public class App {
 
   private static Region asRegion(Rectangle r, String title) {
     if (r != null) {
-      final Region reg = Region.create(r);
+      final Region reg = new Region(r, true);
       if (title != null && !title.isEmpty()) {
         reg.setName(title);
       }
