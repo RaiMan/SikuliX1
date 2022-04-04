@@ -68,7 +68,7 @@ public class JythonSupport implements IRunnerSupport {
   private static void init() {
     try {
       //TODO is this initialize needed?
-      PythonInterpreter.initialize(System.getProperties(), null, new String[0]);
+      //PythonInterpreter.initialize(System.getProperties(), null, new String[0]);
     } catch (Exception ex) {
       Debug.log("Jython: not found on classpath");
       return;
