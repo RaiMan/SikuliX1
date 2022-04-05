@@ -302,7 +302,7 @@ public class SX {
       }
 
       public void dispose() {
-        if (frame.getSize().width < 2) {
+        if (frame.getSize().width < 3) {
           frame.dispose();
         }
       }
@@ -427,7 +427,7 @@ public class SX {
       }
     }
 
-    public static Map<String, Object> get(Object... args) {
+    public static Map<String, Object>   get(Object... args) {
       String theNames = (String) args[0];
       String theClasses = (String) args[1];
       Object[] theDefaults = (Object[]) args[2];
