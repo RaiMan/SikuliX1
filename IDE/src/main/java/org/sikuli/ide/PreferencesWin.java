@@ -157,6 +157,12 @@ public class PreferencesWin extends JFrame {
             txtHotkeyFocusGained(e);
           }
         });
+        _txtHotkey.addFocusListener(new FocusAdapter() {
+          @Override
+          public void focusLost(FocusEvent e) {
+            txtHotkeyFocusLost(e);
+          }
+        });
         _txtHotkey.addKeyListener(new KeyAdapter() {
           @Override
           public void keyPressed(KeyEvent e) {
@@ -615,16 +621,35 @@ public class PreferencesWin extends JFrame {
     _txtHotkey.setText(Key.convertKeyToText(code, mod));
   }
 
+  private String captureHotkeyText = "";
+
   private void txtHotkeyFocusGained(FocusEvent e) {
-    _txtHotkey.setEditable(true);
+    captureHotkeyText = "";
+    _txtHotkey.setText(captureHotkeyText);
+    //_txtHotkey.setEditable(true);
+  }
+
+  private void txtHotkeyFocusLost(FocusEvent e) {
+    //_txtHotkey.setEditable(false);
   }
 
   private void txtHotkeyKeyPressed(KeyEvent e) {
     int code = e.getKeyCode();
-    int mod = e.getModifiers();
-    Debug.log(2, "HotKey: " + code + " " + mod);
-    setTxtHotkey(code, mod);
-    _txtHotkey.setEditable(false);
+    int mod = e.getModifiersEx();
+    String keyPressed = "?";
+    if (mod == 0) {
+      keyPressed = KeyEvent.getKeyText(code);
+      Debug.info("Preferences::HotKey: Key:%d (%s)", code,  keyPressed);
+    } else {
+      keyPressed = InputEvent.getModifiersExText(mod);
+      Debug.info("Preferences::HotKey: Mod: %d (%s)", mod,  keyPressed);
+    }
+    if (mod == 0) {
+      captureHotkeyText = "";
+    } else {
+      captureHotkeyText += keyPressed + "+";
+      _txtHotkey.setText(captureHotkeyText);
+    }
   }
 
   private void updateFontPreview() {

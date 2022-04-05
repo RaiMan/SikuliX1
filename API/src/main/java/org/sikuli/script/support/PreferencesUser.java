@@ -344,17 +344,17 @@ public class PreferencesUser {
   }
 
   // ***** capture hot key
+  private int defaultCaptureHotkey = "2".charAt(0);
+
   public void setCaptureHotkey(int hkey) {
     pref.putInt("CAPTURE_HOTKEY", hkey);
   }
 
   public int getCaptureHotkey() {
-    return pref.getInt("CAPTURE_HOTKEY", 50); // default: '2'
+    return pref.getInt("CAPTURE_HOTKEY", defaultCaptureHotkey);
   }
 
   public void setCaptureHotkeyModifiers(int mod) {
-    if (mod < 0) {
-    }
     pref.putInt("CAPTURE_HOTKEY_MODIFIERS", mod);
   }
 
@@ -379,12 +379,14 @@ public class PreferencesUser {
   }
 
   // ***** abort key
+  private int defaultStopHotkey = "c".charAt(0);
+
   public void setStopHotkey(int hkey) {
     pref.putInt("STOP_HOTKEY", hkey);
   }
 
   public int getStopHotkey() {
-    return pref.getInt("STOP_HOTKEY", 67); // default: 'c'
+    return pref.getInt("STOP_HOTKEY",defaultStopHotkey);
   }
 
   public void setStopHotkeyModifiers(int mod) {
@@ -689,12 +691,12 @@ public class PreferencesUser {
     setUserType(SIKULI_USER);
 
 // ***** capture hot key
-    setCaptureHotkey(50);
+    setCaptureHotkey(defaultCaptureHotkey);
     setCaptureHotkeyModifiers(defaultCaptureHotkeyModifiers());
     setCaptureDelay(1.0);
 
 // ***** abort key
-    setStopHotkey(67);
+    setStopHotkey(defaultStopHotkey);
     setStopHotkeyModifiers(defaultStopHotkeyModifiers());
 
 // ***** indentation support
