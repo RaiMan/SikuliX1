@@ -1433,7 +1433,7 @@ Software:
       try {
         new Mat();
       } catch (Exception e) {
-        terminate(999, "FATAL: loadOpenCV: %s not not useable", libOpenCV);
+        terminate(999, "FATAL: loadOpenCV: %s not not useable (%s)", libOpenCV, e.getMessage());
       }
     return true;
   }
