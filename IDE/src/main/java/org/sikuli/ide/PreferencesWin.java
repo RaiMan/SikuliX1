@@ -622,9 +622,12 @@ public class PreferencesWin extends JFrame {
   }
 
   private String captureHotkeyText = "";
+  private int chk = 0;
+  private int chkMod = 0;
 
   private void txtHotkeyFocusGained(FocusEvent e) {
     captureHotkeyText = "";
+    chk = chkMod = 0;
     _txtHotkey.setText(captureHotkeyText);
     //_txtHotkey.setEditable(true);
   }
@@ -638,14 +641,19 @@ public class PreferencesWin extends JFrame {
     int mod = e.getModifiersEx();
     String keyPressed = "?";
     if (mod == 0) {
+      chk = code;
       keyPressed = KeyEvent.getKeyText(code);
       Debug.info("Preferences::HotKey: Key:%d (%s)", code,  keyPressed);
     } else {
       keyPressed = InputEvent.getModifiersExText(mod);
+      chkMod += mod;
       Debug.info("Preferences::HotKey: Mod: %d (%s)", mod,  keyPressed);
     }
     if (mod == 0) {
       captureHotkeyText = "";
+      cap_hkey = chk;
+      cap_mod = chkMod;
+      chk = chkMod = 0;
     } else {
       captureHotkeyText += keyPressed + "+";
       _txtHotkey.setText(captureHotkeyText);
