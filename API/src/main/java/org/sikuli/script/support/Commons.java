@@ -1429,7 +1429,13 @@ Software:
   private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
 
   public static boolean loadOpenCV() {
-    return loadLibrary(libOpenCV);
+    if(loadLibrary(libOpenCV))
+      try {
+        new Mat();
+      } catch (Exception e) {
+        terminate(999, "FATAL: loadOpenCV: %s not not useable", libOpenCV);
+      }
+    return true;
   }
 
   public static String getLibFilename(String aFile) {
