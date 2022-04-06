@@ -618,22 +618,23 @@ public class PreferencesWin extends JFrame {
   private void setTxtHotkey(int code, int mod) {
     cap_hkey = code;
     cap_mod = mod;
-    _txtHotkey.setText(Key.convertKeyToText(code, mod));
+    String modTxt = InputEvent.getModifiersExText(mod);
+    String keyTxt = KeyEvent.getKeyText(code);
+    currentText = modTxt + "+" + keyTxt;
+    _txtHotkey.setText(currentText);
   }
 
   private String captureHotkeyText = "";
+  private String currentText = "";
   private int chk = 0;
   private int chkMod = 0;
 
   private void txtHotkeyFocusGained(FocusEvent e) {
     captureHotkeyText = "";
     chk = chkMod = 0;
-    _txtHotkey.setText(captureHotkeyText);
-    //_txtHotkey.setEditable(true);
   }
 
   private void txtHotkeyFocusLost(FocusEvent e) {
-    //_txtHotkey.setEditable(false);
   }
 
   private void txtHotkeyKeyPressed(KeyEvent e) {
