@@ -23,15 +23,14 @@ public class MouseDevice extends Devices {
     for (ScreenDevice scrd : ScreenDevice.get()) {
       lc = scrd.getCenter();
       getMouseRobot().mouseMove(lc.x, lc.y);
-      getMouseRobot().waitForIdle();
       lcn = at();
-      //lcn = move(lc);
-      if (MouseDevice.nearby(lc, lcn)) {
-        move(lnow);
-        useable.set(true);
-      } else {
+      boolean nearby = MouseDevice.nearby(lc, lcn);
+      if (!nearby) {
         break;
       }
+      useable.set(true);
+      getMouseRobot().mouseMove(lnow.x, lnow.y);
+      break;
     }
   }
 
