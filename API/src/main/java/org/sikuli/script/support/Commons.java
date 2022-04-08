@@ -399,6 +399,7 @@ Software:
     } else {
       pause(0.5); //Windows: wait for threaded Mouse check
     }
+    executorService.shutdown();
   }
 
   public static boolean isCaptureBlocked() { //TODO
