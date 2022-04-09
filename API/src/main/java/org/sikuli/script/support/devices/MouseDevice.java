@@ -32,7 +32,11 @@ public class MouseDevice extends Devices {
       if (!MouseDevice.nearby(scrd.getCenter(), at())) {
         break;
       }
-      useable.set(true);
+      if (useable == null) {
+        useable = new AtomicBoolean(true);
+      } else {
+        useable.set(true);
+      }
       getMouseRobot().mouseMove(lnow.x, lnow.y);
       break;
     }
