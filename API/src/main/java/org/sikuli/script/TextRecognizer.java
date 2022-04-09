@@ -99,11 +99,24 @@ public class TextRecognizer {
             runningTesseract = split[1].replace("tesseract ", "");
             if (runningTesseract.equals(versionTesseract)) {
               success = true;
+            } else {
+              String[] versionExpected = versionTesseract.split("\\.");
+              String[] versionFound = runningTesseract.split("\\.");
+              if (versionFound[0].equals(versionExpected[0])) {
+                int subE = Integer.parseInt(versionExpected[1]);
+                int subF = Integer.parseInt(versionFound[1]);
+                if (subF >= subE) {
+                  Debug.log(3, "OCR: Tesseract version found: %s expected: %s --- should work",
+                      runningTesseract, versionTesseract);
+                }
+                versionTesseract = runningTesseract;
+                success = true;
+              }
             }
           }
         }
         if (!success) {
-          Commons.terminate(999, "OCR/TextRecognizer: Tesseract version found: %s must be: %s",
+          Commons.terminate(999, "OCR/TextRecognizer: Tesseract version found: %s expected: %s",
               runningTesseract, versionTesseract);
         }
       }
