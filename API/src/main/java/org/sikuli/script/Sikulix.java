@@ -47,7 +47,6 @@ public class Sikulix {
           Debug.error("%s", e);
           System.exit(1);
         }
-
       }
       System.exit(0);
     }
@@ -56,6 +55,8 @@ public class Sikulix {
   }
 
   public static void testRun(String arg) throws Exception {
+    Screen scr = new Screen();
+
     if ("app".equals(arg)) {
       final IScriptRunner.Options options = new IScriptRunner.Options().setOutput();
       new AppleScriptRunner().evalScript("display dialog \"hello\"", options);
@@ -81,18 +82,24 @@ public class Sikulix {
       }
     }
 
+    if ("zzz".equals(arg)) {
+      Debug.on(3);
+      try {
+        scr.hover();
+      } catch (Exception e) {
+        Debug.print("%s", e.getMessage());
+      }
+      arg = "xxx";
+    }
+
     if ("xxx".equals(arg)) {
-      Debug.on (3);
-      Screen scr = new Screen();
       Region reg = new Region(35, 0, 100, 25);
       Image image = Image.get(reg);
       String text = image.text();
-      reg.hover();
       Debug.info("testxxx: %s", text);
     }
 
     if ("find".equals(arg)) {
-      Screen scr = new Screen();
       scr.selectRegion().text();
       File userHome = Commons.getUserHome();
       File testBundle = new File(userHome, "IdeaProjects/Test206/src/main/resources/images");

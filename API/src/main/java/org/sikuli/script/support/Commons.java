@@ -375,8 +375,11 @@ Software:
         }
       }
     });
+    long mouseCheckWait = 500;
+    long duration = 0;
     if (Commons.runningMac()) {
       //macOS: check Screen capture
+      long start = new Date().getTime();
       Devices.start(Devices.TYPE.SCREEN);
       Rectangle srect = ScreenDevice.primary().asRectangle();
       BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
@@ -396,9 +399,9 @@ Software:
       if (singleColor) {
         ScreenDevice.isUseable(false);
       }
-    } else {
-      pause(0.5); //Windows: wait for threaded Mouse check
+      duration = new Date().getTime() - start;
     }
+    pause(Math.max(1, (mouseCheckWait - duration)) / 1000.0); //Windows: wait for threaded Mouse check
     executorService.shutdown();
   }
 
