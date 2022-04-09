@@ -82,10 +82,12 @@ public class Sikulix {
     }
 
     if ("xxx".equals(arg)) {
+      Debug.on (3);
       Screen scr = new Screen();
       Region reg = new Region(35, 0, 100, 25);
       Image image = Image.get(reg);
       String text = image.text();
+      reg.hover();
       Debug.info("testxxx: %s", text);
     }
 
