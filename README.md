@@ -19,10 +19,6 @@ Great thanks for the new logo and all the help with the new webpage to [@Waleed 
 
 You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can place wherever you want and rename them to whatever you want. It is recommended to run with Java 11+ (preferably from [Adoptium/AdoptOpenJDK](https://adoptium.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk)) from a commandline/Terminal. 
 
-(Available before end of April) **Installers for SikuliX IDE as macOS-App or Windows-EXE**
-
-[> for Windows <]()&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Intel <]()&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS M1 <]()
-
 **Be aware:** 
 - Java 8 is no longer supported. 
 - For macOS M1 (non-Intel) use the JDK's from [Azul](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)
