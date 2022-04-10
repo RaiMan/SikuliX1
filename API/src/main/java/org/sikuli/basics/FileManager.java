@@ -383,7 +383,7 @@ public class FileManager {
       URL u = new URL(url);
       Desktop.getDesktop().browse(u.toURI());
     } catch (Exception ex) {
-      log(-1, "show in browser: bad URL: " + url);
+      log(-1, "show in browser: not possible: %s (try manually)", url);
       return false;
     }
     return true;
