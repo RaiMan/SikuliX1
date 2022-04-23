@@ -271,9 +271,7 @@ public class RegexLexer extends Lexer
 
 			for( Iterable<Object> arguments : (Iterable<Iterable<Object>>) stateObject )
 			{
-				List<Object> argumentsList = new ArrayList<Object>();
-				for( Object argument : (List<Object>) arguments )
-					argumentsList.add( argument );
+				List<Object> argumentsList = new ArrayList<>((List<Object>) arguments);
 
 				if( argumentsList.isEmpty() )
 					throw new ResolutionException( "Entry in state \"" + stateName + "\" must have at least one argument" );

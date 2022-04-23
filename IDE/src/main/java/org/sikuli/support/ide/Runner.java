@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Runner {
 
@@ -120,14 +121,9 @@ public class Runner {
     synchronized (runners) {
       initRunners();
 
-      Set<String> extensions = new HashSet<>();
-
-      for (IRunner runner : runners) {
-        for (String ex : runner.getExtensions()) {
-          extensions.add(ex);
-        }
-      }
-      return extensions;
+      return runners.stream()
+              .flatMap(runner -> Arrays.stream(runner.getExtensions()))
+              .collect(Collectors.toSet());
     }
   }
 

@@ -735,9 +735,7 @@ public class JythonSupport implements IRunnerSupport {
     try {
       PyList pyArgv = interpreter.getSystemState().argv;
       pyArgv.clear();
-      for (String arg : args) {
-        pyArgv.add(arg);
-      }
+      pyArgv.addAll(args);
     } catch (Exception ex) {
       sysArgv = null;
     }

@@ -5,6 +5,7 @@
 package org.sikuli.support.ide.syntaxhighlight.grammar.def;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -33,10 +34,7 @@ public class ChangeStateTokenRuleDef extends TokenRuleDef
 	public ChangeStateTokenRuleDef( String stateName, String pattern, int flags, String[] tokenTypeNames, String... nextStateNames )
 	{
 		super( stateName, pattern, flags, tokenTypeNames );
-		ArrayList<String> list = new ArrayList<String>( nextStateNames.length );
-		for( String nextStateName : nextStateNames )
-			list.add( nextStateName );
-		this.nextStateNames = list;
+		this.nextStateNames = Arrays.asList(nextStateNames);
 	}
 
 	//

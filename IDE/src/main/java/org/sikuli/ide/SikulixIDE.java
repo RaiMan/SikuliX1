@@ -1514,9 +1514,7 @@ public class SikulixIDE extends JFrame {
     String session_str = prefs.getIdeSession();
     List<File> filesToLoad = new ArrayList<>();
     if (IDEDesktopSupport.filesToOpen != null && IDEDesktopSupport.filesToOpen.size() > 0) {
-      for (File f : IDEDesktopSupport.filesToOpen) {
-        filesToLoad.add(f);
-      }
+      filesToLoad.addAll(IDEDesktopSupport.filesToOpen);
     }
     if (session_str != null && !session_str.isEmpty()) {
       String[] filenames = session_str.split(";");

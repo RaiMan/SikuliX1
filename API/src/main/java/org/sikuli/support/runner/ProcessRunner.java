@@ -11,6 +11,7 @@ import org.sikuli.support.FileManager;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -180,11 +181,7 @@ public class ProcessRunner extends AbstractRunner {
 	}
 
 	public static String run(String... args) {
-		List<String> cmd = new ArrayList<String>();
-		for (String arg : args) {
-			cmd.add(arg);
-		}
-		return run(cmd);
+		return run(Arrays.asList(args));
 	}
 
 	public static String run(List<String> cmd) {
@@ -228,11 +225,7 @@ public class ProcessRunner extends AbstractRunner {
 	}
 
 	public static void detach(String... args) {
-		List<String> cmd = new ArrayList<String>();
-		for (String arg : args) {
-			cmd.add(arg);
-		}
-		detach(cmd);
+		detach(Arrays.asList(args));
 	}
 
 	public static void detach(List<String> cmd) {

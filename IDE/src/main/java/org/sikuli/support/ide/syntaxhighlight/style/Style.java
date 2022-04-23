@@ -6,10 +6,7 @@ package org.sikuli.support.ide.syntaxhighlight.style;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -204,12 +201,9 @@ public class Style extends NestedDef<Style>
 	// //////////////////////////////////////////////////////////////////////////
 	// Protected
 
-	protected void add( String tokenTypeName, String... styleElementNames )
+	protected void add(String tokenTypeName, String... styleElementNames)
 	{
-		ArrayList<String> list = new ArrayList<String>( styleElementNames.length );
-		for( String styleElementName : styleElementNames )
-			list.add( styleElementName );
-		addDef( new StyleElementDef( tokenTypeName, list ) );
+		addDef(new StyleElementDef(tokenTypeName, Arrays.asList(styleElementNames)));
 	}
 
 	@SuppressWarnings("unchecked")

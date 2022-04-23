@@ -84,7 +84,7 @@ public class DelegatedLexer extends Lexer
 	private Iterable<Token> doInsertions( List<Insertion> insertions, Iterable<Token> tokens )
 	{
 		ListIterator<Insertion> li = insertions.listIterator();
-		Insertion next_ins = li.hasNext() ? (Insertion) li.next() : null;
+		Insertion next_ins = li.hasNext() ? li.next() : null;
 		int len = 0;
 		LinkedList<Token> rc = new LinkedList<Token>();
 
@@ -97,18 +97,17 @@ public class DelegatedLexer extends Lexer
 			{
 				rc.add( new Token( t.getPos(), t.getType(), s.substring( pos, s.length() + ( next_ins.index - len ) ) ) );
 				pos = s.length() + ( next_ins.index - len );
-				for( Token tt : next_ins.lngBuffer )
-					rc.add( tt );
+                rc.addAll(next_ins.lngBuffer);
 				next_ins = li.hasNext() ? li.next() : null;
 			}
 			if( pos < s.length() )
 				rc.add( new Token( t.getPos(), t.getType(), s.substring( pos ) ) );
 		}
 
-		// Do remaining tokens
-		while( li.hasNext() )
-			for( Token tt : ( (Insertion) li.next() ).lngBuffer )
-				rc.add( tt );
+		// Add remaining tokens
+		while (li.hasNext()) {
+			rc.addAll(li.next().lngBuffer);
+		}
 
 		return rc;
 	}

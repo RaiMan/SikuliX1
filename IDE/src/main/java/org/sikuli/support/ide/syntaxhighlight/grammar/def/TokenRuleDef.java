@@ -5,6 +5,7 @@
 package org.sikuli.support.ide.syntaxhighlight.grammar.def;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -37,10 +38,7 @@ public class TokenRuleDef extends StateDef
 		super( stateName );
 		this.pattern = pattern;
 		this.flags = flags;
-		ArrayList<String> list = new ArrayList<String>( tokenTypeNames.length );
-		for( String tokenTypeName : tokenTypeNames )
-			list.add( tokenTypeName );
-		this.tokenTypeNames = list;
+		this.tokenTypeNames = Arrays.asList(tokenTypeNames);
 	}
 
 	//
