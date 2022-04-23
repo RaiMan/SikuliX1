@@ -2007,7 +2007,7 @@ public class Region extends Element {
    * @return this
    */
   public Region highlight4py(ArrayList args) {
-    if (args.size() > 0) {
+    if (!args.isEmpty()) {
       log(3, "highlight: %s", args);
       if (args.get(0) instanceof String) {
         highlight((String) args.get(0));
@@ -2607,7 +2607,7 @@ public class Region extends Element {
   }
 
   private Match findBestListDo(double time, List<Object> pList) {
-    if (pList == null || pList.size() == 0) {
+    if (pList == null || pList.isEmpty()) {
       return null;
     }
     List<Match> mList = findAnyCollect(time, pList);
@@ -2622,7 +2622,7 @@ public class Region extends Element {
         return 0;
       });
     }
-    if (mList.size() > 0) {
+    if (!mList.isEmpty()) {
       return mList.get(0);
     } else {
       return null;
@@ -2659,7 +2659,7 @@ public class Region extends Element {
   }
 
   private List<Match> findAnyListDo(double time, List<Object> pList) {
-    if (pList == null || pList.size() == 0) {
+    if (pList == null || pList.isEmpty()) {
       return new ArrayList<Match>();
     }
     List<Match> mList = findAnyCollect(time, pList);
@@ -3917,7 +3917,7 @@ public class Region extends Element {
     int ret = 0;
     if (target instanceof ArrayList) {
       ArrayList parms = (ArrayList) target;
-      if (parms.size() > 0) {
+      if (!parms.isEmpty()) {
         target = (PFRML) parms.get(0);
       } else {
         return ret;

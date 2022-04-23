@@ -486,7 +486,7 @@ class SyntaxHighlightLabelView extends LabelView {
   }
 
   int drawString(Graphics2D g2d, String str, int x, int y) {
-    if (str.length() == 0) {
+    if (str.isEmpty()) {
       return x;
     }
     int tabPos = str.indexOf('\t');

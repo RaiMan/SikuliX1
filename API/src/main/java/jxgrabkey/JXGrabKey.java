@@ -89,7 +89,7 @@ public class JXGrabKey {
             }
             instance = null; //next time getInstance is called, reinitialize JXGrabKey
         }
-        if(listeners.size() > 0){
+        if(!listeners.isEmpty()){
             listeners.clear();
         }
     }

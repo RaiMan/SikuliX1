@@ -291,7 +291,7 @@ public class Highlight extends JFrame {
 
   public static void closeAll() {
     synchronized (Highlight.class) {
-      if (highlights.size() > 0) {
+      if (!highlights.isEmpty()) {
         inCloseAll = true;
         for (Highlight highlight : highlights) {
           highlight.close();

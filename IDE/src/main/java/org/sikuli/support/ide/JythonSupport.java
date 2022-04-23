@@ -939,7 +939,7 @@ public class JythonSupport implements IRunnerSupport {
       if (errorType == PY_RUNTIME) {
         mFile = pFile.matcher(err);
         errorTrace = findErrorSourceWalkTrace(mFile, filename);
-        if (errorTrace.length() > 0) {
+        if (!errorTrace.isEmpty()) {
           Debug.error("--- Traceback --- error source first\n" + "line: module ( function ) statement \n" + errorTrace
                   + "[error] --- Traceback --- end --------------");
         }

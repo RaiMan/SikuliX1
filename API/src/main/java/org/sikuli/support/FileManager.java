@@ -813,7 +813,7 @@ public class FileManager {
 
   private static String doMakeScriptjar(List<String> options, File fSikulixTemp) {
     boolean makingScriptjarPlain = false;
-    if (options.size() > 0 && "plain".equals(options.get(0))) {
+    if (!options.isEmpty() && "plain".equals(options.get(0))) {
       makingScriptjarPlain = true;
       options.remove(0);
     }
@@ -823,7 +823,7 @@ public class FileManager {
     String scriptName = null;
     String[] fileList = new String[]{null, null, null};
     String[] preList = new String[]{null, null, null};
-    if (options.size() > 0) {
+    if (!options.isEmpty()) {
       scriptFolder = new File(options.get(0));
       if (!scriptFolder.exists()) {
         scriptFolderSikuli = new File(scriptFolder.getAbsolutePath() + ".sikuli");

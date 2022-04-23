@@ -246,7 +246,7 @@ public class RunTime {
     int count = 0;
     int ecount = 0;
     String subFolder = "";
-    if (content != null && content.size() > 0) {
+    if (content != null && !content.isEmpty()) {
       for (String eFile : content) {
         if (eFile == null) {
           continue;
@@ -561,7 +561,7 @@ public class RunTime {
   public String[] resourceListAsSikulixContentFromJar(String aJar, String folder, File targetFolder, FilenameFilter
       filter) {
     List<String> contentList = extractResourcesToFolderFromJar(aJar, folder, null, filter);
-    if (contentList == null || contentList.size() == 0) {
+    if (contentList == null || contentList.isEmpty()) {
       log(-1, "resourceListAsSikulixContentFromJar: did not work: %s", folder);
       return null;
     }
@@ -622,7 +622,7 @@ public class RunTime {
     }
     String out = "";
     String subFolder = "";
-    if (aList != null && aList.size() > 0) {
+    if (aList != null && !aList.isEmpty()) {
       for (String eFile : aList) {
         if (eFile == null) {
           continue;
@@ -644,7 +644,7 @@ public class RunTime {
     int localLevel = testing ? lvl : lvl + 1;
     String subFolder = "";
     if (fFolder.isDirectory()) {
-      if (files.size() > 0 && !FileManager.pathEquals(fFolder.getPath(), files.get(0))) {
+      if (!files.isEmpty() && !FileManager.pathEquals(fFolder.getPath(), files.get(0))) {
         subFolder = fFolder.getPath().substring(files.get(0).length() + 1).replace("\\", "/") + "/";
         if (filter != null && !filter.accept(new File(files.get(0), subFolder), "")) {
           return files;
@@ -1134,7 +1134,7 @@ public class RunTime {
       toks = new StringTokenizer(cmd);
       while (toks.hasMoreTokens()) {
         tok = toks.nextToken(" ");
-        if (tok.length() == 0) {
+        if (tok.isEmpty()) {
           continue;
         }
         if (separator.equals(tok)) {

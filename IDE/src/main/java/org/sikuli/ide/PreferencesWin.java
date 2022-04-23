@@ -580,7 +580,7 @@ public class PreferencesWin extends JFrame {
     Locale curLocale = pref.getLocale();
     _cmbLang.setSelectedItem(curLocale);
     if (!_cmbLang.getSelectedItem().equals(curLocale)) {
-      if (curLocale.getVariant().length() > 0) {
+      if (!curLocale.getVariant().isEmpty()) {
         curLocale = new Locale(curLocale.getLanguage(), curLocale.getCountry());
         _cmbLang.setSelectedItem(curLocale);
       }

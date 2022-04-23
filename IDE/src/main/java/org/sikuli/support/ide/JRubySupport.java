@@ -114,7 +114,7 @@ public class JRubySupport implements IRunnerSupport {
       return;
     }
     String sikuliLibPath = Commons.getLibFolder().getAbsolutePath();
-    if (path.size() == 0 || !FileManager.pathEquals(path.get(0), sikuliLibPath)) {
+    if (path.isEmpty() || !FileManager.pathEquals(path.get(0), sikuliLibPath)) {
       log(lvl, "executeScriptHeader: adding SikuliX Lib path to sys.path\n" + sikuliLibPath);
       int pathLength = path.size();
       String[] pathNew = new String[pathLength + 1];
@@ -292,7 +292,7 @@ public class JRubySupport implements IRunnerSupport {
           builder.append('\n');
         }
         errorTrace = builder.toString();
-        if (errorTrace.length() > 0) {
+        if (!errorTrace.isEmpty()) {
           Debug.error("--- Traceback --- error source first\n" + "line: class ( method ) file \n" + errorTrace
                   + "[error] --- Traceback --- end --------------");
           log(lvl + 2, "--- Traceback --- error source first\n" + "line: class ( method ) file \n" + errorTrace

@@ -56,7 +56,7 @@ public class HtmlFormatter extends Formatter
 		writer.write( getCssFileTemplate() );
 		formatStyleSheet( writer );
 		writer.write( getDocHeader4() );
-		if( getTitle().length() > 0 )
+		if(!getTitle().isEmpty())
 		{
 			writer.write( "<h2>" );
 			writer.write( Util.escapeHtml( getTitle() ) );
@@ -85,7 +85,7 @@ public class HtmlFormatter extends Formatter
 
     private void format_partial_token(Token token, String part_tok, StringBuilder line)
     {
-		if( token.getType().getShortName().length() > 0 )
+		if(!token.getType().getShortName().isEmpty())
 		{
 			line.append( "<span class=\"" );
 			line.append( token.getType().getShortName() );

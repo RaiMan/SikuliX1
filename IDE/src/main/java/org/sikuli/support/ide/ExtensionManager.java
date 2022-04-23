@@ -191,11 +191,11 @@ public class ExtensionManager {
         extlines += line + "\n";
         sxExtensionsFileContent.add(line);
       }
-      if (sxExtensionsFileContent.size() > 0) {
+      if (!sxExtensionsFileContent.isEmpty()) {
         Commons.startLog(1, "extensions.txt\n%s", extlines.trim());
       }
     }
-    if (sxExtensionsFileContent.size() == 0) {
+    if (sxExtensionsFileContent.isEmpty()) {
       if (!afterStart) {
         Commons.startLog(1, "no extensions.txt nor valid content");
       }

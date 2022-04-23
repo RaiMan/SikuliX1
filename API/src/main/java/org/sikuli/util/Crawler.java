@@ -228,7 +228,7 @@ public class Crawler {
             notBeans.add(makeStatic + (nGet > 0 ? "get" : "set") + name);
           }
         }
-        if (notBeans.size() > 0) {
+        if (!notBeans.isEmpty()) {
           for (String function : notBeans) {
             List<String> newSignatures = new ArrayList<>();
             int from = 3;

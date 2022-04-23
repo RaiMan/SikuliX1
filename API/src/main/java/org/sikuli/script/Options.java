@@ -438,7 +438,7 @@ public class Options {
    * @return true if at lest one option defined else false
    */
   public boolean hasOptions() {
-    return options != null && options.size() > 0;
+    return options != null && !options.isEmpty();
   }
 
   /**

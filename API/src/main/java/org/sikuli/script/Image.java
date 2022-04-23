@@ -715,7 +715,7 @@ public class Image extends Element {
     }
     if (currentMemory > maxMemory) {
       Image first;
-      while (images.size() > 0 && currentMemory > maxMemory) {
+      while (!images.isEmpty() && currentMemory > maxMemory) {
         first = images.remove(0);
         first.bimg = null;
         currentMemory -= first.bsize;

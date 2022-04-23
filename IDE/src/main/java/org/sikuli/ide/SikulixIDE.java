@@ -814,7 +814,7 @@ public class SikulixIDE extends JFrame {
 
     private void create() {
       int lastPos = -1;
-      if (contexts.size() > 0) {
+      if (!contexts.isEmpty()) {
         lastPos = getActiveContext().pos;
       }
       showThumbs = !PreferencesUser.get().getPrefMorePlainText();
@@ -880,7 +880,7 @@ public class SikulixIDE extends JFrame {
       contextsClosed.add(0, this);
       if (ideIsQuitting) {
         resetPos();
-        if (contexts.size() > 0) {
+        if (!contexts.isEmpty()) {
           setActiveContext(contexts.size() - 1);
         }
       } else {
@@ -1118,7 +1118,7 @@ public class SikulixIDE extends JFrame {
         String[] text = pane.getText().split("\n");
         List<Map<String, Object>> images = collectImages(text);
         List<Map<String, Object>> patterns = patternMatcher(images, text);
-        if (images.size() > 0 || patterns.size() > 0) {
+        if (!images.isEmpty() || !patterns.isEmpty()) {
           for (Map<String, Object> item : images) {
             final File imgFile = (File) item.get(IButton.FILE);
             //TODO make it optional? _image as thumb
@@ -1426,7 +1426,7 @@ public class SikulixIDE extends JFrame {
     Map<String, List<Integer>> images = parseforImages();
     oldName = new File(oldName).getName();
     List<Integer> poss = images.get(oldName);
-    if (images.containsKey(oldName) && poss.size() > 0) {
+    if (images.containsKey(oldName) && !poss.isEmpty()) {
       Collections.sort(poss, new Comparator<Integer>() {
         @Override
         public int compare(Integer o1, Integer o2) {
@@ -1513,7 +1513,7 @@ public class SikulixIDE extends JFrame {
   private List<File> restoreSession() {
     String session_str = prefs.getIdeSession();
     List<File> filesToLoad = new ArrayList<>();
-    if (IDEDesktopSupport.filesToOpen != null && IDEDesktopSupport.filesToOpen.size() > 0) {
+    if (IDEDesktopSupport.filesToOpen != null && !IDEDesktopSupport.filesToOpen.isEmpty()) {
       for (File f : IDEDesktopSupport.filesToOpen) {
         filesToLoad.add(f);
       }
@@ -1546,7 +1546,7 @@ public class SikulixIDE extends JFrame {
         }
       }
     }
-    if (filesToLoad.size() > 0) {
+    if (!filesToLoad.isEmpty()) {
       for (File file : filesToLoad) {
         createFileContext(file);
       }

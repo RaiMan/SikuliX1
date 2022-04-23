@@ -138,7 +138,7 @@ public class ImagePath {
     PathEntry bundlePath = getBundle();
     imagePaths.clear();
     imagePaths.add(bundlePath);
-    if (toSave.size() > 0) {
+    if (!toSave.isEmpty()) {
       imagePaths.addAll(toSave);
     }
   }

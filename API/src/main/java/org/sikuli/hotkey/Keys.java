@@ -534,7 +534,7 @@ public class Keys {
   //</editor-fold>
 
   public static int[] toJavaKeyCode(String key) {
-    if (key.length() > 0) {
+    if (!key.isEmpty()) {
       return toJavaKeyCode(key.charAt(0));
     }
     return null;

@@ -258,7 +258,7 @@ public class SX {
                 optionList.add(optionString.substring(4, 4 + slen));
                 optionString = optionString.substring(slen + 4);
               }
-              if (optionList.size() > 0) {
+              if (!optionList.isEmpty()) {
                 realOptions = optionList.toArray();
               }
             }

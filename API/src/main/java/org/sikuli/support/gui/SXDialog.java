@@ -543,7 +543,7 @@ public class SXDialog extends JFrame {
         col = "";
         String contentLine = "";
         post = parts[n].strip();
-        if (post.length() > 0 && post.substring(0, 1).equalsIgnoreCase("v")) {
+        if (!post.isEmpty() && post.substring(0, 1).equalsIgnoreCase("v")) {
           col = "v";
           contentLine = (post + " ").substring(1).strip();
         } else {
@@ -981,7 +981,7 @@ public class SXDialog extends JFrame {
     for (BasicItem itm : allBoxesAndItems) {
       item = itm;
       if (itm.isBoxEnd()) {
-        if (boxStack.size() > 0) {
+        if (!boxStack.isEmpty()) {
           currentBox.adjust();
           currentBox = boxStack.remove(0);
           currentBox.adjustSize();
@@ -1509,7 +1509,7 @@ public class SXDialog extends JFrame {
     }
 
     void evalItem(BasicItem item) {
-      if (items.size() == 0) {
+      if (items.isEmpty()) {
         item.pos(pos());
         dim(item.dim());
         return;
@@ -1537,7 +1537,7 @@ public class SXDialog extends JFrame {
     }
 
     void adjust() {
-      if (items.size() == 0) {
+      if (items.isEmpty()) {
         return;
       }
       if (rect != null) {
@@ -1551,7 +1551,7 @@ public class SXDialog extends JFrame {
     }
 
     void adjustSize() {
-      if (items.size() == 0) {
+      if (items.isEmpty()) {
         return;
       }
       int boxW = 0, boxH = 0;
@@ -1593,7 +1593,7 @@ public class SXDialog extends JFrame {
       before += " (" + items.size() + ")";
       String prefix = isPane() ? "" : " - ";
       String out = "\n";
-      if (items.size() > 0) {
+      if (!items.isEmpty()) {
         for (BasicItem item : items) {
           out += prefix + (item.isBox() ? ((BoxItem) item).toStringAll() : item) + "\n";
         }

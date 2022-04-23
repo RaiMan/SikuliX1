@@ -190,7 +190,7 @@ public class ProcessRunner extends AbstractRunner {
 	public static String run(List<String> cmd) {
 		int exitValue = 0;
 		String stdout = "";
-		if (cmd.size() > 0) {
+		if (!cmd.isEmpty()) {
 			ProcessBuilder app = new ProcessBuilder();
 			Map<String, String> processEnv = app.environment();
 			app.command(cmd);
@@ -236,7 +236,7 @@ public class ProcessRunner extends AbstractRunner {
 	}
 
 	public static void detach(List<String> cmd) {
-		if (cmd.size() > 0) {
+		if (!cmd.isEmpty()) {
 			String line = "";
 			boolean shouldPrint = false;
 			for (String item : cmd) {
@@ -265,7 +265,7 @@ public class ProcessRunner extends AbstractRunner {
 
 	public static int runBlocking(List<String> cmd) {
 		int exitValue = 0;
-		if (cmd.size() > 0) {
+		if (!cmd.isEmpty()) {
 			ProcessBuilder app = new ProcessBuilder();
 			app.command(cmd);
 			app.redirectInput(ProcessBuilder.Redirect.INHERIT);

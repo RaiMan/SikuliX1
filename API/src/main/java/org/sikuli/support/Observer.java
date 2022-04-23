@@ -149,7 +149,7 @@ public class Observer {
   }
 
   public boolean hasObservers() {
-    return eventNames.size() > 0;
+    return !eventNames.isEmpty();
   }
 
   private void callEventObserver(String name, Match match, long time) {
@@ -325,7 +325,7 @@ public class Observer {
     log(lvl + 1, "update: checking changes");
     Finder finder = new Finder(lastImage);
     List<Region> result = finder.findChanges(img);
-    if (result.size() > 0) {
+    if (!result.isEmpty()) {
       callChangeObserver(result);
       if (shouldStopOnFirstEvent) {
         observedRegion.stopObserver();
@@ -352,7 +352,7 @@ public class Observer {
           changes.add(new Match(rect, 1));
         }
       }
-      if (changes.size() > 0) {
+      if (!changes.isEmpty()) {
         long now = (new Date()).getTime();
         eventCounts.put(name, eventCounts.get(name) + 1);
         ObserveEvent observeEvent = new ObserveEvent(name, ObserveEvent.Type.CHANGE, null, null, observedRegion, now);

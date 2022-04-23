@@ -43,7 +43,7 @@ public class Lexer extends Grammar
 
 	public static Lexer getByName( String name ) throws ResolutionException
 	{
-		if( ( name == null ) || ( name.length() == 0 ) )
+		if( ( name == null ) || (name.isEmpty()) )
 			name = "Lexer";
 		else if( Character.isLowerCase( name.charAt( 0 ) ) )
 			name = Character.toUpperCase( name.charAt( 0 ) ) + name.substring( 1 ) + "Lexer";

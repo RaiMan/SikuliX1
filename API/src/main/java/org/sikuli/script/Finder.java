@@ -849,7 +849,7 @@ public class Finder implements Iterator<Match> {
             wordsMatch.add(new Match(match.getRect(), match.getScore(), match.getText(), where));
           }
         }
-        if (wordsMatch.size() > 0) {
+        if (!wordsMatch.isEmpty()) {
           log.trace("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);
           findResult = new FindResult2(wordsMatch, fInput);
         } else {
@@ -1336,7 +1336,7 @@ public class Finder implements Iterator<Match> {
 
     public boolean hasNext() {
       if (findInput.isText()) {
-        if (matches.size() > 0) {
+        if (!matches.isEmpty()) {
           return true;
         }
         return false;

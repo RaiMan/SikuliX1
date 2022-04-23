@@ -135,7 +135,7 @@ public class Observing {
     String[] names;
     synchronized (observers) {
       names = new String[observers.size()];
-      if (observers.size() > 0) {
+      if (!observers.isEmpty()) {
         int i = 0;
         for (String name : observers.keySet()) {
           Region reg = observers.get(name);
@@ -162,7 +162,7 @@ public class Observing {
    * @return true if yes
    */
   public static boolean hasEvents() {
-    return events.size() > 0;
+    return !events.isEmpty();
   }
 
   /**
