@@ -599,7 +599,7 @@ public class Location implements Comparable<Location>{
   @Override
   public String toString() {
     String scrText = getScreen() == null ? "?" :
-            "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+            -1 == getScreen().getID() ? "Union" : String.valueOf(getScreen().getID());
     if (isOtherScreen()) {
       scrText = getScreen().getIDString();
     }

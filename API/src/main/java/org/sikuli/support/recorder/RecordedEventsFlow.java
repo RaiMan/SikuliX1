@@ -214,14 +214,14 @@ public class RecordedEventsFlow {
 
     for (Field field : Key.class.getDeclaredFields()) {
       try {
-        if (field.get(Key.class).equals("" + ch)) {
+        if (field.get(Key.class).equals(String.valueOf(ch))) {
           return "Key." + field.getName();
         }
       } catch (IllegalArgumentException | IllegalAccessException e) {
         // ignore
       }
     }
-    return "" + ch;
+    return String.valueOf(ch);
   }
 
   private Map.Entry<Long, NativeInputEvent> getNextEvent(Long time) {
@@ -350,7 +350,7 @@ public class RecordedEventsFlow {
     Image image = findRelevantImage(screenshot, event, screenID);
 
     if (image != null) {
-      File file = new File(ImagePath.getBundlePath(),"" + time + ".png");
+      File file = new File(ImagePath.getBundlePath(), time + ".png");
 
       try {
         ImageIO.write(image.get(), "PNG", file);
@@ -406,7 +406,7 @@ public class RecordedEventsFlow {
       Image image = findRelevantImage(screenshot, event, screenID);
 
       if (image != null) {
-        File file = new File(ImagePath.getBundlePath(), "" + time + ".png");
+        File file = new File(ImagePath.getBundlePath(), time + ".png");
 
         try {
           ImageIO.write(image.get(), "PNG", file);

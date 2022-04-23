@@ -57,7 +57,7 @@ public class Run {
         return false;
       }
     }
-    return init(ip, "" + port);
+    return init(ip, String.valueOf(port));
   }
 
   private static Boolean init(String adr, String p) {

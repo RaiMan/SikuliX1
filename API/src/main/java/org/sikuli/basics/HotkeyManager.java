@@ -149,7 +149,7 @@ public abstract class HotkeyManager {
    * @return true if success. false otherwise.
    */
   public boolean addHotkey(char key, int modifiers, HotkeyListener callback) {
-    return addHotkey("" + key, modifiers, callback);
+    return addHotkey(String.valueOf(key), modifiers, callback);
   }
 
   /**
@@ -170,7 +170,7 @@ public abstract class HotkeyManager {
     boolean res;
     String txtMod = getKeyModifierText(mod);
     String txtCode = getKeyCodeText(key);
-    String token = "" + key + mod;
+    String token = String.valueOf(key) + mod;
     Debug.log(3, "HotkeyManager: add %s Hotkey: %s %s (%d, %d)", hotkeyType, txtMod, txtCode, key, mod);
     boolean checkGlobal = true;
     if (hotkeys.containsKey(token)) {
@@ -228,7 +228,7 @@ public abstract class HotkeyManager {
    * @return true if success. false otherwise.
    */
   public boolean removeHotkey(char key, int modifiers) {
-    return removeHotkey("" + key, modifiers);
+    return removeHotkey(String.valueOf(key), modifiers);
   }
 
   /**

@@ -348,7 +348,7 @@ public class Keys {
     keyMaxLength = 0;
     for (char c = cMin; c < cMax; c++) {
       sKey = toJavaKeyCodeText(c);
-      if (!sKey.equals("" + c)) {
+      if (!sKey.equals(String.valueOf(c))) {
         keyTexts.put(sKey, toJavaKeyCode(c)[0]);
         keyMaxLength = sKey.length() > keyMaxLength ? sKey.length() : keyMaxLength;
       }
@@ -1002,7 +1002,7 @@ public class Keys {
         return "#META.";
 
       default:
-        return "" + key;
+        return String.valueOf(key);
     }
   }
 

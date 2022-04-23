@@ -188,7 +188,7 @@ public class Settings {
   }
 
   public static String getTimestamp() {
-    return (new Date()).getTime() + "";
+    return String.valueOf((new Date()).getTime());
   }
 
   public static String getVersion() {

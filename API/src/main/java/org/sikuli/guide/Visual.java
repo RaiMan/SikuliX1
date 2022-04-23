@@ -1238,7 +1238,7 @@ public class Visual extends JComponent
 
   @Override
   public String toString() {
-    return "" + getClass() + " " + "[actualBounds=" + getActualBounds() + "]";
+    return getClass() + " " + "[actualBounds=" + getActualBounds() + "]";
   }
 
   @Override

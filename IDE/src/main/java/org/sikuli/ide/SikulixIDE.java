@@ -1312,7 +1312,7 @@ public class SikulixIDE extends JFrame {
       }
     } catch (Exception ex) {
       String msg = "";
-      msg = ex.getMessage() + "";
+      msg = ex.getMessage();
     } finally {
       zos.close();
     }

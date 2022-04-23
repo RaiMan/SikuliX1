@@ -178,7 +178,7 @@ public class FileManager {
       PreferencesUser prefs = PreferencesUser.get();
       prefs.put("ProxyName", (host == null ? "" : host));
       prefs.put("ProxyIP", (adr == null ? "" : adr));
-      prefs.put("ProxyPort", "" + p);
+      prefs.put("ProxyPort", String.valueOf(p));
       return true;
     }
     return false;

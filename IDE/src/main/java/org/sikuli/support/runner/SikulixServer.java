@@ -110,7 +110,7 @@ public class SikulixServer {
         } else if (serverOption1.contains(":")) {
           listenAt = serverOption1.split(":");
           if (listenAt.length > 2) {
-            listenAt = new String[]{serverOption1, "" + serverPort};
+            listenAt = new String[]{serverOption1, String.valueOf(serverPort)};
           }
         } else {
           try {

@@ -402,7 +402,7 @@ public class Key {
     keyMaxLength = 0;
     for (char c = cMin; c < cMax; c++) {
       sKey = toJavaKeyCodeText(c);
-      if (!sKey.equals(""+c)) {
+      if (!sKey.equals(String.valueOf(c))) {
         keyTexts.put(sKey, toJavaKeyCode(c)[0]);
         keyMaxLength = sKey.length() > keyMaxLength ? sKey.length() : keyMaxLength;
       }
@@ -606,7 +606,7 @@ public class Key {
       case Key.C_ALTGR: return "#ALTGR.";
 
       default:
-        return "" + key;
+        return String.valueOf(key);
     }
   }
 

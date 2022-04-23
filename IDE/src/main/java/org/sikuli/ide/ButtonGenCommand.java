@@ -81,7 +81,7 @@ public class ButtonGenCommand extends JButton implements ActionListener,
   }
 
   static String getTextRepresentation(String cmd, String[] params) {
-    StringBuilder ret = new StringBuilder("" + cmd + "(");
+    StringBuilder ret = new StringBuilder(cmd + "(");
     int count = 0;
     for (String p : params) {
       ret.append(p);

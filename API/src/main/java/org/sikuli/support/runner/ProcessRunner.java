@@ -224,7 +224,7 @@ public class ProcessRunner extends AbstractRunner {
 				p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
 			}
 		}
-		return "" + exitValue + "\n" + stdout;
+		return exitValue + "\n" + stdout;
 	}
 
 	public static void detach(String... args) {

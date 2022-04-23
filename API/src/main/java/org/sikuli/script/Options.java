@@ -302,7 +302,7 @@ public class Options {
     if (options == null) {
       init();
     }
-    options.setProperty(pName, "" + nValue);
+    options.setProperty(pName, String.valueOf(nValue));
   }
 
   /**
@@ -344,7 +344,7 @@ public class Options {
     if (options == null) {
       init();
     }
-    options.setProperty(pName, "" + nValue);
+    options.setProperty(pName, String.valueOf(nValue));
   }
 
   /**
@@ -386,7 +386,7 @@ public class Options {
     if (options == null) {
       init();
     }
-    options.setProperty(pName, "" + nValue);
+    options.setProperty(pName, String.valueOf(nValue));
   }
 
   /**
@@ -547,7 +547,7 @@ public class Options {
   //      return SXOpts.getOptNum(props, key, deflt)
   public static Double getOptNum(Options opts, String key, Object theDefault) {
     try {
-      return Double.parseDouble(opts.options.getProperty(key, "" + theDefault));
+      return Double.parseDouble(opts.options.getProperty(key, String.valueOf(theDefault)));
     } catch (NumberFormatException e) {
       return 0.0;
     }
@@ -556,7 +556,7 @@ public class Options {
   public static Integer getOptInt(Options opts, String key, Integer theDefault) {
     Double value = 0.0;
     try {
-      value = Double.parseDouble(opts.options.getProperty(key, "" + theDefault));
+      value = Double.parseDouble(opts.options.getProperty(key, String.valueOf(theDefault)));
     } catch (NumberFormatException e) {
     }
     return value.intValue();
@@ -571,7 +571,7 @@ public class Options {
   //  def setOptNum(props, key, value):
   //      return SXOpts.setOptNum(props, key, value)
   public static void setOptNum(Options opts, String key, Object value) {
-    opts.options.setProperty(key, "" + value);
+    opts.options.setProperty(key, String.valueOf(value));
   }
 
   //  def delOpt(props, key):

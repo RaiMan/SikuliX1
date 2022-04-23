@@ -72,7 +72,7 @@ public class Observing {
       now++;
     }
     lastName = now;
-    name = "" + now;
+    name = String.valueOf(now);
     observers.put(name, reg);
     name = reg.getObserver().addObserver(target, (ObserverCallBack) obs, name, type);
     return name;

@@ -113,7 +113,7 @@ public abstract class AbstractCompleter implements IAutoCompleter {
   }
 
   static String getTextRepresentation(String cmd, String[] params) {
-    String ret = "" + cmd + "(";
+    String ret = cmd + "(";
     int count = 0;
     for (String p : params) {
       ret += p;

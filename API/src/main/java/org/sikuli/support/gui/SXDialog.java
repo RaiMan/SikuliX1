@@ -883,7 +883,7 @@ public class SXDialog extends JFrame {
       return Commons.getSXVersion();
     }
     if (var.equals("javaversion")) {
-      return "" + Commons.getJavaVersion();
+      return String.valueOf(Commons.getJavaVersion());
     }
     final int isSpecial = var.indexOf("_");
     String special = "";

@@ -353,7 +353,7 @@ public class Screen extends Region implements IScreen, EventObserver {
   }
 
   public String getIDString() {
-    return "" + getID();
+    return String.valueOf(getID());
   }
 
 
