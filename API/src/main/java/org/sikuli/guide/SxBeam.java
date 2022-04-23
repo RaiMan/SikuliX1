@@ -24,8 +24,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
-import org.sikuli.basics.Settings;
-import org.sikuli.natives.SysUtil;
 
 public class SxBeam extends OverlayTransparentWindow
         implements Transition, GlobalMouseMotionListener, EventObserver {

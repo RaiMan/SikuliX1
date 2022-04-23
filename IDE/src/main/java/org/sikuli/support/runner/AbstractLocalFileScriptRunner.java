@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import org.sikuli.ide.EditorConsolePane;
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.ImagePath;
 

@@ -8,7 +8,6 @@
 package org.sikuli.guide;
 
 import java.awt.Dimension;
-import javax.swing.JLabel;
 
 import javax.swing.JTextPane;
 

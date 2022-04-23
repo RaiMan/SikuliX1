@@ -4,7 +4,6 @@
 package jxgrabkey;
 
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 
 /**
  * This class holds definitions for X11 masks. It can also convert AWT masks into X11 masks.

@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,9 +34,7 @@ import org.sikuli.basics.Debug;
 // Permision to use and distribute into your own applications
 //
 // RJHM van den Bergh , rvdb@comweb.nl
-import org.sikuli.basics.PreferencesUser;
-import org.sikuli.support.Commons;
-import org.sikuli.util.CommandArgsEnum;
+
 
 public class EditorConsolePane extends JPanel implements Runnable {
 

@@ -19,8 +19,6 @@ import org.sikuli.guide.Visual.Layout;
 import org.sikuli.basics.Debug;
 import org.sikuli.util.OverlayTransparentWindow;
 import org.sikuli.script.Region;
-import org.sikuli.basics.Settings;
-import org.sikuli.natives.SysUtil;
 
 // TODO: Automatically move mouse cursor to the click target. The current implementation
 // is problematic for non-rectangular clickable widgets, for instance, a round buttone.

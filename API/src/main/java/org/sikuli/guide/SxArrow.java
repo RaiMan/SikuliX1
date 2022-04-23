@@ -19,8 +19,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.lang.reflect.Array;
 
-import org.sikuli.basics.Debug;
-
 public class SxArrow extends Visual implements ComponentListener {
 
   public static final int STRAIGHT = 0;

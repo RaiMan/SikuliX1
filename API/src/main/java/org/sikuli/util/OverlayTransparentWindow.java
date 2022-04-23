@@ -3,7 +3,6 @@
  */
 package org.sikuli.util;
 
-import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.Color;
 import java.awt.Graphics;

@@ -29,7 +29,6 @@ import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
 import org.sikuli.util.OverlayTransparentWindow;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.SysUtil;
 
 public class Guide extends OverlayTransparentWindow implements EventObserver {
 

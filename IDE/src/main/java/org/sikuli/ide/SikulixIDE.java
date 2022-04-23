@@ -16,7 +16,6 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
 import org.sikuli.support.runner.IRunner;
-import org.sikuli.support.ide.Runner;
 import org.sikuli.support.runner.InvalidRunner;
 import org.sikuli.support.runner.JythonRunner;
 import org.sikuli.support.runner.TextRunner;
