@@ -53,6 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -352,11 +353,8 @@ public class SikulixIDE extends JFrame {
                 && ke.getModifiersEx() == InputEvent.CTRL_DOWN_MASK) {
           return true;
         }
-        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_CLOSE_BRACKET
-                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
-          return true;
-        }
-        return false;
+        return ke.getKeyCode() == KeyEvent.VK_CLOSE_BRACKET
+                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
       }
 
       private boolean isKeyPrevTab(java.awt.event.KeyEvent ke) {
@@ -364,11 +362,8 @@ public class SikulixIDE extends JFrame {
                 && ke.getModifiersEx() == (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
           return true;
         }
-        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_OPEN_BRACKET
-                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
-          return true;
-        }
-        return false;
+        return ke.getKeyCode() == KeyEvent.VK_OPEN_BRACKET
+                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
       }
 
       public void eventDispatched(AWTEvent e) {
@@ -530,20 +525,12 @@ public class SikulixIDE extends JFrame {
   }
 
   public File selectFileToOpen() {
-    File fileSelected = new SikulixFileChooser(sikulixIDE).open();
-    if (fileSelected == null) {
-      return null;
-    }
-    return fileSelected;
+    return new SikulixFileChooser(sikulixIDE).open();
   }
 
   public File selectFileForSave(PaneContext context) {
-    File fileSelected = new SikulixFileChooser(sikulixIDE).saveAs(
+    return new SikulixFileChooser(sikulixIDE).saveAs(
             context.getExt(), context.isBundle() || context.isTemp());
-    if (fileSelected == null) {
-      return null;
-    }
-    return fileSelected;
   }
 
   boolean checkDirtyPanes() {
@@ -921,10 +908,8 @@ public class SikulixIDE extends JFrame {
         return;
       }
       File[] files = scriptFolder.listFiles((dir, name) -> {
-        if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
-          if (!name.startsWith("_")) {
-            return true;
-          }
+        if ((Stream.of(".png", ".jpg", ".jpeg").anyMatch(name::endsWith))) {
+          return !name.startsWith("_");
         }
         return false;
       });
@@ -2096,10 +2081,7 @@ public class SikulixIDE extends JFrame {
       EditorPane codePane = getCurrentCodePane();
       int pos = codePane.search(str, begin, forward);
       log("find \"" + str + "\" at " + begin + ", found: " + pos);
-      if (pos < 0) {
-        return false;
-      }
-      return true;
+      return pos >= 0;
     }
 
     boolean findStr(String str) {
