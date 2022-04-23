@@ -447,7 +447,7 @@ public class Options {
    * @return a map of key-value pairs containing the found options, empty if no options file found
    */
   public Map<String, String> getOptions() {
-    Map<String, String> mapOptions = new HashMap<String, String>();
+    Map<String, String> mapOptions = new HashMap<>();
     if (options != null) {
       Enumeration<?> optionNames = options.propertyNames();
       String optionName;

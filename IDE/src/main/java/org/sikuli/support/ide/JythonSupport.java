@@ -384,10 +384,10 @@ public class JythonSupport implements IRunnerSupport {
   //</editor-fold>
 
   //<editor-fold desc="10 sys.path handling">
-  List<String> sysPath = new ArrayList<String>();
+  List<String> sysPath = new ArrayList<>();
   int nPathAdded = 0;
   int nPathSaved = -1;
-  private List<File> importedScripts = new ArrayList<File>();
+  private List<File> importedScripts = new ArrayList<>();
   String name = "";
   private long lastRun = 0;
 
@@ -706,10 +706,10 @@ public class JythonSupport implements IRunnerSupport {
     setSysArgv(jyargv);
   }
 
-  List<String> sysArgv = new ArrayList<String>();
+  List<String> sysArgv = new ArrayList<>();
 
   public List<String> getSysArgv() {
-    sysArgv = new ArrayList<String>();
+    sysArgv = new ArrayList<>();
     if (null == interpreter) {
       sysArgv = null;
       return null;

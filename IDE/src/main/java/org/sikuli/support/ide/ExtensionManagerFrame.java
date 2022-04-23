@@ -126,7 +126,7 @@ public class ExtensionManagerFrame extends JFrame {
 
   private ArrayList<ExtensionItem> retrieveExtensions() throws IOException {
 
-    ArrayList<ExtensionItem> extensions = new ArrayList<ExtensionItem>();
+    ArrayList<ExtensionItem> extensions = new ArrayList<>();
 
     Debug.log(2, "Retrieving from " + EXTENSION_LIST_URL);
 

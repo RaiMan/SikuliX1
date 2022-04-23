@@ -18,9 +18,9 @@ import java.util.ArrayList;
 public class SxArea extends Visual
 implements ComponentListener{
 
-   ArrayList<Region> regions = new ArrayList<Region>();
+   ArrayList<Region> regions = new ArrayList<>();
 
-   ArrayList<Visual> landmarks = new ArrayList<Visual>();
+   ArrayList<Visual> landmarks = new ArrayList<>();
 
    public SxArea(){
       super();

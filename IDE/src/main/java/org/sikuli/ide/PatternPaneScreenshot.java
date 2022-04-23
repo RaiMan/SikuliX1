@@ -27,20 +27,22 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   boolean _runFind = false;
   double _similarity;
   int _numMatches;
-  Set<Match> _fullMatches = Collections.synchronizedSet(new TreeSet<Match>(new Comparator<Match>() {
-    @Override
-    public int compare(Match o1, Match o2) {
-      return -1 * o1.compareTo(o2);
-    }
-    @Override
-    public boolean equals(Object o) {
-      return false;
-    }
-    @Override
-    public int hashCode() {
-      int hash = 3;
-      return hash;
-    }
+  Set<Match> _fullMatches = Collections.synchronizedSet(new TreeSet<>(new Comparator<>() {
+      @Override
+      public int compare(Match o1, Match o2) {
+          return -1 * o1.compareTo(o2);
+      }
+
+      @Override
+      public boolean equals(Object o) {
+          return false;
+      }
+
+      @Override
+      public int hashCode() {
+          int hash = 3;
+          return hash;
+      }
   }));
   ArrayList<Match> _showMatches = null;
   protected ScreenImage _simg;
@@ -117,7 +119,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     sldSimilar.setMajorTickSpacing(10);
     sldSimilar.setPaintTicks(true);
 
-    Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+    Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
     labelTable.put(new Integer(0), new JLabel("00"));
     labelTable.put(new Integer(50), new JLabel("50"));
     labelTable.put(new Integer(100), new JLabel("99"));
@@ -241,7 +243,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   void filterMatches(double similarity, int numMatches) {
     int count = 0;
     if (_fullMatches != null && numMatches >= 0) {
-      _showMatches = new ArrayList<Match>();
+      _showMatches = new ArrayList<>();
 
       if (numMatches == 0) {
         return;

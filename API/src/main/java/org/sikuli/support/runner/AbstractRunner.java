@@ -255,7 +255,7 @@ public abstract class AbstractRunner implements IRunner {
       return;
     }
     if (codeBefore == null) {
-      codeBefore = new ArrayList<String>();
+      codeBefore = new ArrayList<>();
     }
     codeBefore.addAll(Arrays.asList(stmts));
   }
@@ -267,7 +267,7 @@ public abstract class AbstractRunner implements IRunner {
       return;
     }
     if (codeAfter == null) {
-      codeAfter = new ArrayList<String>();
+      codeAfter = new ArrayList<>();
     }
     codeAfter.addAll(Arrays.asList(stmts));
   }

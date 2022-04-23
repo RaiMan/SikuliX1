@@ -72,7 +72,7 @@ public class RunTime {
   private List<String> classPathList = new ArrayList<>();
 
   private static boolean areLibsExported = false;
-  private static Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
+  private static Map<String, Boolean> libsLoaded = new HashMap<>();
 
   public File fSxBaseJar = null;
   public static String fpContent = "sikulixcontent";
@@ -285,7 +285,7 @@ public class RunTime {
    */
   public List<String> extractResourcesToFolderFromJar(String aJar, String fpRessources, File fFolder, FilenameFilter
       filter) {
-    List<String> content = new ArrayList<String>();
+    List<String> content = new ArrayList<>();
     File faJar = new File(aJar);
     URL uaJar = null;
     fpRessources = FileManager.slashify(fpRessources, false);
@@ -427,7 +427,7 @@ public class RunTime {
   }
 
   private static List<String> resourceList(String folder, FilenameFilter filter) {
-    List<String> files = new ArrayList<String>();
+    List<String> files = new ArrayList<>();
     if (!folder.startsWith("/")) {
       folder = "/" + folder;
     }
@@ -1124,7 +1124,7 @@ public class RunTime {
     boolean silent = false;
     if (args.length == 1) {
       String separator = "\"";
-      ArrayList<String> argsx = new ArrayList<String>();
+      ArrayList<String> argsx = new ArrayList<>();
       StringTokenizer toks;
       String tok;
       String cmd = args[0];

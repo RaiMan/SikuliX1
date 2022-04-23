@@ -74,5 +74,5 @@ public class State extends NestedDef<Grammar>
 
 	private final String name;
 
-	private final List<Rule> rules = new ArrayList<Rule>();
+	private final List<Rule> rules = new ArrayList<>();
 }

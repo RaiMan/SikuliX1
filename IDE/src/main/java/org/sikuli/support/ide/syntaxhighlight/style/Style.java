@@ -137,7 +137,7 @@ public class Style extends NestedDef<Style>
 		List<StyleElement> styleElementsForTokenType = styleElements.get( tokenType );
 		if( styleElementsForTokenType == null )
 		{
-			styleElementsForTokenType = new ArrayList<StyleElement>();
+			styleElementsForTokenType = new ArrayList<>();
 			styleElements.put( tokenType, styleElementsForTokenType );
 		}
 		styleElementsForTokenType.add( styleElement );
@@ -206,7 +206,7 @@ public class Style extends NestedDef<Style>
 
 	protected void add( String tokenTypeName, String... styleElementNames )
 	{
-		ArrayList<String> list = new ArrayList<String>( styleElementNames.length );
+		ArrayList<String> list = new ArrayList<>(styleElementNames.length);
 		for( String styleElementName : styleElementNames )
 			list.add( styleElementName );
 		addDef( new StyleElementDef( tokenTypeName, list ) );
@@ -233,7 +233,7 @@ public class Style extends NestedDef<Style>
 	// //////////////////////////////////////////////////////////////////////////
 	// Private
 
-	private static final ConcurrentMap<String, Style> styles = new ConcurrentHashMap<String, Style>();
+	private static final ConcurrentMap<String, Style> styles = new ConcurrentHashMap<>();
 
-	private final Map<TokenType, List<StyleElement>> styleElements = new HashMap<TokenType, List<StyleElement>>();
+	private final Map<TokenType, List<StyleElement>> styleElements = new HashMap<>();
 }

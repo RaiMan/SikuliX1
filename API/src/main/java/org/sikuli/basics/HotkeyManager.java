@@ -18,7 +18,7 @@ public abstract class HotkeyManager {
 
   private static HotkeyManager _instance = null;
   private static Map<String, Integer[]> hotkeys;
-  private static Map<String, Integer[]> hotkeysGlobal = new HashMap<String, Integer[]>();
+  private static Map<String, Integer[]> hotkeysGlobal = new HashMap<>();
   private static final String HotkeyTypeCapture = "Capture";
   private static int HotkeyTypeCaptureKey;
   private static int HotkeyTypeCaptureMod;
@@ -34,7 +34,7 @@ public abstract class HotkeyManager {
       } else {
         _instance = new LinuxHotkeyManager();
       }
-      hotkeys = new HashMap<String, Integer[]>();
+      hotkeys = new HashMap<>();
     }
     return _instance;
   }

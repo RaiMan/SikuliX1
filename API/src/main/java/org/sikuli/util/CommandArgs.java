@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
 public class CommandArgs {
 
   private Options cmdArgs;
-  ArrayList<String> userArgs = new ArrayList<String>();
-  ArrayList<String> sikuliArgs = new ArrayList<String>();
+  ArrayList<String> userArgs = new ArrayList<>();
+  ArrayList<String> sikuliArgs = new ArrayList<>();
   static String argsOrg = "";
 
   public CommandArgs() {
@@ -128,7 +128,7 @@ public class CommandArgs {
     String temp = null;
     Pattern pat;
     Matcher m;
-    List<String> nargs = new ArrayList<String>();
+    List<String> nargs = new ArrayList<>();
     for (String arg : args) {
       if (arg.startsWith("asApp")) {
         continue;

@@ -39,7 +39,7 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
   private SizeSequence sizes;
   private int startLine = 0;
   private boolean structureChanged = true;
-  private Set<Integer> errLines = new HashSet<Integer>();
+  private Set<Integer> errLines = new HashSet<>();
   private int line;
   private SikuliIDEPopUpMenu popMenuLineNumber = null;
   private boolean wasPopup = false;

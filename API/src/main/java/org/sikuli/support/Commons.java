@@ -646,7 +646,7 @@ public class Commons {
   public static ArrayList<String> getSysProps(String filter) {
     filter = filter == null ? "" : filter;
     Properties sysProps = System.getProperties();
-    ArrayList<String> keysProps = new ArrayList<String>();
+    ArrayList<String> keysProps = new ArrayList<>();
     for (Object entry : sysProps.keySet()) {
       String sEntry = (String) entry;
       if (filter.isEmpty() || !filter.isEmpty() && sEntry.startsWith(filter)) {
@@ -1457,7 +1457,7 @@ public class Commons {
     byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
     Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
     aMat.put(0, 0, data);
-    List<Mat> mats = new ArrayList<Mat>();
+    List<Mat> mats = new ArrayList<>();
     Core.split(aMat, mats);
     return mats;
   }
@@ -1476,8 +1476,8 @@ public class Commons {
       aMat.put(0, 0, byteBuffer.array());
       Mat oMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
       Mat oMatA = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
-      List<Mat> mixIn = new ArrayList<Mat>(Arrays.asList(new Mat[]{aMat}));
-      List<Mat> mixOut = new ArrayList<Mat>(Arrays.asList(new Mat[]{oMatA, oMatBGR}));
+      List<Mat> mixIn = new ArrayList<>(Arrays.asList(new Mat[]{aMat}));
+      List<Mat> mixOut = new ArrayList<>(Arrays.asList(new Mat[]{oMatA, oMatBGR}));
       //A 0 - R 1 - G 2 - B 3 -> A 0 - B 1 - G 2 - R 3
       Core.mixChannels(mixIn, mixOut, new MatOfInt(0, 0, 1, 3, 2, 2, 3, 1));
       return oMatBGR;

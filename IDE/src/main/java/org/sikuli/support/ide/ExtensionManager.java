@@ -438,7 +438,7 @@ public class ExtensionManager {
   private File fExtensions = null;
 
   private ExtensionManager() {
-    extensions = new ArrayList<Extension>();
+    extensions = new ArrayList<>();
     fExtensions = Commons.getExtensionsFolder();
     Extension e;
     String path, name, version;

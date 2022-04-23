@@ -46,9 +46,9 @@ public class Image extends Element {
 
   private static String logName = "Image: ";
 
-  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
-  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
-  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
+  private static List<Image> images = Collections.synchronizedList(new ArrayList<>());
+  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<>());
+  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<>());
 
   //<editor-fold desc="00 0  instance">
   public static Image getDefaultInstance4py() {

@@ -393,8 +393,8 @@ public class Key {
   };
 
 
-  private static Map<String, Integer> keyTexts = new HashMap<String, Integer>();
-  private static Map<Integer, String> keys = new HashMap<Integer, String>();
+  private static Map<String, Integer> keyTexts = new HashMap<>();
+  private static Map<Integer, String> keys = new HashMap<>();
 
   static {
     //<editor-fold defaultstate="collapsed" desc="create the keyname map used with write()">
@@ -491,11 +491,11 @@ public class Key {
   }
 
   public static void dump() {
-    Map<Integer, String> namesVK = new HashMap<Integer, String>();
+    Map<Integer, String> namesVK = new HashMap<>();
     for (int i = 0; i < keyVK.length; i += 2) {
       namesVK.put(Integer.decode(keyVK[i+1]), keyVK[i].substring(3));
     }
-    Map<String, Integer> sortedNames = new TreeMap<String, Integer>(keyTexts);
+    Map<String, Integer> sortedNames = new TreeMap<>(keyTexts);
     System.out.println("[info] Key: dump keynames (tokens) used with Region write");
     System.out.println("[info] Token to use --- KeyEvent::keycode --- KeyEvent::keyname");
     int keyN;
@@ -883,7 +883,7 @@ public class Key {
    * create a table containing all relevant key, keycode and keytext settings for VK_xxx
    */
   public static void createKeyTable() {
-    Map<String, String> namesVK = new HashMap<String, String>();
+    Map<String, String> namesVK = new HashMap<>();
     for (int i = 0; i < keyVK.length; i += 2) {
       namesVK.put(keyVK[i+1], keyVK[i].substring(3));
     }

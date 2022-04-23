@@ -45,7 +45,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
   private MouseEvent mouseTrigger;
   private int menuCount = 0;
-  private Map<String, Integer> menus = new HashMap<String, Integer>();
+  private Map<String, Integer> menus = new HashMap<>();
 
   /**
    * Get the value of isValidMenu

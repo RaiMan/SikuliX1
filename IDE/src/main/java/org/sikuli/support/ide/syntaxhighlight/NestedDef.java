@@ -33,7 +33,7 @@ public class NestedDef<C> extends Def<C>
 		while( keepGoing )
 		{
 			keepGoing = false;
-			for( Def<C> def : new ArrayList<Def<C>>( defs ) )
+			for( Def<C> def : new ArrayList<>(defs) )
 			{
 				if( !def.isResolved() )
 				{
@@ -72,5 +72,5 @@ public class NestedDef<C> extends Def<C>
 	// //////////////////////////////////////////////////////////////////////////
 	// Private
 
-	private final List<Def<C>> defs = new ArrayList<Def<C>>();
+	private final List<Def<C>> defs = new ArrayList<>();
 }

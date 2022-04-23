@@ -139,7 +139,7 @@ public class SxBeam extends OverlayTransparentWindow
     int cxs[] = {r.x, r.x, r.x + r.width, r.x + r.width};
     int cys[] = {r.y, r.y + r.height, r.y + r.height, r.height};
 
-    ArrayList<Point> corners = new ArrayList<Point>();
+    ArrayList<Point> corners = new ArrayList<>();
     corners.add(new Point(r.x, r.y));
     corners.add(new Point(r.x + r.width, r.y + r.height));
     corners.add(new Point(r.x + r.width, r.y));

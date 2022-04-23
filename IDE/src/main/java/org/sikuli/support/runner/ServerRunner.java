@@ -360,7 +360,7 @@ public class ServerRunner extends AbstractRunner {
                 }
                 if (success) {
                   ImagePath.setBundlePath(fScript.getAbsolutePath());
-                  List<String> args = new ArrayList<String>();
+                  List<String> args = new ArrayList<>();
 
                   if (this.rQuery != null && this.rQuery.length() > 0) {
                     String[] params = this.rQuery.split("[;&]");

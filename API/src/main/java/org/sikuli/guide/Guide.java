@@ -44,8 +44,8 @@ public class Guide extends OverlayTransparentWindow implements EventObserver {
   Region _region;
   JPanel content = null;
   Transition transition;
-  ArrayList<Transition> transitions = new ArrayList<Transition>();
-  ArrayList<Tracker> trackers = new ArrayList<Tracker>();
+  ArrayList<Transition> transitions = new ArrayList<>();
+  ArrayList<Tracker> trackers = new ArrayList<>();
   Transition triggeredTransition;
   ClickableWindow clickableWindow = null;
   SxBeam beam = null;

@@ -220,7 +220,7 @@ public class ObserveEvent {
 
   public void setChanges(List<Match> actualChanges) {
     if (actualChanges != null) {
-      this.changes = new ArrayList<Match>();
+      this.changes = new ArrayList<>();
       this.changes.addAll(actualChanges);
     }
   }

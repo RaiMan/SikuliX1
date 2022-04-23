@@ -37,7 +37,7 @@ public class TokenRuleDef extends StateDef
 		super( stateName );
 		this.pattern = pattern;
 		this.flags = flags;
-		ArrayList<String> list = new ArrayList<String>( tokenTypeNames.length );
+		ArrayList<String> list = new ArrayList<>(tokenTypeNames.length);
 		for( String tokenTypeName : tokenTypeNames )
 			list.add( tokenTypeName );
 		this.tokenTypeNames = list;
@@ -75,7 +75,7 @@ public class TokenRuleDef extends StateDef
 			throw new ResolutionException( "RegEx syntax error: " + this.pattern, x );
 		}
 
-		ArrayList<TokenType> tokenTypes = new ArrayList<TokenType>();
+		ArrayList<TokenType> tokenTypes = new ArrayList<>();
 		for( String tokenTypeName : tokenTypeNames )
 		{
 			TokenType tokenType = TokenType.getTokenTypeByName( tokenTypeName );

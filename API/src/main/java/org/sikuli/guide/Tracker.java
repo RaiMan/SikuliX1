@@ -28,8 +28,8 @@ public class Tracker extends Thread {
    String image_filename;
    Pattern centerPattern;
    boolean initialFound = false;
-   ArrayList<Visual> components = new ArrayList<Visual>();
-   ArrayList<Point> offsets = new ArrayList<Point>();
+   ArrayList<Visual> components = new ArrayList<>();
+   ArrayList<Point> offsets = new ArrayList<>();
    SxAnchor anchor;
    TrackerListener listener;
    boolean running;

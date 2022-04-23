@@ -21,7 +21,7 @@ import org.sikuli.script.Region;
 
 public class SxAnchor extends Visual {
   Region region;
-  ArrayList<AnchorListener> listeners = new ArrayList<AnchorListener>();
+  ArrayList<AnchorListener> listeners = new ArrayList<>();
   private boolean animateAnchoring = false;
   Pattern pattern = null;
   Tracker tracker = null;

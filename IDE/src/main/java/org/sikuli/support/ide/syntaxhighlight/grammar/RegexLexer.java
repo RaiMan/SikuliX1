@@ -29,10 +29,10 @@ public class RegexLexer extends Lexer
 	@Override
 	public List<Token> getTokensUnprocessed( String text )
 	{
-		List<Token> tokens = new ArrayList<Token>();
+		List<Token> tokens = new ArrayList<>();
 
 		// Start at root state
-		LinkedList<State> stateStack = new LinkedList<State>();
+		LinkedList<State> stateStack = new LinkedList<>();
 		State state = getState( "root" );
 		stateStack.add( state );
 
@@ -49,7 +49,7 @@ public class RegexLexer extends Lexer
 
 			// Does any rule in the current state match at the current position?
 			// System.out.println("Text: " + text.substring( pos ));
-			for( Rule rule : new ArrayList<Rule>( state.getRules() ) )
+			for( Rule rule : new ArrayList<>(state.getRules()) )
 			{
 				if( rule instanceof PatternRule )
 				{
@@ -194,7 +194,7 @@ public class RegexLexer extends Lexer
 
 		// Initialize constants
 		Object constantsObject = json.get( "constants" );
-		Map<String, List<String>> constants = new HashMap<String, List<String>>();
+		Map<String, List<String>> constants = new HashMap<>();
 		if( constantsObject != null )
 		{
 			if( !( constantsObject instanceof Map<?, ?> ) )
@@ -204,7 +204,7 @@ public class RegexLexer extends Lexer
 			{
 				String constantName = entry.getKey();
 				Object constantObject = entry.getValue();
-				ArrayList<String> strings = new ArrayList<String>();
+				ArrayList<String> strings = new ArrayList<>();
 				constants.put( constantName, strings );
 				if( constantObject instanceof List<?> )
 				{
@@ -271,7 +271,7 @@ public class RegexLexer extends Lexer
 
 			for( Iterable<Object> arguments : (Iterable<Iterable<Object>>) stateObject )
 			{
-				List<Object> argumentsList = new ArrayList<Object>();
+				List<Object> argumentsList = new ArrayList<>();
 				for( Object argument : (List<Object>) arguments )
 					argumentsList.add( argument );
 
@@ -346,7 +346,7 @@ public class RegexLexer extends Lexer
 					Object tokenTypeNames = argumentsList.get( 1 );
 					if( tokenTypeNames instanceof String )
 					{
-						ArrayList<String> list = new ArrayList<String>( 1 );
+						ArrayList<String> list = new ArrayList<>(1);
 						list.add( (String) tokenTypeNames );
 						tokenTypeNames = list;
 					}
@@ -365,7 +365,7 @@ public class RegexLexer extends Lexer
 						Object nextStateNames = argumentsList.get( 2 );
 						if( nextStateNames instanceof String )
 						{
-							ArrayList<String> list = new ArrayList<String>( 1 );
+							ArrayList<String> list = new ArrayList<>(1);
 							list.add( (String) nextStateNames );
 							nextStateNames = list;
 						}

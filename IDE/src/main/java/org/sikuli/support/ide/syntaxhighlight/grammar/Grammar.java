@@ -80,7 +80,7 @@ public class Grammar extends NestedDef<Grammar>
 
 	public List<State> resolveStates( List<String> stateNames ) throws ResolutionException
 	{
-		ArrayList<State> states = new ArrayList<State>();
+		ArrayList<State> states = new ArrayList<>();
 		for( String stateName : stateNames )
 		{
 			String[] combinedStateName = stateName.split( "\\+" );
@@ -143,5 +143,5 @@ public class Grammar extends NestedDef<Grammar>
 	// //////////////////////////////////////////////////////////////////////////
 	// Private
 
-	private final Map<String, State> statesByName = new HashMap<String, State>();
+	private final Map<String, State> statesByName = new HashMap<>();
 }

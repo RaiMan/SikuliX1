@@ -34,7 +34,7 @@ public class GlobalMouseMotionTracker implements ActionListener {
    }
 
    ArrayList<GlobalMouseMotionListener> listeners
-   = new ArrayList<GlobalMouseMotionListener>();
+   = new ArrayList<>();
 
    public void addListener(GlobalMouseMotionListener listener){
       listeners.add(listener);

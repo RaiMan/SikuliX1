@@ -272,7 +272,7 @@ public class Crawler {
   static Map<String, List<String>> sortMap(Map<String, List<String>> map) {
     List<Map.Entry<String, List<String>>> entries
             = new ArrayList<>(map.entrySet());
-    Collections.sort(entries, new Comparator<Map.Entry<String, List<String>>>() {
+    Collections.sort(entries, new Comparator<>() {
       @Override
       public int compare(
               Map.Entry<String, List<String>> o1, Map.Entry<String, List<String>> o2) {

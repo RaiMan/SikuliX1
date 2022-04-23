@@ -23,8 +23,8 @@ public class DelegatedLexer extends Lexer
 	public Iterable<Token> getTokensUnprocessed( String text )
 	{
 		StringBuilder buffered = new StringBuilder();
-		List<Token> lngBuffer = new LinkedList<Token>();
-		List<Insertion> insertions = new LinkedList<Insertion>();
+		List<Token> lngBuffer = new LinkedList<>();
+		List<Insertion> insertions = new LinkedList<>();
 
 		Iterable<Token> tokens = languageLexer.getTokensUnprocessed( text );
 
@@ -35,7 +35,7 @@ public class DelegatedLexer extends Lexer
 				if( !lngBuffer.isEmpty() )
 				{
 					insertions.add( new Insertion( buffered.length(), lngBuffer ) );
-					lngBuffer = new LinkedList<Token>();
+					lngBuffer = new LinkedList<>();
 				}
 				buffered.append( t.getValue() );
 			}
@@ -86,7 +86,7 @@ public class DelegatedLexer extends Lexer
 		ListIterator<Insertion> li = insertions.listIterator();
 		Insertion next_ins = li.hasNext() ? (Insertion) li.next() : null;
 		int len = 0;
-		LinkedList<Token> rc = new LinkedList<Token>();
+		LinkedList<Token> rc = new LinkedList<>();
 
 		for( Token t : tokens )
 		{

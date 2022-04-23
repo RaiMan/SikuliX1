@@ -48,7 +48,7 @@ public class EditorUndoManager extends AbstractUndoableEdit
                   implements UndoableEditListener {
   private static final String me = "EditorUndoManager: ";
    String lastEditName=null;
-   ArrayList<MyCompoundEdit> edits=new ArrayList<MyCompoundEdit>();
+   ArrayList<MyCompoundEdit> edits= new ArrayList<>();
    MyCompoundEdit current;
    int pointer=-1;
 

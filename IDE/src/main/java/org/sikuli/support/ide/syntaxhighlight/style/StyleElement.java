@@ -57,7 +57,7 @@ public class StyleElement
 	protected static final void add( StyleElement styleElement )
 	{
 		if( styleElementsByName == null )
-			styleElementsByName = new HashMap<String, StyleElement>();
+			styleElementsByName = new HashMap<>();
 
 		styleElementsByName.put( styleElement.name, styleElement );
 	}

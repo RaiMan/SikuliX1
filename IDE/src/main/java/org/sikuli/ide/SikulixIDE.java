@@ -1427,7 +1427,7 @@ public class SikulixIDE extends JFrame {
     oldName = new File(oldName).getName();
     List<Integer> poss = images.get(oldName);
     if (images.containsKey(oldName) && poss.size() > 0) {
-      Collections.sort(poss, new Comparator<Integer>() {
+      Collections.sort(poss, new Comparator<>() {
         @Override
         public int compare(Integer o1, Integer o2) {
           if (o1 > o2) return -1;

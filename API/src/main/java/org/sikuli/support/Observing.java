@@ -32,9 +32,9 @@ public class Observing {
   private Observing() {
   }
 
-  private static final Map<String, Region> observers = Collections.synchronizedMap(new HashMap<String, Region>());
-  private static final Map<String, ObserveEvent> events = Collections.synchronizedMap(new HashMap<String, ObserveEvent>());
-  private static final List<Region> runningObservers = Collections.synchronizedList(new ArrayList<Region>());
+  private static final Map<String, Region> observers = Collections.synchronizedMap(new HashMap<>());
+  private static final Map<String, ObserveEvent> events = Collections.synchronizedMap(new HashMap<>());
+  private static final List<Region> runningObservers = Collections.synchronizedList(new ArrayList<>());
   private static long lastName = 0;
   private static boolean shouldStopOnFirstEvent = false;
 
@@ -202,7 +202,7 @@ public class Observing {
    * @return the array of events or size 0 array if none
    */
   public static ObserveEvent[] getEvents(Region reg) {
-    List<ObserveEvent> evts = new ArrayList<ObserveEvent>();
+    List<ObserveEvent> evts = new ArrayList<>();
     ObserveEvent evt;
     for (String name : reg.getObserver().getNames()) {
       evt = events.get(name);
@@ -220,7 +220,7 @@ public class Observing {
    * @return the array of events or size 0 array if none
    */
   public static ObserveEvent[] getEvents() {
-    List<ObserveEvent> evts = new ArrayList<ObserveEvent>();
+    List<ObserveEvent> evts = new ArrayList<>();
     ObserveEvent evt;
     synchronized (events) {
       for (String name : events.keySet()) {

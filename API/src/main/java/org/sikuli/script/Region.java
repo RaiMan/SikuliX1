@@ -2528,7 +2528,7 @@ public class Region extends Element {
     if (mList.isEmpty()) {
       return null;
     }
-    Collections.sort(mList, new Comparator<Match>() {
+    Collections.sort(mList, new Comparator<>() {
       @Override
       public int compare(Match m1, Match m2) {
         int xMid1 = m1.getCenter().x;
@@ -2556,7 +2556,7 @@ public class Region extends Element {
     if (mList.isEmpty()) {
       return null;
     }
-    Collections.sort(mList, new Comparator<Match>() {
+    Collections.sort(mList, new Comparator<>() {
       @Override
       public int compare(Match m1, Match m2) {
         int xMid1 = m1.getCenter().x;
@@ -2632,7 +2632,7 @@ public class Region extends Element {
   public List<Match> findAny(Object... args) {
     Debug.log(logLevel, "findAny: enter");
     if (args.length == 0) {
-      return new ArrayList<Match>();
+      return new ArrayList<>();
     }
     List<Object> pList = new ArrayList<>();
     pList.addAll(Arrays.asList(args));
@@ -2641,7 +2641,7 @@ public class Region extends Element {
 
   public List<Match> waitAny(double time, Object... args) {
     if (args.length == 0) {
-      return new ArrayList<Match>();
+      return new ArrayList<>();
     }
     List<Object> pList = new ArrayList<>();
     pList.addAll(Arrays.asList(args));
@@ -2660,7 +2660,7 @@ public class Region extends Element {
 
   private List<Match> findAnyListDo(double time, List<Object> pList) {
     if (pList == null || pList.size() == 0) {
-      return new ArrayList<Match>();
+      return new ArrayList<>();
     }
     List<Match> mList = findAnyCollect(time, pList);
     return mList;
@@ -3174,7 +3174,7 @@ public class Region extends Element {
   }
 
   private List<Match> findAnyCollect(double time, List<Object> pList) {
-    List<Match> mList = new ArrayList<Match>();
+    List<Match> mList = new ArrayList<>();
     if (pList == null) {
       return mList;
     }

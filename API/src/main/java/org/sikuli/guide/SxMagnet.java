@@ -36,8 +36,8 @@ public class SxMagnet
     guide.addComponent(new SxClickable(), 0);
 
   }
-  ArrayList<SxAnchor> targets = new ArrayList<SxAnchor>();
-  ArrayList<Link> links = new ArrayList<Link>();
+  ArrayList<SxAnchor> targets = new ArrayList<>();
+  ArrayList<Link> links = new ArrayList<>();
 //   void flyTarget(SxAnchor a){
 //
 //      Location mouseLocation = Env.getMouseLocation();
@@ -160,11 +160,11 @@ public class SxMagnet
     guide.addToFront(selection);
 
     // sort targets along x-axis
-    Collections.sort(targets, new Comparator<SxAnchor>() {
-      @Override
-      public int compare(SxAnchor a, SxAnchor b) {
-        return b.getX() - a.getX();
-      }
+    Collections.sort(targets, new Comparator<>() {
+        @Override
+        public int compare(SxAnchor a, SxAnchor b) {
+            return b.getX() - a.getX();
+        }
     });
 
     for (SxAnchor target : targets) {

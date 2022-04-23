@@ -22,7 +22,7 @@ public class IDESupport {
     Debug.logx(level, me + message, args);
   }
 
-  private static Map<String, IIDESupport> ideSupporter = new HashMap<String, IIDESupport>();
+  private static Map<String, IIDESupport> ideSupporter = new HashMap<>();
 
   public static IIDESupport get(String type) {
     return ideSupporter.get(type);

@@ -39,7 +39,7 @@ public class LinuxHotkeyManager extends HotkeyManager {
 
   ;
 
-  private Map<Integer, HotkeyData> _idCallbackMap = new HashMap<Integer, HotkeyData>();
+  private Map<Integer, HotkeyData> _idCallbackMap = new HashMap<>();
   private int _gHotkeyId = 1;
 
   public boolean _addHotkey(int keyCode, int modifiers, HotkeyListener listener) {

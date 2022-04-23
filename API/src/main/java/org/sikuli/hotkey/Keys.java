@@ -336,11 +336,11 @@ public class Keys {
   public static int keyMaxLength;
 //</editor-fold>
 
-  private static Map<String, Integer> keyNames = new HashMap<String, Integer>();
-  private static Map<Integer, String> keyCodes = new HashMap<Integer, String>();
-  private static Map<String, String> modifierNames = new HashMap<String, String>();
-  private static Map<Integer, String> keys = new HashMap<Integer, String>();
-  private static Map<String, Integer> keyTexts = new HashMap<String, Integer>();
+  private static Map<String, Integer> keyNames = new HashMap<>();
+  private static Map<Integer, String> keyCodes = new HashMap<>();
+  private static Map<String, String> modifierNames = new HashMap<>();
+  private static Map<Integer, String> keys = new HashMap<>();
+  private static Map<String, Integer> keyTexts = new HashMap<>();
 
   static {
     //<editor-fold defaultstate="collapsed" desc="create the keyname map used with write()">
@@ -466,7 +466,7 @@ public class Keys {
   }
 
   public static void dump() {
-    Map<String, Integer> sortedNames = new TreeMap<String, Integer>(keyTexts);
+    Map<String, Integer> sortedNames = new TreeMap<>(keyTexts);
     System.out.println("[info] Key: dump keynames (tokens) used with Region write");
     System.out.println("[info] Token to use --- KeyEvent::keycode --- KeyEvent::keyname");
     int keyN;

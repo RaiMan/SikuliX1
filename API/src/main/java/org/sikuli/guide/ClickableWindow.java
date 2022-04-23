@@ -32,7 +32,7 @@ public class ClickableWindow extends OverlayTransparentWindow
 
   Guide guide;
   JPanel jp = null;
-  ArrayList<SxClickable> clickables = new ArrayList<SxClickable>();
+  ArrayList<SxClickable> clickables = new ArrayList<>();
   private SxClickable lastClicked;
   private Rectangle maxR;
   Point clickLocation;

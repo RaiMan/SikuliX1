@@ -18,14 +18,14 @@ import java.util.Map;
 public class ImageGroup {
 
   private static Map<String, ImageGroup> imageGroups =
-          Collections.synchronizedMap(new HashMap<String, ImageGroup>());
+          Collections.synchronizedMap(new HashMap<>());
 
   private String name;
   private URL url;
   private String path;
   private String subSet;
 
-  private Map<String, int[]> images = Collections.synchronizedMap(new HashMap<String, int[]>());
+  private Map<String, int[]> images = Collections.synchronizedMap(new HashMap<>());
 
   private boolean valid;
 

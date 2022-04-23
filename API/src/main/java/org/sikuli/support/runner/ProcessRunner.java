@@ -124,7 +124,7 @@ public class ProcessRunner extends AbstractRunner {
 		String work = null;
 		if (args.length > 0) {
 			ProcessBuilder app = new ProcessBuilder();
-			List<String> cmd = new ArrayList<String>();
+			List<String> cmd = new ArrayList<>();
 			Map<String, String> processEnv = app.environment();
 			for (String arg : args) {
 				if (arg.startsWith("work=")) {
@@ -180,7 +180,7 @@ public class ProcessRunner extends AbstractRunner {
 	}
 
 	public static String run(String... args) {
-		List<String> cmd = new ArrayList<String>();
+		List<String> cmd = new ArrayList<>();
 		for (String arg : args) {
 			cmd.add(arg);
 		}
@@ -228,7 +228,7 @@ public class ProcessRunner extends AbstractRunner {
 	}
 
 	public static void detach(String... args) {
-		List<String> cmd = new ArrayList<String>();
+		List<String> cmd = new ArrayList<>();
 		for (String arg : args) {
 			cmd.add(arg);
 		}

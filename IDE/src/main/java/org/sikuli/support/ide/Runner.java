@@ -100,7 +100,7 @@ public class Runner {
     synchronized (runners) {
       initRunners();
 
-      return new LinkedList<IRunner>(supportedRunners);
+      return new LinkedList<>(supportedRunners);
     }
   }
 

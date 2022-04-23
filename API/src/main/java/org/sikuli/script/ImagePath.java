@@ -35,7 +35,7 @@ public class ImagePath {
   public static final String SCREENSHOT_DIRECTORY = ".screenshots";
 
   //<editor-fold desc="01 path list">
-  private static final List<PathEntry> imagePaths = Collections.synchronizedList(new ArrayList<PathEntry>());
+  private static final List<PathEntry> imagePaths = Collections.synchronizedList(new ArrayList<>());
 
   static {
     imagePaths.add(null);

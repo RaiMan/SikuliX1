@@ -905,7 +905,7 @@ public class Finder implements Iterator<Match> {
         Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
         Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
 
-        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        List<MatOfPoint> contours = new ArrayList<>();
         Mat mHierarchy = Commons.getNewMat();
         Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         rectangles = contoursToRectangle(contours);
@@ -975,7 +975,7 @@ public class Finder implements Iterator<Match> {
       Mat targetBGR = new Mat();
       int nChannels = target.channels();
       if (nChannels == 4) {
-        List<Mat> mats = new ArrayList<Mat>();
+        List<Mat> mats = new ArrayList<>();
         Core.split(target, mats);
         mask = mats.remove(3);
         Core.merge(mats, targetBGR);
@@ -1412,7 +1412,7 @@ public class Finder implements Iterator<Match> {
 
     public List<Match> getMatches() {
       if (hasNext()) {
-        List<Match> matches = new ArrayList<Match>();
+        List<Match> matches = new ArrayList<>();
         List<Double> scores = new ArrayList<>();
         while (true) {
           Match match = next();

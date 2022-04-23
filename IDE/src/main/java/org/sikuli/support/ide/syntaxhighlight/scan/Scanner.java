@@ -100,7 +100,7 @@ public abstract class Scanner
 	// //////////////////////////////////////////////////////////////////////////
 	// Private
 
-	private static final Map<String, Pattern> patternCache = new HashMap<String, Pattern>();
+	private static final Map<String, Pattern> patternCache = new HashMap<>();
 
 	private final int flags;
 

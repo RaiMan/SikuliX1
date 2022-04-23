@@ -21,7 +21,7 @@ public class JXGrabKey {
 
     private static JXGrabKey instance;
     private static Thread thread;
-    private static Vector<HotkeyListener> listeners = new Vector<HotkeyListener>();
+    private static Vector<HotkeyListener> listeners = new Vector<>();
 
     /**
      * This constructor starts a seperate Thread for the main listen loop.

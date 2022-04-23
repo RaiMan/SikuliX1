@@ -38,7 +38,7 @@ public class RobotDesktop extends Robot implements IRobot {
   
   private static int heldButtons = 0;
   private static String heldKeys = "";
-  private static final ArrayList<Integer> heldKeyCodes = new ArrayList<Integer>();
+  private static final ArrayList<Integer> heldKeyCodes = new ArrayList<>();
   public static int stdAutoDelay = 0;
   public static int stdDelay = 10;
   public static int stdMaxElapsed = 1000;

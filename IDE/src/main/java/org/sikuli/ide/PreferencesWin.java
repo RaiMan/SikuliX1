@@ -566,7 +566,7 @@ public class PreferencesWin extends JFrame {
       }
       sortedLocales[count++] = l;
     }
-    Arrays.sort(sortedLocales, new Comparator<Locale>() {
+    Arrays.sort(sortedLocales, new Comparator<>() {
       @Override
       public int compare(Locale l1, Locale l2) {
         return l1.getDisplayLanguage().compareTo(l2.getDisplayLanguage());

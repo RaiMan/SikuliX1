@@ -33,7 +33,7 @@ public class ChangeStateTokenRuleDef extends TokenRuleDef
 	public ChangeStateTokenRuleDef( String stateName, String pattern, int flags, String[] tokenTypeNames, String... nextStateNames )
 	{
 		super( stateName, pattern, flags, tokenTypeNames );
-		ArrayList<String> list = new ArrayList<String>( nextStateNames.length );
+		ArrayList<String> list = new ArrayList<>(nextStateNames.length);
 		for( String nextStateName : nextStateNames )
 			list.add( nextStateName );
 		this.nextStateNames = list;

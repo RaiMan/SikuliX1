@@ -146,7 +146,7 @@ public class PythonState {
    private StringBuilder logicalLineStructure;
 
    public PythonState(){
-      state = new Stack<State>();
+      state = new Stack<>();
       state.push(State.DEFAULT);
       physicalLine = new StringBuilder();
       logicalLine = new StringBuilder();

@@ -242,9 +242,9 @@ public class TokenType
 		TokenType tokenType = new TokenType( name, shortName, parent );
 
 		if( tokenTypesByName == null )
-			tokenTypesByName = new HashMap<String, TokenType>();
+			tokenTypesByName = new HashMap<>();
 		if( tokenTypesByShortName == null )
-			tokenTypesByShortName = new HashMap<String, TokenType>();
+			tokenTypesByShortName = new HashMap<>();
 
 		tokenTypesByName.put( name, tokenType );
 		tokenTypesByShortName.put( shortName, tokenType );

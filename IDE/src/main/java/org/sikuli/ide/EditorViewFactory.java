@@ -245,10 +245,10 @@ class SyntaxHighlightLabelView extends LabelView {
     fontParenthesis = new Font("Osaka-Mono", Font.PLAIN, 30);
 
     // NOTE: the order is important!
-		patternColorsBasic = new HashMap<Pattern, Color>();
-    patternColorsPython = new HashMap<Pattern, Color>();
-    patternColorsRuby = new HashMap<Pattern, Color>();
-    patternColorsSikuli = new HashMap<Pattern, Color>();
+		patternColorsBasic = new HashMap<>();
+    patternColorsPython = new HashMap<>();
+    patternColorsRuby = new HashMap<>();
+    patternColorsSikuli = new HashMap<>();
     patternColorsBasic.put(Pattern.compile("(#:.*$)"), new Color(220, 220, 220));
     patternColorsBasic.put(Pattern.compile("(#.*$)"), new Color(138, 140, 193));
     patternColorsBasic.put(Pattern.compile("(\"[^\"]*\"?)"), new Color(128, 0, 0));
@@ -439,8 +439,8 @@ class SyntaxHighlightLabelView extends LabelView {
     String text = getText(getStartOffset(), getEndOffset()).toString();
     //System.out.println("draw " + text);
 
-    SortedMap<Integer, Integer> posMap = new TreeMap<Integer, Integer>();
-    SortedMap<Integer, Color> colorMap = new TreeMap<Integer, Color>();
+    SortedMap<Integer, Integer> posMap = new TreeMap<>();
+    SortedMap<Integer, Color> colorMap = new TreeMap<>();
     buildColorMaps(text, posMap, colorMap);
 
     if (_fMetrics == null) {

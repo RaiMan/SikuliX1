@@ -575,7 +575,7 @@ public class Visual extends JComponent
   boolean animationRunning = false;
 
   class AnimationSequence {
-    Queue<NewAnimator> queue = new LinkedBlockingQueue<NewAnimator>();
+    Queue<NewAnimator> queue = new LinkedBlockingQueue<>();
 
     private void startNextAnimation() {
       if (queue.peek() != null) {
@@ -1087,7 +1087,7 @@ public class Visual extends JComponent
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Follower">
-  private ArrayList<Visual> followers = new ArrayList<Visual>();
+  private ArrayList<Visual> followers = new ArrayList<>();
   Visual leader;
 
   public void removeFromLeader() {
@@ -1248,7 +1248,7 @@ public class Visual extends JComponent
       clone = (Visual) super.clone();
 
       // do not clone references to other components
-      clone.followers = new ArrayList<Visual>();
+      clone.followers = new ArrayList<>();
       clone.removeFromLeader();
       clone.actualBounds = new Rectangle(actualBounds);
       clone.autolayout = null;
