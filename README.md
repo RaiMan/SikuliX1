@@ -38,7 +38,7 @@ You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can pl
 
 **macOS/Linux** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
 
-**Linux** OpenCV ibraries are bundled and should work on Ubuntu-like flavors. In case of problems you have to find a solutiuon.
+**Linux** OpenCV ibraries are bundled and should work on Ubuntu-like flavors. In case of problems you have to find a solution.
 
 <hr>
 
