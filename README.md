@@ -1,6 +1,10 @@
 [![SikuliX](https://raw.githubusercontent.com/RaiMan/SikuliX1/master/Support/sikulix-red.png)](https://sikulix.github.io)
 
 ---
+
+# Any activities paused until mid of August 2022
+
+---
 **What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
 running Windows, Mac or some Linux/Unix. It uses image recognition powered by OpenCV to identify 
 GUI components and can act on them with mouse and keyboard actions.
