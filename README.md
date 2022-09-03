@@ -1,10 +1,6 @@
 [![SikuliX](https://raw.githubusercontent.com/RaiMan/SikuliX1/master/Support/sikulix-red.png)](https://sikulix.github.io)
 
 ---
-
-# Any activities paused until mid of August 2022
-
----
 **What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
 running Windows, Mac or some Linux/Unix. It uses image recognition powered by OpenCV to identify 
 GUI components and can act on them with mouse and keyboard actions.
@@ -16,34 +12,21 @@ Great thanks for the new logo and all the help with the new webpage to [@Waleed 
 ---
 **2.0.6 (branch release_2.0.x) preparing for release - snapshots available**
 
-**Latest Upload: April 9th, 2022**
+**Latest Upload: August 17th, 2022**
 
 **Direct IDE downloads** &nbsp;&nbsp;&nbsp;&nbsp;
 [> for Windows <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidewin&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Intel <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemac&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS M1 <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemacm1&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for Linux <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidelux&v=2.0.6-SNAPSHOT&e=jar) 
 
 You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can place wherever you want and rename them to whatever you want. It is recommended to run with Java 11+ (preferably from [Adoptium/AdoptOpenJDK](https://adoptium.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk)) from a commandline/Terminal. 
 
-**Be aware:** 
-- Java 8 is no longer supported. 
-- For macOS M1 (non-Intel) use the JDK's from [Azul](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)
-- now using Tess4J/Tesseract 5 - macOS/Linux: have a Tesseract 5.0.1 ready (tesseract runs on commandline)
+**JAVA: must be Java 11 or later** (best places to get it: [Eclipse Temurin](https://adoptium.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk))
 
-[more information coming soon]()
+**OCR (macOS/Linux):** now using Tess4J/Tesseract 5 - have a Tesseract 5.0.1 ready (tesseract runs on commandline)
+
+[more information coming sooner or later ;-)]()
 
 ---
 **2.1.0 (branch master) currently not useable - development suspended**
-
----
-**Java: must be Java 11 or later** (best places to get it: [AdoptOpenJDK](https://adoptopenjdk.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk))
-- non-LTS versions like Java 16 or even 17ea might create problems that should be reported
-- for macOS M1 (non-Intel) use the JDK's from [Azul](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)
-
-**Windows:** Works out of the box
-
-**macOS/Linux** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
-
-**Linux** OpenCV ibraries are bundled and should work on Ubuntu-like flavors. In case of problems you have to find a solution.
-
 <hr>
 
 **Latest stable version is 2.0.5** (still runs with Java 8)
