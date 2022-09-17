@@ -9,6 +9,7 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.PreferencesUser;
 
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -102,7 +103,7 @@ public abstract class HotkeyManager {
   }
 
   private static String getKeyModifierText(int modifiers) {
-    String txtMod = KeyEvent.getKeyModifiersText(modifiers).toUpperCase();
+    String txtMod = InputEvent.getModifiersExText(modifiers).toUpperCase();
     if (Settings.isMac()) {
       txtMod = txtMod.replace("META", "CMD");
       txtMod = txtMod.replace("WINDOWS", "CMD");
@@ -183,7 +184,7 @@ public abstract class HotkeyManager {
     String txtMod = getKeyModifierText(mod);
     String txtCode = getKeyCodeText(key);
     String token = "" + key + mod;
-    Debug.log(4, "HotkeyManager: add %s Hotkey: %s %s (%d, %d)", hotkeyType, txtMod, txtCode, key, mod);
+    Debug.log(3, "HotkeyManager: add %s Hotkey: %s %s (%d, %d)", hotkeyType, txtMod, txtCode, key, mod);
     boolean checkGlobal = true;
     if (hotkeys.containsKey(token)) {
       res = _instance._removeHotkey(hotkeys.get(token)[0], hotkeys.get(token)[1]);

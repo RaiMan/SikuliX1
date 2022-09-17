@@ -9,9 +9,9 @@ import org.sikuli.script.Options;
 import org.sikuli.script.Sikulix;
 
 import java.awt.Dimension;
-import java.awt.Event;
 import java.awt.Point;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.*;
 import java.util.*;
 import java.util.prefs.*;
@@ -344,7 +344,7 @@ public class PreferencesUser {
   }
 
   // ***** capture hot key
-  private int defaultCaptureHotkey = "2".charAt(0);
+  private int defaultCaptureHotkey = KeyEvent.VK_2; //"2".charAt(0);
 
   public void setCaptureHotkey(int hkey) {
     pref.putInt("CAPTURE_HOTKEY", hkey);
@@ -379,7 +379,7 @@ public class PreferencesUser {
   }
 
   // ***** abort key
-  private int defaultStopHotkey = "c".charAt(0);
+  private int defaultStopHotkey = KeyEvent.VK_C; //"c".charAt(0);
 
   public void setStopHotkey(int hkey) {
     pref.putInt("STOP_HOTKEY", hkey);
