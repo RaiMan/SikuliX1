@@ -19,6 +19,7 @@ import org.sikuli.script.support.gui.SXDialog;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -100,10 +101,19 @@ public class Sikulix {
     }
 
     if ("find".equals(arg)) {
-      scr.selectRegion().text();
+      //scr.selectRegion().text();
       File userHome = Commons.getUserHome();
-      File testBundle = new File(userHome, "IdeaProjects/Test206/src/main/resources/images");
+      File testBundle = new File(userHome, "IdeaProjects/SikuliX1/API/src/main/resources/images");
       ImagePath.setBundleFolder(testBundle);
+
+      Class<?> aClass = Class.forName("com.sikulix.JarImages");
+      URL jarimages = aClass.getResource("/jarimages/jarimg.png");
+      //ImagePath.append(jarimages);
+
+      URL jarimage = aClass.getResource("/jarimages/jarimg.png");
+
+      Image urlimg = Image.create(jarimage);
+
       List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
       Match match;
       List<Match> matches;
@@ -113,10 +123,13 @@ public class Sikulix {
       //String img = ImagePath.check("pylon");
       //scr.userCapture();
       //scr.hover();
-      Pattern pImg = Pattern.get("img", 0.9, 20, 30);
-      matches = scr.getAll(pImg);
-      scr.highlight(matches, 2);
+      //Pattern pImg = Pattern.get("img", 0.9, 20, 30);
+      //matches = scr.getAll(pImg);
+      //scr.highlight(matches, 2);
       //scr.getAny(obs);
+
+      match = scr.find(urlimg);
+      match.hover();
 
       System.exit(1);
 
