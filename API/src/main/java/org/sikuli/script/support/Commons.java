@@ -672,7 +672,7 @@ Software:
     }
     appDataPath = new File(givenAppPath);
     if (givenAppPath.startsWith("~/")) {
-      appDataPath = new File(getUserHome(), givenAppPath);
+      appDataPath = new File(getUserHome(), givenAppPath.substring(2));
     } else if (givenAppPath.startsWith("./")) {
       appDataPath = new File(getWorkDir(), givenAppPath);
     }
