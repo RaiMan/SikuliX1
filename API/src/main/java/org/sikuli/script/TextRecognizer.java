@@ -47,7 +47,7 @@ public class TextRecognizer {
 
   private static final int lvl = 3;
 
-  private static final String versionTess4J = "5.1.1";
+  private static final String versionTess4J = "5.5.0";
   private static String versionTesseract = "???";
   private static String tesseractStamp = "";
 
