@@ -28,7 +28,7 @@ Lists of 32 third-party dependencies.
      (asl) JBoss VFS (org.jboss:jboss-vfs:3.2.16.Final - http://www.jboss.org)
      (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.1.4.GA - http://www.jboss.org)
      (EPL-2.0) (GPL-2.0) (LGPL-2.1) JRuby Complete (org.jruby:jruby-complete:9.2.11.1 - https://github.com/jruby/jruby/jruby-artifacts/jruby-complete)
-     (Jython Software License) Jython (org.python:jython-standalone:2.7.2 - https://www.jython.org/)
+     (Jython Software License) Jython (org.python:jython-standalone:2.7.3 - https://www.jython.org/)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:1.7.35 - http://www.slf4j.org)
      (MIT License) SLF4J NOP Binding (org.slf4j:slf4j-nop:1.7.28 - http://www.slf4j.org)
      (Lesser General Public License (LGPL)) Swing Layout Extensions (org.swinglabs:swing-layout:1.0.3 - https://swing-layout.dev.java.net/)
