@@ -101,7 +101,7 @@ public class OCR {
    * @return the global Options
    */
   public static Options globalOptions() {
-    if (!Settings.OcrLanguage.equals("eng") && !Settings.OcrLanguage.isEmpty()) {
+    if (null != Settings.OcrLanguage && !Settings.OcrLanguage.equals("eng")) {
       options.language(Settings.OcrLanguage);
     }
     return options;

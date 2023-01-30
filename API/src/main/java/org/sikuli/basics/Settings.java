@@ -42,27 +42,30 @@ public class Settings {
     if ((valType.equals("S") && fValue instanceof String) || (valType.equals("B") && fValue instanceof Boolean) ||
         (valType.equals("I") && fValue instanceof Integer) || (valType.equals("L") && fValue instanceof Long) ||
         (valType.equals("F") && fValue instanceof Float) || (valType.equals("D") && fValue instanceof Double)) {
-      value = fValue;
     } else {
       if (fValue instanceof String) {
         String val = ((String) fValue);
-        switch (valType) {
-          case "B":
-            value = Commons.asBool(val);
-            break;
-          case "I":
-            value = Commons.asInt(val);
-            break;
-          case "L":
-            value = Commons.asLong(val);
-            break;
-          case "F":
-            value = Commons.asFloat(val);
-            break;
-          case "D":
-            value = Commons.asDouble(val);
-            break;
-          default:
+        if ("null".equals(val)) {
+          value = null;
+        } else {
+          switch (valType) {
+            case "B":
+              value = Commons.asBool(val);
+              break;
+            case "I":
+              value = Commons.asInt(val);
+              break;
+            case "L":
+              value = Commons.asLong(val);
+              break;
+            case "F":
+              value = Commons.asFloat(val);
+              break;
+            case "D":
+              value = Commons.asDouble(val);
+              break;
+            default:
+          }
         }
       }
     }
