@@ -4,6 +4,7 @@
 package org.sikuli.script;
 
 import java.awt.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -11,6 +12,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 import org.sikuli.script.support.devices.ScreenDevice;
+import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.OverlayCapturePrompt;
 
@@ -718,5 +720,65 @@ public class Screen extends Region implements IScreen {
   @Override
   public Object action(String action, Object... args) {
     return null;
+  }
+
+  /**
+   * see {@link #showImage(String, long, long)}
+   * @param imgName
+   * @return dialog object
+   */
+  public SXDialog showImage(String imgName) {
+    return showImage(imgName, 0, (long) getAutoWaitTimeout());
+  }
+
+  /**
+   * see {@link #showImage(String, long, long)}
+   * @param imgName
+   * @param when
+   * @return dialog object
+   */
+  public SXDialog showImage(String imgName, final long when) {
+    return showImage(imgName, when, (long) getAutoWaitTimeout());
+  }
+
+  /**
+   * show an image on screen<br>
+   * useable to test find actions and related features
+   * @param imgName absolute or relative filename of image
+   * @param when seconds to wait until popup
+   * @param time seconds for how long to show
+   * @return the shown object, which might be used to remove it from screen
+   * @see #unshowImage(SXDialog)
+   */
+  public SXDialog showImage(String imgName, final long when, final long time) {
+    SXDialog sxDialogImage = null;
+    URL url = ImagePath.find(imgName);
+    if (null != url && "file".equals(url.getProtocol())) {
+      Image img = Image.create(url);
+      if (img == null) {
+        Debug.error("Image not possible: %s", url);
+        return null;
+      }
+      Location where = getCenter().above(img.h / 2).left(img.w / 2);
+      String imgPath = Image.getValidImageFilename(url.getPath());
+      sxDialogImage = new SXDialog("#image; file:" + imgPath,
+          new Point(where.x, where.y), SXDialog.POSITION.TOPLEFT);
+    } else {
+      Debug.error("Image not found in FileSystem: %s", imgName);
+      return null;
+    }
+    SXDialog.onScreen(sxDialogImage, when, time);
+    return sxDialogImage;
+  }
+
+  /**
+   * remove an image from screen shown before using {@link #showImage(String)}
+   * @param sxDialogImage the image to remove
+   */
+  public void unshowImage(SXDialog sxDialogImage) {
+    if (null == sxDialogImage) {
+      return;
+    }
+    sxDialogImage.dispose();
   }
 }
