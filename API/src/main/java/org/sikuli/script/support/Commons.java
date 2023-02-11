@@ -1604,6 +1604,10 @@ Software:
   public final static String SXARGS_OPT = "SX_ARG_";
 
   public static void initGlobalOptions() {
+    int debugLevel = Debug.getDebugLevel();
+    if (isSandBox()) {
+      Debug.setDebugLevel(4);
+    }
     if (GLOBAL_OPTIONS == null) {
       GLOBAL_OPTIONS = new Options();
       GLOBAL_OPTIONS.set("SX_ARG_JAR", getMainClassLocation().getAbsolutePath());
@@ -1699,6 +1703,9 @@ Software:
           }
         }
       }
+    }
+    if (Commons.isSandBox()) {
+      Debug.setDebugLevel(debugLevel);
     }
   }
 

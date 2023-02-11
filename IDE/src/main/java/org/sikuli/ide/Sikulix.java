@@ -67,6 +67,7 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(APPDATA)) {
+      System.out.println("[INFO] IDE: experimental: running in sandbox mode --- might have bugs --- use with care");
       File path = Commons.setAppDataPath(Commons.getStartArg(APPDATA));
       Commons.setTempFolder(new File(path, "Temp"));
     } else {
