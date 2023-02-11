@@ -38,34 +38,29 @@ public class Settings {
     }
     Field field = _FIELDS_LIST.get(fName);
     String valType = field.getType().getSimpleName().toUpperCase().substring(0, 1);
-    Object value = null;
-    if ((valType.equals("S") && fValue instanceof String) || (valType.equals("B") && fValue instanceof Boolean) ||
-        (valType.equals("I") && fValue instanceof Integer) || (valType.equals("L") && fValue instanceof Long) ||
-        (valType.equals("F") && fValue instanceof Float) || (valType.equals("D") && fValue instanceof Double)) {
-    } else {
-      if (fValue instanceof String) {
-        String val = ((String) fValue);
-        if ("null".equals(val)) {
-          value = null;
-        } else {
-          switch (valType) {
-            case "B":
-              value = Commons.asBool(val);
-              break;
-            case "I":
-              value = Commons.asInt(val);
-              break;
-            case "L":
-              value = Commons.asLong(val);
-              break;
-            case "F":
-              value = Commons.asFloat(val);
-              break;
-            case "D":
-              value = Commons.asDouble(val);
-              break;
-            default:
-          }
+    Object value = fValue;
+    if (fValue instanceof String) {
+      String val = ((String) fValue);
+      if ("null".equals(val)) {
+        value = null;
+      } else {
+        switch (valType) {
+          case "B":
+            value = Commons.asBool(val);
+            break;
+          case "I":
+            value = Commons.asInt(val);
+            break;
+          case "L":
+            value = Commons.asLong(val);
+            break;
+          case "F":
+            value = Commons.asFloat(val);
+            break;
+          case "D":
+            value = Commons.asDouble(val);
+            break;
+          default:
         }
       }
     }
@@ -114,7 +109,7 @@ public class Settings {
   public static double MinSimilarity = 0.7;
   public static float AlwaysResize = 0;
   public static int DefaultPadding = 50;
-  public static boolean AutoDetectKeyboardLayout = true;  
+  public static boolean AutoDetectKeyboardLayout = true;
 
   public static boolean CheckLastSeen = true;
   public static float CheckLastSeenSimilar = 0.95f;
