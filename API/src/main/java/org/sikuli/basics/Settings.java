@@ -8,6 +8,7 @@ import org.sikuli.script.support.Commons;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.Proxy;
 import java.util.*;
@@ -33,10 +34,15 @@ public class Settings {
 
   public static void set(String fName, Object fValue) {
     if (!_FIELDS_LIST.containsKey(fName)) {
-      Debug.log(3, "Settings.%s: does not exist", fName);
+      Debug.error("Settings.%s: does not exist", fName);
       return;
     }
     Field field = _FIELDS_LIST.get(fName);
+    int fldMods = field.getModifiers();
+    if (Modifier.isFinal(fldMods)) {
+      Debug.log(4, "Settings.%s is final", fName);
+      return;
+    }
     String valType = field.getType().getSimpleName().toUpperCase().substring(0, 1);
     Object value = fValue;
     if (fValue instanceof String) {
@@ -68,9 +74,9 @@ public class Settings {
       field.set(null, value);
       Debug.log(4, "Settings.%s = %s", fName, value);
     } catch (IllegalAccessException e) {
-      Debug.log(4, "Settings.%s = %s --- access not possible", fName, value);
+      Debug.error("Settings.%s = %s --- access not possible", fName, value);
     } catch (IllegalArgumentException e) {
-      Debug.log(4, "Settings.%s = %s --- value not possible", fName, value);
+      Debug.error("Settings.%s = %s --- value not possible", fName, value);
     }
   }
 
