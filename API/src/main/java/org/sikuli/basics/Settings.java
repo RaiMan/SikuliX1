@@ -20,6 +20,10 @@ import java.util.*;
  */
 public class Settings {
 
+  private Settings(){}
+
+  public static void init() {}
+
   public final static Field[] _FIELDS = Settings.class.getFields();
   public final static Map<String, Field> _FIELDS_LIST = new HashMap<>();
 

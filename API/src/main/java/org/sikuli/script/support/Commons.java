@@ -30,8 +30,10 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -51,7 +53,9 @@ import static org.sikuli.util.CommandArgsEnum.*;
 public class Commons {
 
   //TODO force early Commons static initializer (RunTime)
+  private Commons(){}
   public static void init() {
+    Settings.init();
   }
 
   //<editor-fold desc="00 static">
@@ -1605,9 +1609,6 @@ Software:
 
   public static void initGlobalOptions() {
     int debugLevel = Debug.getDebugLevel();
-    if (isSandBox()) {
-      Debug.setDebugLevel(4);
-    }
     if (GLOBAL_OPTIONS == null) {
       GLOBAL_OPTIONS = new Options();
       GLOBAL_OPTIONS.set("SX_ARG_JAR", getMainClassLocation().getAbsolutePath());

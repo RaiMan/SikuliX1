@@ -218,12 +218,14 @@ public class Options {
    * @param sValue the value to be set
    */
   public void set(String pName, Object sValue) {
-    options.setProperty(pName, sValue.toString());
     if (pName.startsWith(Commons.SETTINGS_OPT)) {
-      Settings.set(pName.substring(Commons.SETTINGS_OPT.length()), sValue);
+      if (!Settings.set(pName.substring(Commons.SETTINGS_OPT.length()), sValue)) {
+        return;
+      }
     } else if (pName.startsWith(Commons.SXPREFS_OPT) && !Commons.isSandBox()) {
       PreferencesUser.get().getStore().put(pName.substring(Commons.SXPREFS_OPT.length()), sValue.toString());
     }
+    options.setProperty(pName, sValue.toString());
   }
 
   public void add(String pName, Object sValue) {
