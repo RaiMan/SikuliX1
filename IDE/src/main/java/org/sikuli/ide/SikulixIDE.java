@@ -223,6 +223,10 @@ public class SikulixIDE extends JFrame {
       Commons.show();
       Debug.isIDEstarting(false);
       Debug.getIdeStartLog();
+      if (Commons.isSandBox()) {
+        System.out.println("[INFO] IDE: experimental: running in sandbox mode " +
+            "\n[INFO] IDE: --- might have bugs --- use with care");
+      }
       get()._inited = true;
     }
   }
