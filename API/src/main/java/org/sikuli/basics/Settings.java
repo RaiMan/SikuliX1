@@ -28,6 +28,14 @@ public class Settings {
       if (field.getName().startsWith("_")) {
         continue;
       }
+      int fldMods = field.getModifiers();
+      if (Modifier.isFinal(fldMods)) {
+        continue;
+      }
+      String valType = field.getType().getName();
+      if (valType.contains(".") && !valType.endsWith(".String")) {
+        continue;
+      }
       _FIELDS_LIST.put(field.getName(), field);
     }
   }
@@ -38,11 +46,6 @@ public class Settings {
       return;
     }
     Field field = _FIELDS_LIST.get(fName);
-    int fldMods = field.getModifiers();
-    if (Modifier.isFinal(fldMods)) {
-      Debug.log(4, "Settings.%s is final", fName);
-      return;
-    }
     String valType = field.getType().getSimpleName().toUpperCase().substring(0, 1);
     Object value = fValue;
     if (fValue instanceof String) {
@@ -72,7 +75,6 @@ public class Settings {
     }
     try {
       field.set(null, value);
-      Debug.log(4, "Settings.%s = %s", fName, value);
     } catch (IllegalAccessException e) {
       Debug.error("Settings.%s = %s --- access not possible", fName, value);
     } catch (IllegalArgumentException e) {
