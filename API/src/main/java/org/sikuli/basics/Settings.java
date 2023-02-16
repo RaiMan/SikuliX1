@@ -40,10 +40,10 @@ public class Settings {
     }
   }
 
-  public static void set(String fName, Object fValue) {
+  public static boolean set(String fName, Object fValue) {
     if (!_FIELDS_LIST.containsKey(fName)) {
       Debug.error("Settings.%s: does not exist", fName);
-      return;
+      return false;
     }
     Field field = _FIELDS_LIST.get(fName);
     String valType = field.getType().getSimpleName().toUpperCase().substring(0, 1);
@@ -77,9 +77,12 @@ public class Settings {
       field.set(null, value);
     } catch (IllegalAccessException e) {
       Debug.error("Settings.%s = %s --- access not possible", fName, value);
+      return false;
     } catch (IllegalArgumentException e) {
       Debug.error("Settings.%s = %s --- value not possible", fName, value);
+      return false;
     }
+    return true;
   }
 
   public static Object get(String fName) {
