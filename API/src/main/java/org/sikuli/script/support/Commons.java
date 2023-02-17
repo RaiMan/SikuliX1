@@ -1665,23 +1665,7 @@ Software:
       }
 
       // *************** check for existing optionsfile and load it
-      File globalOptionsFile = null;
-      if (isSandBox()) {
-        globalOptionsFile = getOptionFile();
-      } else {
-        globalOptionsFile = getOptionFileDefault();
-      }
-      if (globalOptionsFile != null && globalOptionsFile.exists()) {
-        GLOBAL_OPTIONS.load(globalOptionsFile, new Options.Filter() {
-          @Override
-          public boolean accept(String key) {
-            if (key.startsWith(SXARGS_OPT)) {
-              return false;
-            }
-            return true;
-          }
-        });
-      }
+      loadGlobalOptionsfile();
 
       // ***************** add options from a given startup config file
       if (STARTUPLINES != null) {
@@ -1710,6 +1694,37 @@ Software:
     }
   }
 
+  public static boolean isOptionsfileThenLoadIt(String fname) {
+    if (!isSandBox()) {
+      return false;
+    }
+    if (fname.endsWith(getOptionFileName())) {
+      loadGlobalOptionsfile();
+      return true;
+    }
+    return false;
+  }
+
+  public static void loadGlobalOptionsfile() {
+    File globalOptionsFile;
+    if (isSandBox()) {
+      globalOptionsFile = getOptionFile();
+    } else {
+      globalOptionsFile = getOptionFileDefault();
+    }
+    if (globalOptionsFile != null && globalOptionsFile.exists()) {
+      GLOBAL_OPTIONS.load(globalOptionsFile, new Options.Filter() {
+        @Override
+        public boolean accept(String key) {
+          if (key.startsWith(SXARGS_OPT)) {
+            return false;
+          }
+          return true;
+        }
+      });
+    }
+  }
+
   public static Map<String, String> getOptions() {
     if (GLOBAL_OPTIONS == null) {
       initGlobalOptions();
@@ -1724,7 +1739,7 @@ Software:
     return GLOBAL_OPTIONS;
   }
 
-  static void saveGlobalOptions() {
+  public static void saveGlobalOptions() {
     File optionFile;
     if (isSandBox()) {
       optionFile = getOptionFile();

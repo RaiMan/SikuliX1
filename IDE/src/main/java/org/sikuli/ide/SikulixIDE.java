@@ -824,10 +824,13 @@ public class SikulixIDE extends JFrame {
     specialFileNames.add(SX_START_LOG);
     specialFiles.add(ideStartLog);
 
-    String SX_SETTINGS_OPTIONS = "SikuliX Settings & Options";
-    File optFile = Commons.getOptionFile();
-    specialFileNames.add(SX_SETTINGS_OPTIONS);
-    specialFiles.add(optFile);
+    if (Commons.isSandBox()){
+      Commons.saveGlobalOptions();
+      String SX_SETTINGS_OPTIONS = "SikuliX Settings & Options";
+      File optFile = Commons.getOptionFile();
+      specialFileNames.add(SX_SETTINGS_OPTIONS);
+      specialFiles.add(optFile);
+    }
 
     Region where = new Location(getWindowTop().x, getWindowTop().y + 150).grow(3);
     String selected = SX.popSelect("Select a special SikuliX file", "Edit a special SikuliX file", "", where, specialFileNames);
@@ -1119,6 +1122,11 @@ public class SikulixIDE extends JFrame {
           }
           setCurrentFileTabTitle(fname);
           tabs.setLastClosed(fname);
+          if (codePane.getType().equals(TYPE_SIKULIX_SPECIAL)) {
+            if (Commons.isOptionsfileThenLoadIt(fname)) {
+              Debug.info("Settings & Options saved and reloaded");
+            }
+          }
         }
       } catch (Exception ex) {
         if (ex instanceof IOException) {
