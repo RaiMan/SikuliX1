@@ -8,16 +8,11 @@
  */
 package org.sikuli.basics;
 
-import java.awt.Color;
-import java.awt.Container;
-import java.util.Date;
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JSeparator;
-
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Date;
 
 /**
  *

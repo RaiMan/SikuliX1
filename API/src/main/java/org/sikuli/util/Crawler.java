@@ -6,7 +6,6 @@ package org.sikuli.util;
 
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.IOException;

@@ -5,16 +5,12 @@ package org.sikuli.idesupport;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.File;

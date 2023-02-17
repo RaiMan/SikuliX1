@@ -27,7 +27,7 @@ Lists of 32 third-party dependencies.
      (Apache License 2.0) (LGPL 2.1) (MPL 1.1) Javassist (org.javassist:javassist:3.22.0-GA - http://www.javassist.org/)
      (asl) JBoss VFS (org.jboss:jboss-vfs:3.2.17.Final - http://www.jboss.org)
      (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.1.4.GA - http://www.jboss.org)
-     (EPL-2.0) (GPL-2.0) (LGPL-2.1) JRuby Complete (org.jruby:jruby-complete:9.2.11.1 - https://github.com/jruby/jruby/jruby-artifacts/jruby-complete)
+     (EPL-2.0) (GPL-2.0) (LGPL-2.1) JRuby Complete (org.jruby:jruby-complete:9.4.1.0 - https://github.com/jruby/jruby/jruby-artifacts/jruby-complete)
      (Jython Software License) Jython (org.python:jython-standalone:2.7.3 - https://www.jython.org/)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.6 - http://www.slf4j.org)
      (MIT License) SLF4J NOP Binding (org.slf4j:slf4j-nop:2.0.6 - http://www.slf4j.org)

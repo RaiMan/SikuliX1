@@ -4,23 +4,23 @@
 
 package org.sikuli.script.runnerSupport;
 
-import java.io.File;
-import java.io.PrintStream;
-import java.io.Reader;
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.jruby.RubyInstanceConfig;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.ScriptingContainer;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+
+import java.io.File;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JRubySupport implements IRunnerSupport {
 
@@ -152,7 +152,8 @@ public class JRubySupport implements IRunnerSupport {
   private final static String SCRIPT_HEADER =
           "# coding: utf-8\n"
                   + "require 'Lib/sikulix'\n"
-                  + "include Sikulix\n";
+                  + "include Sikulix\n"
+                  + "";
 
   private static ArrayList<String> sysargv = null;
 
@@ -175,7 +176,8 @@ public class JRubySupport implements IRunnerSupport {
     if (null == interpreter) {
       return null;
     }
-    return interpreter.runScriptlet(script);
+    Object interpreterReturn = interpreter.runScriptlet(script);
+    return interpreterReturn;
   }
 
   public Object interpreterRunScriptletFile(Reader reader, String filename) throws Throwable {

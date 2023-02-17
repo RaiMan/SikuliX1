@@ -3,16 +3,16 @@
  */
 package org.sikuli.script;
 
-import java.io.*;
-import java.net.URL;
-import java.security.CodeSource;
-import java.util.*;
-
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+
+import java.io.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * maintain the path list of locations, where images will be searched.

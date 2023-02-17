@@ -3,8 +3,14 @@
  */
 package org.sikuli.util;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.script.Location;
+import org.sikuli.script.Screen;
+import org.sikuli.script.ScreenImage;
+import org.sikuli.script.support.IScreen;
+
+import javax.swing.*;
 import java.awt.*;
-import java.awt.Image;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -12,12 +18,6 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.awt.image.RasterFormatException;
 import java.awt.image.RescaleOp;
-import javax.swing.JFrame;
-import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.RunTime;
 
 /**
  * INTERNAL USE implements the screen overlay used with the capture feature
