@@ -97,16 +97,14 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
             jythonSupport.interpreterExecString("import sys");
             jythonSupport.interpreterExecString("import org.sikuli.script.runnerSupport.Runner as Runner");
             interpreterVersion = ("" + jythonSupport.interpreterEval("sys.version")).split(" ")[0];
-          } catch (Exception e) {
-
+          } catch (Exception e) {}
+          if (interpreterVersion.isEmpty()) {
+            log(-1, "not ready --- scripts cannot be run");
+          } else {
+            log(3,"ready: %s", interpreterVersion);
           }
         } else {
           log(-1, "JythonSupport not ready --- scripts cannot be run");
-        }
-        if (interpreterVersion.isEmpty()) {
-          log(-1, "not ready --- scripts cannot be run");
-        } else {
-          log(3,"ready: %s", interpreterVersion);
         }
       }
     }

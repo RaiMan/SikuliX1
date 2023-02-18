@@ -43,6 +43,8 @@ public class Runner {
 
       if (runners.isEmpty()) {
 
+        log(3, "::initRunners: starting");
+
         Reflections reflections = new Reflections(ClasspathHelper.forPackage("org.sikuli.script.runners"),
             new SubTypesScanner());
 
@@ -66,6 +68,7 @@ public class Runner {
             }
           }
         }
+        log(3, "::initRunners: complete");
       }
       isReady = true;
     }

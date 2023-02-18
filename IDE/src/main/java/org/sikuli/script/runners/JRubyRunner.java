@@ -59,10 +59,12 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       if (null == jrubySupport) {
+        log(3, "starting initialization");
         jrubySupport = JRubySupport.get();
         // execute script headers to already do the warmup during init
         try {
           jrubySupport.executeScriptHeader(codeBefore);
+          log(3,"ready: %s", "JRUBY.version");
         } catch (Exception e) {
           Debug.error("JRuby::init: %s", e.getMessage());
         }
@@ -72,7 +74,8 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   //</editor-fold>
 
   private String injectAbortWatcher(String script) {
-    return "Thread.new(){\n"
+    return "print \"JRubyRunner::injectAbortWatcher\n\"\n"
+         + "Thread.new(){\n"
          + "  runner = org.sikuli.script.runnerSupport.Runner.getRunner(\"" + NAME + "\")\n"
          + "  while runner.isRunning()\n"
          + "    sleep(0.1)\n"
