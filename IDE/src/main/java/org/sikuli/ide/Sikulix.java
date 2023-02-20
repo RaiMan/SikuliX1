@@ -25,7 +25,7 @@ import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws ClassNotFoundException {
     //region startup
     Debug.isIDEstarting(true);
     Commons.setStartClass(Sikulix.class);
@@ -71,6 +71,11 @@ public class Sikulix {
       Commons.setTempFolder(new File(path, "Temp"));
     } else {
       Commons.setTempFolder();
+    }
+
+    if (Commons.hasExtendedArg("jruby")) {
+        Thread.currentThread().getContextClassLoader().loadClass("org.jruby.Main");
+        System.out.println("JRUBY OK");
     }
 
     Commons.initGlobalOptions();

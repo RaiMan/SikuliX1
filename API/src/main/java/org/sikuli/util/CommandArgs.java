@@ -37,6 +37,10 @@ public class CommandArgs {
           extendedArgs.add("reset");
           continue;
         }
+        if (args[i].equalsIgnoreCase("--jruby")) {
+          extendedArgs.add("jruby");
+          continue;
+        }
         isUserArg = true;
         continue;
       }
