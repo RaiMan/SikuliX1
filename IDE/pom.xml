@@ -49,9 +49,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <sikulixjythonversion>2.7.3</sikulixjythonversion>
-<!--
-    <sikulixjrubyversion>9.2.11.1</sikulixjrubyversion>
--->
+    <!--
+        <sikulixjrubyversion>9.2.11.1</sikulixjrubyversion>
+    -->
     <sikulixjrubyversion>9.4.1.0</sikulixjrubyversion>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
@@ -61,7 +61,7 @@
     <dependency>
       <groupId>com.sikulix</groupId>
       <artifactId>sikulixapi</artifactId>
-        <version>${project.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sikulix</groupId>
@@ -72,7 +72,7 @@
       <groupId>org.python</groupId>
       <artifactId>jython-standalone</artifactId>
       <version>${sikulixjythonversion}</version>
-<!--      <optional>true</optional>-->
+      <!--      <optional>true</optional>-->
     </dependency>
     <dependency>
       <groupId>org.jruby</groupId>
@@ -223,7 +223,13 @@
             <version>3.1.1</version>
             <configuration>
               <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <manifestEntries>
+                  <!--- for JRuby 9.x and Java 17+ -->
+                  <Add-Opens>java.base/sun.nio.ch java.base/java.io</Add-Opens>
+                </manifestEntries>
                 <manifest>
+                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                   <mainClass>org.sikuli.ide.Sikulix</mainClass>
                 </manifest>
               </archive>
@@ -240,6 +246,23 @@
                 </goals>
               </execution>
             </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>3.1.2</version>
+            <configuration>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <manifest>
+                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                </manifest>
+                <manifestEntries>
+                  <add-opens>java.base/sun.nio.ch=ALL-UNNAMED</add-opens>
+                </manifestEntries>
+              </archive>
+            </configuration>
           </plugin>
         </plugins>
       </build>

@@ -362,13 +362,13 @@ public class EditorPane extends JTextPane {
 
   private void initForScriptType() {
     // initialize runner to speed up first script run
-    (new Thread() {
-      @Override
-      public void run() {
-        editorPaneRunner.init(null);
-        SikulixIDE.isRunnerReady(true);
-      }
-    }).start();
+//    (new Thread() {
+//      @Override
+//      public void run() {
+//        editorPaneRunner.init(null);
+//        SikulixIDE.isRunnerReady(true);
+//      }
+//    }).start();
 
     editorPaneType = editorPaneRunner.getType();
     indentationLogic = null;

@@ -34,6 +34,7 @@ import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 
 public class SikulixIDE extends JFrame {
@@ -100,9 +101,15 @@ public class SikulixIDE extends JFrame {
 
     sikulixIDE.startGUI();
 
-    while (!isRunnerReady()) {
+    while (!areRunnersReady()) {
       Commons.pause(0.3);
     }
+
+    Debug.log(3, "IDE ready: on Java %d", Commons.getJavaVersion());
+    if (Debug.getDebugLevel() < 3) {
+      Debug.reset();
+    }
+
     showAfterStart();
   }
 
@@ -242,13 +249,18 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="02 init IDE">
-  private static AtomicBoolean runnerReady = new AtomicBoolean(false);
+  private static AtomicInteger runnerReadyNum = new AtomicInteger(0);
 
-  public static boolean isRunnerReady(boolean... state) {
-    if (state.length > 0) {
-      runnerReady.set(state[0]);
-    }
-    return runnerReady.get();
+  public static void resetRunnersReady(int countRunners) {
+    runnerReadyNum.set(countRunners);
+  }
+
+  public static void setRunnerIsReady() {
+    runnerReadyNum.decrementAndGet();
+  }
+
+  public static boolean areRunnersReady() {
+    return 0 == runnerReadyNum.get();
   }
 
   private void startGUI() {
@@ -320,11 +332,6 @@ public class SikulixIDE extends JFrame {
       newTabEmpty();
     }
     tabs.setSelectedIndex(0);
-
-    Debug.log(3, "IDE ready: on Java %d", Commons.getJavaVersion());
-    if (Debug.getDebugLevel() < 3) {
-      Debug.reset();
-    }
   }
 
 
