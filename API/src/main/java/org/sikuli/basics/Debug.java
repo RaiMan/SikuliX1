@@ -702,15 +702,19 @@ public class Debug {
     return print(msg, args);
   }
 
-  public static String print(String msg, Object... args) {
-    if (msg == null) {
+  public static String print(Object... args) {
+    if (args.length == 0) {
       return "";
     }
-    String out = msg;
-    if (args != null && args.length > 0) {
-      out = String.format(msg, args);
+    String out = args[0].toString();
+    if (out.isBlank()) {
+      return "";
     }
-    log(-1, "", out);
+    if (args.length > 1) {
+      args = Arrays.stream(args).skip(1).toArray();
+      out = String.format(out, args);
+    }
+    log(-1, "", out.strip());
     return out;
   }
 
