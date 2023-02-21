@@ -472,6 +472,10 @@ Software:
   private static List<String> STARTUPARGS = new ArrayList<>();
   private static List<File> FILESTOLOAD = new ArrayList<>();
 
+  public static List<String> getStartArgs() {
+    return STARTUPARGS;
+  }
+
   public static void setStartupFile(String fileName) {
     STARTUPFILE = fileName;
   }
@@ -672,19 +676,24 @@ Software:
 
   public static File setAppDataPath(String givenAppPath) {
     if (givenAppPath.isEmpty()) {
-      givenAppPath = "SikulixAppData";
-    }
-    appDataPath = new File(givenAppPath);
-    if (givenAppPath.startsWith("~/")) {
-      appDataPath = new File(getUserHome(), givenAppPath.substring(2));
-    } else if (givenAppPath.startsWith("./")) {
-      appDataPath = new File(getWorkDir(), givenAppPath.substring(2));
-    }
-    if (!appDataPath.isAbsolute()) {
-      appDataPath = new File(getWorkDir(), givenAppPath);
+      appDataPath = Commons.getMainClassLocation().getParentFile();
+      if (!Commons.isRunningFromJar() || appDataPath.getAbsolutePath().contains("IdeaProjects/SikuliX1/IDE/target")) {
+        appDataPath = appDataPath.getParentFile();
+      }
+      appDataPath = new File(appDataPath, "SikulixAppData");
+    } else {
+      appDataPath = new File(givenAppPath);
+      if (givenAppPath.startsWith("~/")) {
+        appDataPath = new File(getUserHome(), givenAppPath.substring(2));
+      } else if (givenAppPath.startsWith("./")) {
+        appDataPath = new File(getWorkDir(), givenAppPath.substring(2));
+      }
+      if (!appDataPath.isAbsolute()) {
+        appDataPath = new File(getWorkDir(), givenAppPath);
+      }
     }
     appDataPath.mkdirs();
-    if (!appDataPath.exists()) {
+    if (!appDataPath.exists() || !appDataPath.isDirectory()) {
       terminate(999, "Commons: setAppDataPath: %s (%s)", givenAppPath, "not created/not exists");
     }
     APP_DATA_SANDBOX = new File(appDataPath.getAbsolutePath());
