@@ -10,6 +10,7 @@ import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
+import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.script.support.devices.MouseDevice;
@@ -20,31 +21,38 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
 
-  public static void main(String[] args) throws ClassNotFoundException {
+  public static void main(String[] args) {
     //region startup
     Debug.isIDEstarting(true);
     Commons.setStartClass(Sikulix.class);
 
-    File parent = Commons.getMainClassLocation().getParentFile();
-    if (parent != null) {
-      if (Commons.runningMac()) {
-        if (new File(parent, ".jpackage.xml").exists()) {
-          Commons.isRunningApp(true);
-          Debug.print("IDE : running as app");
-        }
-      } else if (Commons.runningWindows()) {
-        if (new File(parent, "SikulixIDE.cfg").exists()) {
-          Commons.isRunningApp(true);
-          Debug.print("IDE : running as exe");
+    if (Commons.isRunningFromJar()) {
+      Debug.print("<!--- META-INF/MANIFEST.MF from running jar");
+      Debug.print(Commons.copyResourceToString("/META-INF/MANIFEST.MF", Commons.getStartClass()));
+      Debug.print("-->");
+
+      File parent = Commons.getMainClassLocation().getParentFile();
+      if (parent != null) {
+        if (Commons.runningMac()) {
+          if (new File(parent, ".jpackage.xml").exists()) {
+            Commons.isRunningApp(true);
+            Debug.print("IDE : running as app");
+          }
+        } else if (Commons.runningWindows()) {
+          if (new File(parent, "SikulixIDE.cfg").exists()) {
+            Commons.isRunningApp(true);
+            Debug.print("IDE : running as exe");
+          }
         }
       }
-    }
-    if (Commons.isRunningApp()) {
+      if (Commons.isRunningApp()) {
+      }
     }
 
     IDEDesktopSupport.initStart();
@@ -74,8 +82,44 @@ public class Sikulix {
     }
 
     if (Commons.hasExtendedArg("jruby")) {
+      boolean hasJRuby = true;
+      try {
         Thread.currentThread().getContextClassLoader().loadClass("org.jruby.Main");
-        System.out.println("JRUBY OK");
+      } catch (ClassNotFoundException e) {
+        if (!Commons.isRunningFromJar()) {
+          Commons.terminate(1, "JRuby not available (running from classes)");
+        }
+        hasJRuby = false;
+      }
+      if (!hasJRuby) {
+        File runningJar = Commons.getMainClassLocation();
+        File tempFolder = Commons.getTempFolder();
+        File fClasspath = new File(tempFolder, "classpath.txt");
+        List<String> startArgs = Commons.getStartArgs();
+        String jrubyJar = startArgs.get(startArgs.size() - 1);
+        File fJrubyJar = null;
+        if (jrubyJar.toLowerCase().equals("--jruby")) {
+          //TODO case jar not given
+          jrubyJar = "";
+          if (Commons.isSandBox()) {
+            fJrubyJar = new File(Commons.getAppDataPath(), "Lib/site-packages/jruby.jar");
+          }
+        }
+        if (null != fJrubyJar && fJrubyJar.exists()) {
+          jrubyJar = fJrubyJar.getAbsolutePath();
+        }
+        if (!jrubyJar.isEmpty() && new File(jrubyJar).exists()) {
+          String lines = "Class-Path: " + jrubyJar + "\n";
+          FileManager.writeStringToFile(lines, fClasspath);
+          ProcessRunner.run("jar", "-f", runningJar.getAbsolutePath(),
+              "-u", "-m", fClasspath.getAbsolutePath());
+          fClasspath.delete();
+          System.out.println(String.format("--- JRuby added to manifest classpath\n" + jrubyJar +
+              "\n--- Restart the IDE using:\n" +
+              runningJar.getAbsolutePath()));
+          Commons.terminate(1, "");
+        }
+      }
     }
 
     Commons.initGlobalOptions();
@@ -149,8 +193,8 @@ public class Sikulix {
     Boolean popAnswer = true;
     if (muse || suse) {
       String text = (muse ? "Mouse usage seems to be blocked!\n" : "") +
-                    (suse ? "Make screenshots seems to be blocked!\n" : "") +
-                    "\nDo you want to continue?\n(Be sure you know what you are doing!)";
+          (suse ? "Make screenshots seems to be blocked!\n" : "") +
+          "\nDo you want to continue?\n(Be sure you know what you are doing!)";
       popAnswer = SX.popAsk(text);
     }
     if (!popAnswer) {
@@ -160,7 +204,7 @@ public class Sikulix {
 
     if (!Commons.hasStartArg(RUN) && !Commons.hasStartArg(RUNSERVER)) {
       //region start IDE
-      Debug.log(3,"IDE starting");
+      Debug.log(3, "IDE starting");
       ideSplash = null;
       if (Commons.isRunningFromJar()) {
         if (!Debug.isQuiet()) {
