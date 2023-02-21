@@ -49,12 +49,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <sikulixjythonversion>2.7.3</sikulixjythonversion>
-    <!--
-        <sikulixjrubyversion>9.2.11.1</sikulixjrubyversion>
-    -->
     <sikulixjrubyversion>9.4.1.0</sikulixjrubyversion>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
+    <sikulixbuildingfor></sikulixbuildingfor>
   </properties>
 
   <dependencies>
@@ -114,33 +112,9 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.1.1</version>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
-                </manifest>
-              </archive>
-              <descriptors>
-                <descriptor>makeide.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>make-assembly</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <sikulixbuildingfor>makeide.xml</sikulixbuildingfor>
+      </properties>
     </profile>
     <!-- complete-jar Windows only-->
     <profile>
@@ -148,33 +122,9 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.1.1</version>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
-                </manifest>
-              </archive>
-              <descriptors>
-                <descriptor>makeide-win.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>make-assembly</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <sikulixbuildingfor>makeide-win.xml</sikulixbuildingfor>
+      </properties>
     </profile>
     <!-- complete-jar Mac only-->
     <profile>
@@ -182,90 +132,19 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.1.1</version>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
-                </manifest>
-              </archive>
-              <descriptors>
-                <descriptor>makeide-mac.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>make-assembly</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <sikulixbuildingfor>makeide-mac.xml</sikulixbuildingfor>
+      </properties>
     </profile>
     <!-- complete-jar Mac M1 only-->
     <profile>
-      <id>complete-macm1-jar</id>
+      <id>complete-macm-jar</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.1.1</version>
-            <configuration>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <manifestEntries>
-                  <!--- for JRuby 9.x and Java 17+ -->
-                  <Add-Opens>java.base/sun.nio.ch java.base/java.io</Add-Opens>
-                </manifestEntries>
-                <manifest>
-                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
-                </manifest>
-              </archive>
-              <descriptors>
-                <descriptor>makeide-macm1.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>make-assembly</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>3.1.2</version>
-            <configuration>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <manifest>
-                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                </manifest>
-                <manifestEntries>
-                  <add-opens>java.base/sun.nio.ch=ALL-UNNAMED</add-opens>
-                </manifestEntries>
-              </archive>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <sikulixbuildingfor>makeide-macm.xml</sikulixbuildingfor>
+      </properties>
     </profile>
     <!-- complete-jar Linux only-->
     <profile>
@@ -273,33 +152,9 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.1.1</version>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
-                </manifest>
-              </archive>
-              <descriptors>
-                <descriptor>makeide-lux.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>make-assembly</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <sikulixbuildingfor>makeide-lux.xml</sikulixbuildingfor>
+      </properties>
     </profile>
   </profiles>
 
@@ -338,6 +193,36 @@
             src/main/resources/Settings/LicenseIDE
           </outputDirectory>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
+            <manifestEntries>
+              <!--- for JRuby 9.x and Java 17+ -->
+              <Add-Opens>java.base/sun.nio.ch java.base/java.io</Add-Opens>
+              <X-SikuliX-BuiltWith>${sikulixbuildingfor}</X-SikuliX-BuiltWith>
+            </manifestEntries>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <mainClass>org.sikuli.ide.Sikulix</mainClass>
+            </manifest>
+          </archive>
+          <descriptors>
+            <descriptor>${sikulixbuildingfor}</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
