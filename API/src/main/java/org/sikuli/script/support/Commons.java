@@ -907,6 +907,15 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="07 Java System Properties">
+  private static String SX_MANIFEST = null;
+
+  public static String getManifest() {
+    if (null == SX_MANIFEST) {
+      SX_MANIFEST = copyResourceToString("/META-INF/MANIFEST.MF", Commons.getStartClass());
+    }
+    return SX_MANIFEST;
+  }
+
   public static boolean hasSysProp(String prop) {
     return null != System.getProperty(prop);
   }

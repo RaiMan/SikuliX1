@@ -34,7 +34,8 @@ public class Sikulix {
 
     if (Commons.isRunningFromJar()) {
       Debug.print("<!--- META-INF/MANIFEST.MF from running jar");
-      Debug.print(Commons.copyResourceToString("/META-INF/MANIFEST.MF", Commons.getStartClass()));
+      String manifest = Commons.getManifest();
+      Debug.print(manifest.isEmpty() ? "... could not be read!" : manifest);
       Debug.print("-->");
 
       File parent = Commons.getMainClassLocation().getParentFile();
@@ -94,22 +95,33 @@ public class Sikulix {
       if (!hasJRuby) {
         File runningJar = Commons.getMainClassLocation();
         File tempFolder = Commons.getTempFolder();
-        File fClasspath = new File(tempFolder, "classpath.txt");
         List<String> startArgs = Commons.getStartArgs();
         String jrubyJar = startArgs.get(startArgs.size() - 1);
-        File fJrubyJar = null;
+        File fJrubyJar;
         if (jrubyJar.toLowerCase().equals("--jruby")) {
-          //TODO case jar not given
-          jrubyJar = "";
           if (Commons.isSandBox()) {
             fJrubyJar = new File(Commons.getAppDataPath(), "Lib/site-packages/jruby.jar");
+          } else {
+            fJrubyJar = new File(runningJar.getParentFile(), "jruby.jar");
+          }
+        } else {
+          if (jrubyJar.startsWith("./")) {
+            jrubyJar = jrubyJar.substring(2);
+            System.out.println(jrubyJar);
+            if (Commons.isSandBox()) {
+              fJrubyJar = new File(Commons.getAppDataPath(), "Lib/site-packages/" + jrubyJar);
+            } else {
+              fJrubyJar = new File(runningJar.getParentFile(), jrubyJar);
+            }
+            System.out.println(fJrubyJar);
+          } else {
+            fJrubyJar = new File(jrubyJar);
           }
         }
-        if (null != fJrubyJar && fJrubyJar.exists()) {
+        if (fJrubyJar.exists()) {
           jrubyJar = fJrubyJar.getAbsolutePath();
-        }
-        if (!jrubyJar.isEmpty() && new File(jrubyJar).exists()) {
           String lines = "Class-Path: " + jrubyJar + "\n";
+          File fClasspath = new File(tempFolder, "classpath.txt");
           FileManager.writeStringToFile(lines, fClasspath);
           ProcessRunner.run("jar", "-f", runningJar.getAbsolutePath(),
               "-u", "-m", fClasspath.getAbsolutePath());
@@ -118,6 +130,8 @@ public class Sikulix {
               "\n--- Restart the IDE using:\n" +
               runningJar.getAbsolutePath()));
           Commons.terminate(1, "");
+        } else {
+
         }
       }
     }
