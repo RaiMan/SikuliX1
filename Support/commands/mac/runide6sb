@@ -1,3 +1,0 @@
-IDE=~/IdeaProjects/SikuliX1/IDE/target/sikulixide-2.0.6-SNAPSHOT-complete-macm.jar
-
-java -jar $IDE -a $*
