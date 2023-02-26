@@ -2068,7 +2068,9 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation finally failed
    */
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
-    return executeFind(target, timeout, 0, null, FINDTYPE.SINGLE).getMatch(); // wait
+    Match match = executeFind(target, timeout, 0, null, FINDTYPE.SINGLE).getMatch();// wait
+    lastMatch = match;
+    return match;
   }
 
   /**
