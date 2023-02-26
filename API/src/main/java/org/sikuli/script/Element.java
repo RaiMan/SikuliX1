@@ -440,7 +440,9 @@ public abstract class Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    return executeFind(target, 0, 0, null, FINDTYPE.SINGLE).getMatch(); // find
+    Match match = executeFind(target, 0, 0, null, FINDTYPE.SINGLE).getMatch();// find
+    lastMatch = match;
+    return match;
   }
   //</editor-fold>
 
@@ -473,7 +475,9 @@ public abstract class Element {
    */
   public <PSI> Match exists(PSI target, double timeout) {
     try {
-      return executeFind(target, timeout, 0, null, FINDTYPE.SINGLE).getMatch(); // exists
+      Match match = executeFind(target, timeout, 0, null, FINDTYPE.SINGLE).getMatch();// exists
+      lastMatch = match;
+      return match;
     } catch (FindFailed e) {
       return null;
     }
@@ -536,7 +540,11 @@ public abstract class Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
-    return executeFind(target, 0, 0, null, FINDTYPE.ALL); // findAll
+    Finder finder = executeFind(target, 0, 0, null, FINDTYPE.ALL);// findAll
+    if (finder.hasNext()) {
+      lastMatches = finder;
+    }
+    return finder;
   }
 
   /**
