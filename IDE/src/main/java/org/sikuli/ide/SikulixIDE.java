@@ -4,7 +4,9 @@
 package org.sikuli.ide;
 
 import org.sikuli.basics.*;
-import org.sikuli.idesupport.*;
+import org.sikuli.idesupport.ExtensionManager;
+import org.sikuli.idesupport.IDEDesktopSupport;
+import org.sikuli.idesupport.IDESupport;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
@@ -12,9 +14,16 @@ import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.support.*;
+import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.PreferencesUser;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
-import org.sikuli.util.*;
+import org.sikuli.util.EventObserver;
+import org.sikuli.util.EventSubject;
+import org.sikuli.util.OverlayCapturePrompt;
+import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -33,7 +42,6 @@ import java.net.URLDecoder;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 
@@ -63,10 +71,6 @@ public class SikulixIDE extends JFrame {
 
   public static Rectangle getWindowRect() {
     prefs = PreferencesUser.get();
-    if (prefs.getUserType() < 0) {
-      prefs.setIdeSession("");
-      prefs.setDefaults();
-    }
 
     Dimension windowSize = prefs.getIdeSize();
     Point windowLocation = prefs.getIdeLocation();
@@ -76,7 +80,19 @@ public class SikulixIDE extends JFrame {
     if (windowSize.height < 500) {
       windowSize.height = 600;
     }
-    return new Rectangle(windowLocation, windowSize);
+    Rectangle rectWindow = new Rectangle(windowLocation, windowSize);
+    int monitor = ScreenDevice.whichMonitor(rectWindow);
+    ScreenDevice screen;
+    if (monitor == 0) {
+      log(3, "IDE window reset to primary monitor");
+      screen = ScreenDevice.primary();
+      rectWindow.x = 30;
+      rectWindow.y = 30;
+    } else {
+      screen = ScreenDevice.get(monitor);
+    }
+    //TODO resize to fit screen?
+    return rectWindow;
   }
 
   public static Point getWindowCenter() {

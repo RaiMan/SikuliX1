@@ -154,6 +154,9 @@ public class ScreenDevice extends Devices {
   }
 
   public static ScreenDevice[] get() {
+    if (devices == null) {
+      initDevices();
+    }
     return devices;
   }
 
@@ -169,6 +172,9 @@ public class ScreenDevice extends Devices {
   }
 
   public static int whichMonitor(Rectangle rect) {
+    if (devices == null) {
+      initDevices();
+    }
     int monitor = 0;
     for (int i = 0; i < numDevices(); i++) {
       ScreenDevice device = get(i);
