@@ -170,6 +170,7 @@ public class Sikulix {
       PreferencesUser.get().remove("IDE_SIZE");
       PreferencesUser.get().remove("IDE_SESSION");
 
+      PreferencesUser.get().kill(); //TODO remove prefs store
       System.exit(0);
     }
 

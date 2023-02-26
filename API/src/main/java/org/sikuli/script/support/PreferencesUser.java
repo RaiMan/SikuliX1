@@ -56,16 +56,36 @@ public class PreferencesUser {
     return _instance;
   }
 
+  private final boolean isUserNode;
+
   private PreferencesUser() {
+    boolean isUserNodeTemp  = true;
     if (Commons.isSandBox()) {
       pref = new SXPreferences();
+      isUserNodeTemp = false;
     } else {
       Class<Sikulix> sikulixClass = Sikulix.class;
       pref = Preferences.userNodeForPackage(sikulixClass);
     }
+    isUserNode = isUserNodeTemp;
+    if (getUserType() < 0) {
+      setDefaults();
+    }
   }
 
   Preferences pref;
+
+  public void kill() {
+    if (!isUserNode) {
+      return;
+    }
+    Debug.info("%s::Kill()", this.getClass().getSimpleName());
+    try {
+      pref.removeNode();
+    } catch (BackingStoreException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   public Preferences getStore() {
     return pref;
@@ -689,6 +709,7 @@ public class PreferencesUser {
 
   public void setDefaults() {
     setUserType(SIKULI_USER);
+    setIdeSession("");
 
 // ***** capture hot key
     setCaptureHotkey(defaultCaptureHotkey);
