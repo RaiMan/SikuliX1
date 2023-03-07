@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.IntSupplier;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 
@@ -176,16 +177,18 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
       int exitCode = -1;
 
-      if(script != null) {
-         adjustBundlePath(script, options);
+      if (script != null) {
+        adjustBundlePath(script, options);
       }
 
       try {
-         exitCode = doRunScript(script, scriptArgs, options);
+        exitCode = doRunScript(script, scriptArgs, options);
       } finally {
-    	  if (script != null) {
-    	     resetBundlePath(script, options);
-    	  }
+        if (script != null) {
+          resetBundlePath(script, options);
+          //TODO reset options per scriptrun
+          Settings.SwitchToText = false;
+        }
       }
 
       Debug.setDebugLevel(savedLevel);
@@ -302,7 +305,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   /**
    * Interrupts the worker thread.
-   *
+   * <p>
    * Can be overridden by Runner implementations if an interrupt
    * is not needed.
    */
@@ -407,10 +410,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   protected void adjustBundlePath(String script, IScriptRunner.Options options) {
-	  // NOOP
+    // NOOP
   }
 
   protected void resetBundlePath(String script, IScriptRunner.Options options) {
-	  // NOOP
+    // NOOP
   }
 }
