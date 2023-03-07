@@ -90,7 +90,7 @@ public class ImagePath {
    */
   public static void dump(int lvl) {
     log(lvl, "ImagePath has %d entries (valid %d)", imagePaths.size(), getCount());
-    dumpDo(0, null);
+    dumpDo(lvl, null);
   }
 
   public static void dump(String msg) {
@@ -799,9 +799,9 @@ public class ImagePath {
     }
     if (url == null) {
       if (!silent) {
-        log(-1, "find: not in ImagePath: %s", imageName);
+        log(lvl, "find: not in ImagePath: %s", imageName);
+        dump(lvl);
       }
-      dump(lvl);
     }
     return url;
   }

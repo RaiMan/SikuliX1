@@ -220,7 +220,10 @@ public class Image extends Element {
 
   @Override
   public String toString() {
-    return String.format( "I[" +
+    if (isText()) {
+      return String.format("I[isText: %s]", getNameGiven());
+    }
+    return String.format("I[" +
         (getName() != null ? getName() : "__UNKNOWN__") + "(%dx%d)]", w, h)
         + (lastSeen == null ? ""
         : String.format(" at(%d,%d)%%%.2f", lastSeen.x, lastSeen.y, lastScore * 100.0));
@@ -436,6 +439,12 @@ public class Image extends Element {
   public Image setIsText(boolean val) {
     imageIsText = val;
     return this;
+  }
+
+  private boolean textSearch = false;
+
+  public boolean isTextSearch() {
+    return textSearch;
   }
 
   public String getNameGiven() {
@@ -688,14 +697,10 @@ public class Image extends Element {
       return new Image("", null);
     }
     if (!img.isValid()) {
-      if (Settings.OcrTextSearch || Settings.SwitchToText) {
-        if (isValidImageFilename(img.getNameGiven())) {
-          img.setIsText(false);
-        } else {
-          img.setIsText(true);
-        }
+      if (isValidImageFilename(img.getNameGiven())) {
+        img.setIsText(false);
       } else {
-        log(-1, "Image not valid, but Settings.OcrTextSearch is switched off! (= false)");
+        img.setIsText(true);
       }
     }
     return img;
@@ -950,6 +955,7 @@ public class Image extends Element {
       fName = fName.substring(1, fName.length() - 1);
       image = new Image();
       image.setIsText(true);
+      image.textSearch = true;
     } else {
       URL imageURL = null;
       String imageFileName = getValidImageFilename(fName);
@@ -1403,7 +1409,7 @@ public class Image extends Element {
             "";
     final SXDialog show = new SXDialog(text);
     show.run();
-    while(show.isRunning()) {
+    while (show.isRunning()) {
       RunTime.pause(1);
     }
   }

@@ -371,7 +371,9 @@ public abstract class Element {
       }
       return null;
     } else if (findFailedResponse.ABORT.equals(response)) {
-      log(-1, "handleImageMissing: Response.ABORT: aborting");
+      if (!img.isText()) {
+        log(-1, "handleImageMissing: Response.ABORT: aborting");
+      }
       return null;
     }
     log(logLevel, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
@@ -837,59 +839,52 @@ public abstract class Element {
     long searchTime = -1;
     Image img;
     while (true) {
+      boolean findingText = false;
       img = getImageFromTarget(target);
-      if (!img.isValid()) {
+      if (!img.isValid() && !img.isTextSearch()) {
         Boolean response = handleImageMissing(img, false);
         if (null == response) {
-          if (Settings.SwitchToText) {
-            log(logLevel, "wait: image missing: switching to text search (deprecated - use text methods)");
-            img.setIsText(true);
-          } else {
-            throw new RuntimeException(String.format("SikuliX: ImageMissing: %s", target)); // abort
+          if (img.isText()) {
+            if (!Settings.SwitchToText) {
+              log(-1, "Image not avaiable: For text search use text search methods or Settings.SwitchToText.");
+              throw new RuntimeException(String.format("SikuliX: ImageMissing: %s", target)); // abort
+            } else {
+              log(logLevel, "%s: image not available - switching to text search (Settings.SwitchToText)", img);
+            }
           }
         } else if (!response) { // skip
           return new Finder(this);
+        } else {
+          continue; // image was recaptured
         }
-        // image was recaptured
       }
-      boolean findingText = false;
-      String someText = "";
       findTime = Debug.timeNow();
       searchTime = findTime;
-      if (target instanceof String) {
-        if (((String) target).startsWith("\t") && ((String) target).endsWith("\t")) {
-          findingText = true;
-          someText = ((String) target).replaceAll("\\t", "");
-        } else {
+      if (img.isValid()) {
+        if (target instanceof String) {
+          finder = runFirstFinder(finder, new Pattern().setImage(img), findtype); // String
+        } else if (target instanceof Pattern) {
           if (img.isValid()) {
-            finder = runFirstFinder(finder, new Pattern().setImage(img), findtype); // String
-          } else if (img.isText()) {
-            findingText = true;
-            someText = img.getNameGiven();
+            finder = runFirstFinder(finder, ((Pattern) target).setImage(img), findtype); // Pattern
           }
+        } else if (target instanceof Image || target instanceof ScreenImage) {
+          if (img.isValid()) {
+            finder = runFirstFinder(finder, new Pattern().setImage(img), findtype); // image
+          }
+        } else {
+          throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
         }
-        if (findingText) {
-          log(logLevel, "doFind: Switching to TextSearch");
-          finder = new Finder(this);
-          finder.findText(someText);
-        }
-      } else if (target instanceof Pattern) {
-        if (img.isValid()) {
-          finder = runFirstFinder(finder, ((Pattern) target).setImage(img), findtype); // Pattern
-        }
-      } else if (target instanceof Image || target instanceof ScreenImage) {
-        if (img.isValid()) {
-          finder = runFirstFinder(finder, new Pattern().setImage(img), findtype); // image
-        }
-      } else {
-        throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
+      } else if (img.isText()) {
+        findingText = true;
+        finder = new Finder(this);
+        finder.findText(img.getNameGiven());
       }
       searchTime = Debug.timeSince(searchTime);
       boolean shouldRepeat = false;
       if (findtype.equals(FINDTYPE.VANISH)) {
         shouldRepeat = finder.hasNext();
         if (!shouldRepeat) {
-          throw new FindFailed(String.format("in %s with %s", this, getImageFromTarget(target)));
+          throw new FindFailed(String.format("in %s with %s", this, img));
         }
       } else {
         shouldRepeat = !finder.hasNext();
@@ -910,7 +905,7 @@ public abstract class Element {
         findFailed = true;
         handleFindFailedState = handleFindFailed(target, img); //TODO for Image
         if (FindFailed.isAbort(handleFindFailedState)) {
-          throw new FindFailed(String.format("in %s with %s", this, getImageFromTarget(target)));
+          throw new FindFailed(String.format("in %s with %s", this, img));
         }
       } else {
         break;
@@ -1342,7 +1337,6 @@ public abstract class Element {
   public Match findText(String text) throws FindFailed {
     //TODO implement findText
     throw new SikuliXception(String.format("Pixels: findText: not implemented for", this.getClass().getCanonicalName()));
-    //return match;
   }
 
   public Match findT(String text) throws FindFailed {
@@ -1352,7 +1346,6 @@ public abstract class Element {
   public Match existsText(String text) {
     //TODO existsText: try: findText:true catch: false
     throw new SikuliXception(String.format("Pixels: existsText: not implemented for", this.getClass().getCanonicalName()));
-    //return match;
   }
 
   public Match existsT(String text) {
