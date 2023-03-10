@@ -10,4 +10,5 @@ package org.sikuli.recorder;
  */
 public class RecorderWhatIsItFor {
   // just to test git behavior
+  // tested
 }
