@@ -9,4 +9,5 @@ package org.sikuli.recorder;
  * based on SikuliX's visual approach including playback and code generation for scripting
  */
 public class RecorderWhatIsItFor {
+  // just to test git behavior
 }
