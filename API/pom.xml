@@ -112,6 +112,11 @@
       <version>0.10.9.7</version>
       <!--License The New BSD License (https://www.py4j.org) -->
     </dependency>
+    <dependency>
+      <groupId>com.github.kwhat</groupId>
+      <artifactId>jnativehook</artifactId>
+      <version>2.2.2</version>
+    </dependency>
   </dependencies>
 
   <profiles>
