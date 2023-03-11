@@ -1,7 +1,7 @@
 
 Lists of 22 third-party dependencies.
-     (GNU General Public License (GPL), Version 3.0) (GNU Lesser General Public License (LGPL), Version 3.0) JNativeHook (com.1stleg:jnativehook:2.1.0 - https://github.com/kwhat/jnativehook)
      (BSD 3-clause License w/nuclear disclaimer) Java Advanced Imaging Image I/O Tools API core (standalone) (com.github.jai-imageio:jai-imageio-core:1.4.0 - https://github.com/jai-imageio/jai-imageio-core)
+     (GNU General Public License (GPL), Version 3.0) (GNU Lesser General Public License (LGPL), Version 3.0) JNativeHook (com.github.kwhat:jnativehook:2.2.2 - https://github.com/kwhat/jnativehook)
      (GNU General Public License v2.0) sikulix2opencv (com.sikulix:sikulix2opencv:4.5.4-20211108.155100-1 - http://www.sikulix.com)
      (Apache License, Version 2.0) Apache Commons CLI (commons-cli:commons-cli:1.4 - http://commons.apache.org/proper/commons-cli/)
      (Apache License, Version 2.0) Apache Commons IO (commons-io:commons-io:2.11.0 - https://commons.apache.org/proper/commons-io/)
