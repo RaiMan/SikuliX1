@@ -53,14 +53,14 @@ public class Image extends Element {
   }
 
   public Location getTopLeft() {
-    return new Location(topLeft);
+    return Optional.ofNullable(topLeft).map(Location::new).orElseGet(() -> new Location(0, 0));
   }
 
   public void setTopLeft(int x, int y) {
     topLeft = new Point(x, y);
   }
 
-  private Point topLeft = new Point(0, 0);
+  private Point topLeft = null;
 
   private Image() {
   }
@@ -190,6 +190,7 @@ public class Image extends Element {
    */
   public Image(ScreenImage img) {
     this(img.getImage(), null);
+    this.setTopLeft(img.x, img.y);
   }
 
   /**
@@ -233,7 +234,9 @@ public class Image extends Element {
     return String.format("I[" +
         (getName() != null ? getName() : "__UNKNOWN__") + "(%dx%d)]", w, h)
         + (lastSeen == null ? ""
-        : String.format(" at(%d,%d)%%%.2f", lastSeen.x, lastSeen.y, lastScore * 100.0));
+        : String.format(" at(%d,%d)%%%.2f", lastSeen.x, lastSeen.y, lastScore * 100.0))
+        + (topLeft == null ? ""
+        : String.format(" from(%d,%d)", topLeft.x, topLeft.y, lastScore * 100.0));
   }
   //</editor-fold>
 
