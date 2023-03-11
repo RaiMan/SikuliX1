@@ -17,13 +17,16 @@ import java.io.*;
 import javax.imageio.ImageIO;
 
 /**
- * CANDIDATE FOR DEPRECATION
- *
+ * INTERNAL USE: This will be replaced by Image in the long run<br>
+ * Hence do not use it in your application.<br>
+ * <br>
+ * If you want to handle screen captures:<br>
+ * Image = Region.getImage()<br>
+ * ... and then use the Image features<br>
+ *<br>
  * stores a BufferedImage usually ceated by screen capture,
  * the screen rectangle it was taken from and
  * the filename, where it is stored as PNG (only if requested)
- *
- * This will be replaced by Image in the long run
  */
 public class ScreenImage {
 
