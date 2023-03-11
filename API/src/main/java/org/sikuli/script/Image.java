@@ -47,14 +47,20 @@ public class Image extends Element {
 
   private static String logName = "Image: ";
 
-  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
-  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
-  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
-
   //<editor-fold desc="00 0  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
   }
+
+  public Location getTopLeft() {
+    return new Location(topLeft);
+  }
+
+  public void setTopLeft(int x, int y) {
+    topLeft = new Point(x, y);
+  }
+
+  private Point topLeft = new Point(0, 0);
 
   private Image() {
   }
@@ -196,6 +202,7 @@ public class Image extends Element {
    */
   public Image(ScreenImage img, String name) {
     this(img.getImage(), name);
+    this.setTopLeft(img.x, img.y);
   }
 
   /**
@@ -721,6 +728,9 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="02 caching">
+  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
+  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
+  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
   private static final int KB = 1024;
   private static final int MB = KB * KB;
   private final static String isBImg = "__BufferedImage__";
