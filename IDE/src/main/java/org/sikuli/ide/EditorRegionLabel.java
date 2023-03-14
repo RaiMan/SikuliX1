@@ -14,9 +14,9 @@ import javax.swing.JLabel;
 import javax.swing.border.Border;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.Screen;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
 import org.sikuli.script.ScreenImage;
@@ -107,7 +107,7 @@ public class EditorRegionLabel extends JLabel implements MouseListener, EventObs
       wasPopup = false;
       return;
     }
-    if (Commons.isCaptureBlocked()) {
+    if (Device.isCaptureBlocked()) {
       Debug.error("FATAL: Capture is blocked");
       return;
     }

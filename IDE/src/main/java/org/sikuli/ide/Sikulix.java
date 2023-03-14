@@ -13,6 +13,7 @@ import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.PreferencesUser;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
@@ -202,7 +203,7 @@ public class Sikulix {
     //endregion
 
     //region checkAccessibility
-    Commons.checkAccessibility();
+    Device.checkAccessibility();
     boolean muse = !MouseDevice.isUseable();
     boolean suse = !ScreenDevice.isUseable();
     Boolean popAnswer = true;

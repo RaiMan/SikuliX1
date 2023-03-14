@@ -18,6 +18,7 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.EventObserver;
@@ -85,7 +86,7 @@ public class SikulixIDE extends JFrame {
     ScreenDevice screen;
     if (monitor == 0) {
       log(3, "IDE window reset to primary monitor");
-      screen = ScreenDevice.primary();
+      screen = ScreenDevice.getPrimary();
       rectWindow.x = 30;
       rectWindow.y = 30;
     } else {
@@ -2091,7 +2092,7 @@ public class SikulixIDE extends JFrame {
 
     boolean shouldRun() {
       log(4, "ButtonSubRegion");
-      if (Commons.isCaptureBlocked()) { // Button SubRegion
+      if (Device.isCaptureBlocked()) { // Button SubRegion
         Debug.error("FATAL: Capture is blocked");
         return false;
       }

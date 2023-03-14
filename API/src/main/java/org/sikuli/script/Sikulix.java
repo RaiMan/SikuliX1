@@ -11,7 +11,7 @@ import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
-import org.sikuli.script.support.devices.Devices;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
@@ -531,7 +531,7 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static Devices vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
+  public static Device vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
     //TODO finally implement VNCScreen as VNCDevice
     return HelpDevice.startVNC(theIP, thePort, password, cTimeout, timeout);
   }
@@ -546,7 +546,7 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static Devices vncStart(String theIP, int thePort, int cTimeout, int timeout) {
+  public static Device vncStart(String theIP, int thePort, int cTimeout, int timeout) {
     //TODO finally implement VNCScreen as VNCDevice
     return HelpDevice.startVNC(theIP, thePort, cTimeout, timeout);
   }

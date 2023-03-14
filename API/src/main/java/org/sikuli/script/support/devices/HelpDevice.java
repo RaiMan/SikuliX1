@@ -13,7 +13,7 @@ import org.sikuli.util.Highlight;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class HelpDevice extends Devices {
+public class HelpDevice extends Device {
 
   public static void stop(TYPE type) {
     if (type != null) {
@@ -95,11 +95,11 @@ public class HelpDevice extends Devices {
     invokeMethod(getClazz(classNameVNC), "stopAll");
   }
 
-  public static Devices startVNC(String theIP, int thePort, String password, int cTimeout, int timeout) {
+  public static Device startVNC(String theIP, int thePort, String password, int cTimeout, int timeout) {
     return null;
   }
 
-  public static Devices startVNC(String theIP, int thePort, int cTimeout, int timeout) {
+  public static Device startVNC(String theIP, int thePort, int cTimeout, int timeout) {
     return null;
   }
   //</editor-fold>

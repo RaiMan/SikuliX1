@@ -17,10 +17,7 @@ import org.sikuli.script.Region;
 import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runners.ProcessRunner;
-import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
-import org.sikuli.script.support.devices.MouseDevice;
-import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -30,10 +27,8 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -41,8 +36,6 @@ import java.nio.file.*;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -360,57 +353,6 @@ Software:
 
   public static boolean isSandBox() {
     return hasStartArg(APPDATA) && APP_DATA_SANDBOX != null;
-  }
-
-  public static void checkAccessibility() {
-    Devices.start(Devices.TYPE.SCREEN);
-    //check Mouse
-    while(MouseDevice.isMoving()) {
-      Commons.pause(1.0);
-    }
-    ExecutorService executorService = Executors.newFixedThreadPool(1);
-    executorService.execute(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          Devices.start(Devices.TYPE.MOUSE);
-        } catch (Exception e) {
-          Debug.error("Start MouseDevice: %s", e.getMessage());
-        }
-      }
-    });
-    long mouseCheckWait = 500;
-    long duration = 0;
-    if (Commons.runningMac()) {
-      //macOS: check Screen capture
-      long start = new Date().getTime();
-      Devices.start(Devices.TYPE.SCREEN);
-      Rectangle srect = ScreenDevice.primary().asRectangle();
-      BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
-      DataBuffer data = screenImage.getData(new Rectangle(200, 10, srect.width - 200, 1)).getDataBuffer();
-      int min = data.getElem(0);
-      int max = data.getElem(0);
-      for (int n = 0; n < data.getSize(); n++) {
-        min = Math.min(min, data.getElem(n));
-        max = Math.max(max, data.getElem(n));
-      }
-      Color cmin = new Color(min);
-      Color cmax = new Color(max);
-      boolean singleColor =
-          (Math.abs(cmax.getRed() - cmin.getRed()) < 2) &&
-              (Math.abs(cmax.getGreen() - cmin.getGreen()) < 2) &&
-              (Math.abs(cmax.getBlue() - cmin.getBlue()) < 2);
-      if (singleColor) {
-        ScreenDevice.isUseable(false);
-      }
-      duration = new Date().getTime() - start;
-    }
-    pause(Math.max(1, (mouseCheckWait - duration)) / 1000.0); //Windows: wait for threaded Mouse check
-    executorService.shutdown();
-  }
-
-  public static boolean isCaptureBlocked() { //TODO
-    return !ScreenDevice.isUseable();
   }
 
   private static Class startClass = null;

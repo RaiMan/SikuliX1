@@ -11,6 +11,7 @@ import java.util.Date;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.EventObserver;
@@ -534,7 +535,7 @@ public class Screen extends Region implements IScreen {
   }
 
   public static boolean doPrompt(String message, EventObserver obs) {
-    if (Commons.isCaptureBlocked()) { //TODO interactive capture
+    if (Device.isCaptureBlocked()) { //TODO interactive capture
       Commons.terminate(999, "Capture is blocked");
       return false;
     }
@@ -612,7 +613,7 @@ public class Screen extends Region implements IScreen {
     if (!setActiveCapturePrompt()) {
       return null;
     }
-    if (Commons.isCaptureBlocked()) { //TODO userCapture
+    if (Device.isCaptureBlocked()) { //TODO userCapture
       Commons.terminate(999, "Capture is blocked");
     }
     Debug.log(3, "TRACE: Screen: userCapture");

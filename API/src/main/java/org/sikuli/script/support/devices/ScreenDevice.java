@@ -10,7 +10,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ScreenDevice extends Devices {
+public class ScreenDevice extends Device {
 
   private static TYPE deviceType = TYPE.SCREEN;
 
@@ -32,7 +32,7 @@ public class ScreenDevice extends Devices {
 
   public static boolean isUseable(boolean... state) {
     if (useable == null) {
-      Commons.checkAccessibility();
+      Device.checkAccessibility();
     }
     if (state.length > 0) {
       useable.set(state[0]);
@@ -145,7 +145,7 @@ public class ScreenDevice extends Devices {
     return nDevices;
   }
 
-  public static ScreenDevice primary() {
+  public static ScreenDevice getPrimary() {
     return get(mainMonitor);
   }
 
@@ -153,7 +153,7 @@ public class ScreenDevice extends Devices {
     return makeScreen(mainMonitor);
   }
 
-  public static ScreenDevice[] get() {
+  public static ScreenDevice[] getAll() {
     if (devices == null) {
       initDevices();
     }
@@ -196,8 +196,11 @@ public class ScreenDevice extends Devices {
   }
 
   public Image asImage() {
-    BufferedImage bImg = robot.captureScreen(getBounds()).getImage();
-    return new Image(bImg);
+    Rectangle bounds = getBounds();
+    BufferedImage bImg = robot.captureScreen(bounds).getImage();
+    Image image = new Image(bImg);
+    image.setTopLeft(bounds.x, bounds.y);
+    return image;
   }
 
   public String toString() {

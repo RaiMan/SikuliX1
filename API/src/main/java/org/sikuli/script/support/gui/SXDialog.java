@@ -47,11 +47,11 @@ public class SXDialog extends JFrame {
   }
 
   public SXDialog(String res) {
-    this(res, ScreenDevice.primary().getCenter(), POSITION.CENTER);
+    this(res, ScreenDevice.getPrimary().getCenter(), POSITION.CENTER);
   }
 
   public SXDialog(String res, POSITION pos) {
-    this(res, new Point(ScreenDevice.primary().x(), ScreenDevice.primary().y()), pos);
+    this(res, new Point(ScreenDevice.getPrimary().x(), ScreenDevice.getPrimary().y()), pos);
   }
 
   public SXDialog(String res, Point where) {

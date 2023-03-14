@@ -1,6 +1,5 @@
 package org.sikuli.script.support.devices;
 
-import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Location;
 import org.sikuli.script.support.Commons;
@@ -8,7 +7,7 @@ import org.sikuli.script.support.Commons;
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MouseDevice extends Devices {
+public class MouseDevice extends Device {
 
   private static TYPE deviceType = TYPE.MOUSE;
 
@@ -17,7 +16,7 @@ public class MouseDevice extends Devices {
   public static boolean isUseable() {
     if (useable == null) {
       useable = new AtomicBoolean(false);
-      Commons.checkAccessibility();
+      Device.checkAccessibility();
     }
     return useable.get();
   }
@@ -26,7 +25,7 @@ public class MouseDevice extends Devices {
 
   public static void start() {
     Point lnow = at();
-    for (ScreenDevice scrd : ScreenDevice.get()) {
+    for (ScreenDevice scrd : ScreenDevice.getAll()) {
       getMouseRobot().mouseMove(scrd.getCenter().x, scrd.getCenter().y);
       getMouseRobot().delay(100);
       if (!MouseDevice.nearby(scrd.getCenter(), at())) {
