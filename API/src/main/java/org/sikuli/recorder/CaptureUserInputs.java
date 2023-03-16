@@ -1,11 +1,14 @@
 package org.sikuli.recorder;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jnativehook.GlobalScreen;
-import org.jnativehook.NativeHookException;
-import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.keyboard.NativeKeyListener;
-import org.jnativehook.mouse.*;
+import com.github.kwhat.jnativehook.*;
+import com.github.kwhat.jnativehook.keyboard.*;
+import com.github.kwhat.jnativehook.mouse.*;
+//import org.jnativehook.GlobalScreen;
+//import org.jnativehook.NativeHookException;
+//import org.jnativehook.keyboard.NativeKeyEvent;
+//import org.jnativehook.keyboard.NativeKeyListener;
+//import org.jnativehook.mouse.*;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 
