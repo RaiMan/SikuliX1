@@ -6,6 +6,7 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.*;
 import org.sikuli.idesupport.IDEDesktopSupport;
+import org.sikuli.recorder.Recorder;
 import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
@@ -77,6 +78,7 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(APPDATA)) {
+      //TODO when no path is given
       File path = Commons.setAppDataPath(Commons.getStartArg(APPDATA));
       Commons.setTempFolder(new File(path, "Temp"));
     } else {
@@ -218,7 +220,7 @@ public class Sikulix {
     }
     //endregion
 
-    if (!Commons.hasStartArg(RUN) && !Commons.hasStartArg(RUNSERVER)) {
+    if (!Commons.hasStartArg(RUN) && !Commons.hasStartArg(RUNSERVER) && !Commons.hasStartArg(RECORD)) {
       //region start IDE
       Debug.log(3, "IDE starting");
       ideSplash = null;
@@ -342,6 +344,15 @@ public class Sikulix {
       } catch (InvocationTargetException e) {
       } catch (NoSuchMethodException e) {
       }
+      Commons.terminate();
+      //endregion
+
+    } else if (Commons.hasStartArg(RECORD)) {
+      //region recording
+      SX.popup("ok to start recording");
+      Recorder.INSTANCE.startRecording();
+      SX.popup("ok to stop recording");
+      Recorder.INSTANCE.stopRecording();
       Commons.terminate();
       //endregion
     }
