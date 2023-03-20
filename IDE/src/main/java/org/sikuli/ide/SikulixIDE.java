@@ -68,32 +68,36 @@ public class SikulixIDE extends JFrame {
   private static final SikulixIDE sikulixIDE = new SikulixIDE();
 
   static PreferencesUser prefs;
+
+  public static void setIdeWindowState(boolean state) {
+    ideWindowState = state;
+  }
+
+  static Boolean ideWindowState = null;
   static Rectangle ideWindowRect = null;
 
   public static Rectangle getWindowRect() {
-    prefs = PreferencesUser.get();
-
-    Dimension windowSize = prefs.getIdeSize();
-    Point windowLocation = prefs.getIdeLocation();
-    if (windowSize.width < 700) {
-      windowSize.width = 800;
+    if (ideWindowState == null) { //first use - restore from prefs
+      prefs = PreferencesUser.get();
+      Dimension windowSize = prefs.getIdeSize();
+      Point windowLocation = prefs.getIdeLocation();
+      Rectangle rectWindow = new Rectangle(windowLocation, windowSize);
+      int monitor = ScreenDevice.whichMonitor(rectWindow);
+      Rectangle scrRect = ScreenDevice.get(monitor).asRectangle();
+      if (monitor < 0) {
+        log(3, "IDE window reset to primary monitor - was (%d,%d %dx%d)",
+            rectWindow.x, rectWindow.y, rectWindow.width, rectWindow.height);
+        rectWindow.x = 30;
+        rectWindow.y = 30;
+        rectWindow = scrRect.intersection(rectWindow);
+      }
+      setIdeWindowState(false);
+      ideWindowRect = new Rectangle(rectWindow);
+      return ideWindowRect;
+    } else if (!ideWindowState) { // before visible first time
+      return ideWindowRect;
     }
-    if (windowSize.height < 500) {
-      windowSize.height = 600;
-    }
-    Rectangle rectWindow = new Rectangle(windowLocation, windowSize);
-    int monitor = ScreenDevice.whichMonitor(rectWindow);
-    ScreenDevice screen;
-    if (monitor == 0) {
-      log(3, "IDE window reset to primary monitor");
-      screen = ScreenDevice.getPrimary();
-      rectWindow.x = 30;
-      rectWindow.y = 30;
-    } else {
-      screen = ScreenDevice.get(monitor);
-    }
-    //TODO resize to fit screen?
-    return rectWindow;
+    return new Rectangle(get().getLocation(), get().getSize()); // after visible first time
   }
 
   public static Point getWindowCenter() {
@@ -109,7 +113,7 @@ public class SikulixIDE extends JFrame {
 
   protected static void start(String[] args) {
 
-    ideWindowRect = getWindowRect();
+    //ideWindowRect = getWindowRect();
     Commons.setSXIDE(SikulixIDE.get());
 
     IDEDesktopSupport.initGUI();
@@ -233,6 +237,7 @@ public class SikulixIDE extends JFrame {
     if (ideWindow != null) {
       org.sikuli.ide.Sikulix.stopSplash();
       ideWindow.setVisible(true);
+      setIdeWindowState(true);
       get().mainPane.setDividerLocation(0.6);
       try {
         EditorPane editorPane = get().getCurrentCodePane();
@@ -295,8 +300,9 @@ public class SikulixIDE extends JFrame {
       Debug.error("IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
     }
 
-    ideWindow.setSize(ideWindowRect.getSize());
-    ideWindow.setLocation(ideWindowRect.getLocation());
+    Rectangle windowRect = getWindowRect();
+    ideWindow.setSize(windowRect.getSize());
+    ideWindow.setLocation(windowRect.getLocation());
 
     Debug.log(4, "Adding components to window");
     initMenuBars(ideWindow);

@@ -175,7 +175,7 @@ public class ScreenDevice extends Device {
     if (devices == null) {
       initDevices();
     }
-    int monitor = 0;
+    int monitor = -1;
     for (int i = 0; i < numDevices(); i++) {
       ScreenDevice device = get(i);
       if(device.getBounds().contains(rect.getLocation())) monitor = i;
