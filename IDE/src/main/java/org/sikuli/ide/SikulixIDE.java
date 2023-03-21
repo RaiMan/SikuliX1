@@ -237,6 +237,7 @@ public class SikulixIDE extends JFrame {
     if (ideWindow != null) {
       org.sikuli.ide.Sikulix.stopSplash();
       ideWindow.setVisible(true);
+      ideWindow.setLocation(getWindowRect().getLocation());
       setIdeWindowState(true);
       get().mainPane.setDividerLocation(0.6);
       try {
