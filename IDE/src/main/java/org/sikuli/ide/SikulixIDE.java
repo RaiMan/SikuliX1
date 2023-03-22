@@ -2837,7 +2837,7 @@ public class SikulixIDE extends JFrame {
       FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__run__.py"));
       FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__main__.py"));
       script = FileManager.readFileToString(new File(fScriptSource, scriptName + ".py"));
-      prolog = "from sikuli import *\naddImportPath(getBundlePath())\n";
+      prolog = "from sikuli import *; addImportPath(getBundlePath())\n# coding: utf-8\n";
       FileManager.writeStringToFile(prolog + script, new File(fScriptSource, scriptName + ".py"));
     } else {
       log(lvl, "makingScriptJar: compiling plain script: %s", scriptFolder);
