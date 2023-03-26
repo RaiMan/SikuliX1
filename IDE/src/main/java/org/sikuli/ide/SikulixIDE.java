@@ -2769,34 +2769,22 @@ public class SikulixIDE extends JFrame {
       makingScriptjarPlain = true;
       options.remove(0);
     }
-    File scriptFile = null;
-    File scriptFolder = null;
-    File scriptFolderSikuli = null;
-    String scriptName = null;
-    String[] fileList = new String[]{null, null, null};
-    String[] preList = new String[]{null, null, null};
-    if (options.size() > 0) {
-      scriptFolder = new File(options.get(0));
-      if (!scriptFolder.exists()) {
-        scriptFolderSikuli = new File(scriptFolder.getAbsolutePath() + ".sikuli");
-        if (!scriptFolderSikuli.exists()) {
-          log(-1, "makingScriptJar: script folder invalid: " + scriptFolder.getAbsolutePath());
-          return null;
-        }
-      } else {
-        if (scriptFolder.getAbsolutePath().endsWith(".sikuli")) {
-          scriptFolderSikuli = scriptFolder;
-        } else {
-          scriptFile = new File(scriptFolder, "__run__.py");
-          if (!scriptFile.exists()) {
-            log(-1, "makingScriptJar: script file missing: " + scriptFile.getAbsolutePath());
-            return null;
-          }
-        }
-      }
-    } else {
+    if (!makingScriptjarPlain) {
+      log(-1, "makingScriptJar: adding jars not implemented");
+      return null;
+    }
+
+    if (options.size() == 0) {
       log(-1, "makingScriptJar: no script file given");
       return null;
+    }
+    File scriptFolder = new File(options.get(0)).getAbsoluteFile();
+    if (!scriptFolder.exists()) {
+      scriptFolder = new File(scriptFolder + ".sikuli");
+      if (!scriptFolder.exists()) {
+        log(-1, "makingScriptJar: script folder invalid: " + scriptFolder);
+        return null;
+      }
     }
 
     String fpScriptJar = "";
@@ -2812,44 +2800,42 @@ public class SikulixIDE extends JFrame {
         return true;
       }
     };
-    if (null != scriptFolderSikuli) {
-      log(lvl, "makingScriptJar: compiling sikuli script: %s", scriptFolderSikuli);
-      fWorkdir = scriptFolderSikuli.getParentFile();
-      scriptName = scriptFolder.getName().replace(".sikuli", "");
-      fpScriptJar = scriptName + "_sikuli.jar";
-      scriptFile = new File(scriptFolderSikuli, scriptName + ".py");
-      if (!scriptFile.exists()) {
-        log(-1, "makingScriptJar: script folder invalid: " + scriptFolderSikuli.getAbsolutePath());
-        return null;
-      }
-      FileManager.xcopy(scriptFolderSikuli, fScriptSource, skipCompiled);
-      String script = "";
-      String prolog = "import org.sikuli.script.SikulixForJython\n" +
-          "from sikuli import *\n" +
-          "Debug.on(3)\n" +
-          "for e in sys.path:\n" +
-          "    print e\n" +
-          "    if e.endswith(\".jar\"):\n" +
-          "        jar = e\n" +
-          "        break\n" +
-          "ImagePath.addJar(jar, \"\")\n" +
-          "import " + scriptName + "\n";
-      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__run__.py"));
-      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__main__.py"));
-      script = FileManager.readFileToString(new File(fScriptSource, scriptName + ".py"));
-      prolog = "from sikuli import *; addImportPath(getBundlePath())\n# coding: utf-8\n";
-      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, scriptName + ".py"));
-    } else {
-      log(lvl, "makingScriptJar: compiling plain script: %s", scriptFolder);
-      FileManager.xcopy(scriptFolder, fScriptSource, skipCompiled);
+
+    log(lvl, "makingScriptJar: compiling script folder: %s", scriptFolder);
+    String scriptName = scriptFolder.getName().replace(".sikuli", "");
+    fpScriptJar = scriptName + "_sikuli.jar";
+    File scriptFile = new File(scriptFolder, scriptName + ".py");
+    if (!scriptFile.exists()) {
+      log(-1, "makingScriptJar: script folder invalid: " + scriptFolder);
+      return null;
     }
+    FileManager.xcopy(scriptFolder, fScriptSource, skipCompiled);
+    String script = "";
+    String prolog = "import org.sikuli.script.SikulixForJython\n" +
+        "from sikuli import *\n" +
+        "Debug.on(3)\n" +
+        "for e in sys.path:\n" +
+        "    print e\n" +
+        "    if e.endswith(\".jar\"):\n" +
+        "        jar = e\n" +
+        "        break\n" +
+        "ImagePath.addJar(jar, \"\")\n" +
+        "import " + scriptName + "\n";
+    FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__run__.py"));
+    FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__main__.py"));
+    script = FileManager.readFileToString(new File(fScriptSource, scriptName + ".py"));
+    prolog = "from sikuli import *; addImportPath(getBundlePath())\n# coding: utf-8\n";
+    FileManager.writeStringToFile(prolog + script, new File(fScriptSource, scriptName + ".py"));
+    FileManager.xcopy(scriptFolder, fScriptSource, skipCompiled);
 
     JythonSupport.get().compileJythonFolder(fScriptSource.getAbsolutePath(), fScriptCompiled.getAbsolutePath());
     FileManager.xcopy(fScriptCompiled, fSikulixTemp);
     FileManager.deleteFileOrFolder(fScriptSource);
     FileManager.deleteFileOrFolder(fScriptCompiled);
-    fileList[0] = fSikulixTemp.getAbsolutePath();
+    String[] fileList = new String[]{fSikulixTemp.getAbsolutePath()};
 
+// non-plain jar
+/*
     String[] jarsList = new String[]{null, null};
     if (!makingScriptjarPlain) {
 //      File fJarRunner = new File(runTime.fSikulixExtensions, "archiv");
@@ -2887,17 +2873,10 @@ public class SikulixIDE extends JFrame {
         return null;
       }
     }
+*/
 
     String targetJar = (new File(fWorkdir, fpScriptJar)).getAbsolutePath();
-    if (!FileManager.buildJar(targetJar, jarsList, fileList, preList, new FileManager.JarFileFilter() {
-      @Override
-      public boolean accept(ZipEntry entry, String jarname) {
-        if (entry.getName().startsWith("META-INF")) {
-          return false;
-        }
-        return true;
-      }
-    })) {
+    if (!FileManager.buildJar(targetJar, null, fileList, null, null)) {
       log(-1, "makingScriptJar: problems building jar - for details see logfile");
       return null;
     }

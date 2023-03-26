@@ -977,44 +977,47 @@ public class FileManager {
     }
     try {
       JarOutputStream jout = new JarOutputStream(new FileOutputStream(targetJar));
-      ArrayList done = new ArrayList();
-      for (int i = 0; i < jars.length; i++) {
-        if (jars[i] == null) {
-          continue;
-        }
-        if (logShort) {
-          log(lvl, "buildJar: adding: %s", new File(jars[i]).getName());
-        } else {
-          log(lvl, "buildJar: adding:\n%s", jars[i]);
-        }
-        BufferedInputStream bin = new BufferedInputStream(new FileInputStream(jars[i]));
-        ZipInputStream zin = new ZipInputStream(bin);
-        for (ZipEntry zipentry = zin.getNextEntry(); zipentry != null; zipentry = zin.getNextEntry()) {
-          if (filter == null || filter.accept(zipentry, jars[i])) {
-            if (!done.contains(zipentry.getName())) {
-              jout.putNextEntry(zipentry);
-              if (!zipentry.isDirectory()) {
-                bufferedWrite(zin, jout);
+      if (jars != null) {
+        ArrayList done = new ArrayList();
+        for (int i = 0; i < jars.length; i++) {
+          if (jars[i] == null) {
+            continue;
+          }
+          if (logShort) {
+            log(lvl, "buildJar: adding: %s", new File(jars[i]).getName());
+          } else {
+            log(lvl, "buildJar: adding:\n%s", jars[i]);
+          }
+          BufferedInputStream bin = new BufferedInputStream(new FileInputStream(jars[i]));
+          ZipInputStream zin = new ZipInputStream(bin);
+          for (ZipEntry zipentry = zin.getNextEntry(); zipentry != null; zipentry = zin.getNextEntry()) {
+            if (filter == null || filter.accept(zipentry, jars[i])) {
+              if (!done.contains(zipentry.getName())) {
+                jout.putNextEntry(zipentry);
+                if (!zipentry.isDirectory()) {
+                  bufferedWrite(zin, jout);
+                }
+                done.add(zipentry.getName());
+                log(lvl + 1, "adding: %s", zipentry.getName());
               }
-              done.add(zipentry.getName());
-              log(lvl + 1, "adding: %s", zipentry.getName());
             }
           }
+          zin.close();
+          bin.close();
         }
-        zin.close();
-        bin.close();
       }
       if (files != null) {
         for (int i = 0; i < files.length; i++) {
           if (files[i] == null) {
             continue;
           }
+          String iPrefixs = prefixs == null ? "" : prefixs[i];
           if (logShort) {
-            log(lvl, "buildJar: adding %s at %s", new File(files[i]).getName(), prefixs[i]);
+            log(lvl, "buildJar: adding %s at %s", new File(files[i]).getName(), iPrefixs);
           } else {
-            log(lvl, "buildJar: adding %s at %s", files[i], prefixs[i]);
+            log(lvl, "buildJar: adding %s at %s", files[i], iPrefixs);
           }
-          addToJar(jout, new File(files[i]), prefixs[i]);
+          addToJar(jout, new File(files[i]), iPrefixs);
         }
       }
       jout.close();
