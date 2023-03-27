@@ -624,7 +624,7 @@ public class SikulixIDE extends JFrame {
       //TODO newTabEmpty: temp problem: how should caller react?
       return false;
     }
-    editorPane.setFiles(tempFile);
+    editorPane.setFiles(tempFile); //newTabEmpty (temp)
     editorPane.updateDocumentListeners("empty tab");
     tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
     tabs.setSelectedIndex(0);
