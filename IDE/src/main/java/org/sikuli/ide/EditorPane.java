@@ -257,16 +257,16 @@ public class EditorPane extends JTextPane {
     return fileSelected;
   }
 
-  private int alreadyOpen(String fileSelected, int currentTab) {
+  private int alreadyOpen(String pathSelected, int currentTab) {
     CloseableTabbedPane tabs = getTabs();
     int nTab = tabs.getTabCount();
     if (nTab > 0) {
-      File possibleBundle = new File(fileSelected);
+      File fileSelected = new File(pathSelected);
       String possibleBundlePath = null;
-      if (EditorPane.isInBundle(possibleBundle)) {
-        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getParent());
-      } else if (possibleBundle.isDirectory()) {
-        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getPath());
+      if (fileSelected.isDirectory()) {
+        possibleBundlePath = FilenameUtils.removeExtension(fileSelected.getPath());
+      } else if (isInBundle(fileSelected)) {
+        possibleBundlePath = FilenameUtils.removeExtension(fileSelected.getParent());
       }
       for (int iTab = 0; iTab < nTab; iTab++) {
         if (currentTab > -1 && iTab == currentTab) {
@@ -275,7 +275,7 @@ public class EditorPane extends JTextPane {
         EditorPane checkedPane = getPaneAtIndex(iTab);
         String paneFile = checkedPane.editorPaneFileSelected;
         if (null == paneFile) continue;
-        if (new File(paneFile).equals(new File(fileSelected))) {
+        if (new File(paneFile).equals(fileSelected)) {
           tabs.setAlreadyOpen(iTab);
           return iTab;
         }
@@ -590,23 +590,23 @@ public class EditorPane extends JTextPane {
     }
     editorPaneFileSelected = paneFileSelected;
     editorPaneFile = paneFile;
-    editorPaneFolder = paneFile.getParentFile();
+    editorPaneFolder = editorPaneFile.getParentFile();
     setImageFolder(editorPaneFolder);
     if (null != paneFileSelected) {
       log(3, "setFiles: for: %s", paneFileSelected);
     } else {
       if (!isTemp()) {
         setIsFile();
-        editorPaneFileSelected = paneFile.getAbsolutePath();
-        editorPaneFileToRun = paneFile;
-        log(3, "setFiles: for: %s", paneFile);
+        editorPaneFileSelected = editorPaneFile.getAbsolutePath();
+        editorPaneFileToRun = editorPaneFile;
+        log(3, "setFiles: for: %s", editorPaneFile);
       }
     }
   }
 
   private void changeFiles() {
     String extension = editorPaneRunner.getDefaultExtension();
-    setFiles(changeExtension(editorPaneFileToRun, extension));
+    setFiles(changeExtension(editorPaneFileToRun, extension)); //changeFiles (not used)
   }
 
   private File changeExtension(File file, String extension) {
@@ -1362,7 +1362,7 @@ public class EditorPane extends JTextPane {
       FileManager.deleteTempDir(editorPaneFolder.getAbsolutePath());
       setTemp(false);
     }
-    setFiles(new File(filename));
+    setFiles(new File(filename)); // saveAsFile
     if (writeSriptFile()) {
       return editorPaneFile;
     }
