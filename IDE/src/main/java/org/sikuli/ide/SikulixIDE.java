@@ -44,7 +44,6 @@ import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
 
 public class SikulixIDE extends JFrame {
 
@@ -401,8 +400,10 @@ public class SikulixIDE extends JFrame {
             }
           }
           editorPane.setBundleFolder();
-          int dot = editorPane.getCaret().getDot();
-          editorPane.setCaretPosition(dot);
+          if (null != editorPane.editorPaneRunner && !editorPane.isEmpty()) {
+            editorPane.editorPaneRunner.adjustImportPath(editorPane.getFiles(), null);
+          }
+          editorPane.setCaretPosition(editorPane.getCaret().getDot());
           if (editorPane.isText()) {
             collapseMessageArea();
           } else {

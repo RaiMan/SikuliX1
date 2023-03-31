@@ -6,6 +6,9 @@ package org.sikuli.script.runnerSupport;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.sikuli.script.SikuliXception;
 
@@ -345,4 +348,11 @@ public interface IScriptRunner {
    * @return An Array containing the supported line endings
    */
   public String[] getFileEndings();
+
+  public List<String> getImportPlaces();
+
+  public void adjustImportPath(Map<String, String> script, IScriptRunner.Options options);
+
+  public void beforeScriptRun(String script, Options options);
+  public void afterScriptRun(String script, Options options);
 }

@@ -7,6 +7,8 @@ package org.sikuli.script.runners;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -165,12 +167,13 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     return false;
   }
 
+  protected int savedLevel;
   @Override
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
 
     return runSynchronized(options, () -> {
-      int savedLevel = Debug.getDebugLevel();
+      savedLevel = Debug.getDebugLevel();
       if (!Debug.isVerbose()) {
         Debug.off();
       }
@@ -179,19 +182,22 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
       if (script != null) {
         adjustBundlePath(script, options);
-      }
+        beforeScriptRun(script, options);
 
-      try {
-        exitCode = doRunScript(script, scriptArgs, options);
-      } finally {
-        if (script != null) {
-          resetBundlePath(script, options);
-          //TODO reset options per scriptrun
-          Settings.SwitchToText = false;
+        try {
+          exitCode = doRunScript(script, scriptArgs, options);
+        } finally {
+          if (script != null) {
+            resetBundlePath(script, options);
+            //TODO reset options per scriptrun
+            Settings.SwitchToText = false;
+          }
         }
+
+        afterScriptRun(script, options);
+        Debug.setDebugLevel(savedLevel);
       }
 
-      Debug.setDebugLevel(savedLevel);
       return exitCode;
     });
   }
@@ -415,5 +421,21 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   protected void resetBundlePath(String script, IScriptRunner.Options options) {
     // NOOP
+  }
+
+  public void beforeScriptRun(String script, Options options) {
+    // NOOP
+  }
+
+  public void afterScriptRun(String script, Options options) {
+    // NOOP
+  }
+
+  public void adjustImportPath(Map<String, String> files, IScriptRunner.Options options) {
+    // NOOP
+  }
+
+  public List<String> getImportPlaces() {
+    return new ArrayList<>(); //NOOP
   }
 }

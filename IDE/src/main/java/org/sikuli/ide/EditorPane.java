@@ -340,7 +340,7 @@ public class EditorPane extends JTextPane {
     }
     initForScriptType();
     if (readContent(editorPaneFileToRun)) {
-      setFiles(editorPaneFileToRun, file.getAbsolutePath());
+      setFiles(editorPaneFileToRun, file.getAbsolutePath()); // loadfile
       updateDocumentListeners("loadFile");
       if (!isBundle()) {
         checkSource();
@@ -357,6 +357,7 @@ public class EditorPane extends JTextPane {
       }
       setCaretPosition(0);
       setDirty(false);
+      editorPaneRunner.adjustImportPath(getFiles(), null);
     }
   }
 
@@ -531,6 +532,10 @@ public class EditorPane extends JTextPane {
 
   private boolean editorPaneIsTemp = false;
 
+  public boolean isEmpty() {
+    return getText().isEmpty();
+  }
+
   boolean isInBundle() {
     return isInBundle(editorPaneFileToRun);
   }
@@ -581,7 +586,7 @@ public class EditorPane extends JTextPane {
   }
 
   public void setFiles(File editorPaneFile) {
-    setFiles(editorPaneFile, null);
+    setFiles(editorPaneFile, null); // setFiles(file)
   }
 
   public void setFiles(File paneFile, String paneFileSelected) {
@@ -607,6 +612,15 @@ public class EditorPane extends JTextPane {
   private void changeFiles() {
     String extension = editorPaneRunner.getDefaultExtension();
     setFiles(changeExtension(editorPaneFileToRun, extension)); //changeFiles (not used)
+  }
+
+  public Map<String, String> getFiles() {
+    Map<String, String> files = new HashMap<>();
+    files.put("file", editorPaneFile.getAbsolutePath());
+    files.put("folder", editorPaneFolder.getAbsolutePath());
+    files.put("images", editorPaneImageFolder.getAbsolutePath());
+    files.put("isBundle", String.valueOf(isBundle()));
+    return files;
   }
 
   private File changeExtension(File file, String extension) {
@@ -1349,7 +1363,7 @@ public class EditorPane extends JTextPane {
     String scriptName = FilenameUtils.getBaseName(targetFolder) + "." + getRunner().getDefaultExtension();
     File scriptFile = new File(targetFolder, scriptName);
     setIsBundle();
-    setFiles(scriptFile, targetFolder);
+    setFiles(scriptFile, targetFolder); // saveAsBundle
     if (writeSriptFile()) {
       return editorPaneFolder;
     }

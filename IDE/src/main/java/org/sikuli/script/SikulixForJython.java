@@ -44,7 +44,7 @@ public class SikulixForJython {
         throw new SikuliXception(String.format("fatal: " + "Jython: " + "no suitable sikulix...jar on classpath"));
       }
       String pathSX = Commons.asFile(urlSX, "").getParentFile().getParent();
-      helper.addSysPath(pathSX);
+      helper.addSysPath(pathSX); // SikulixForJython::init
     }
     helper.addSitePackages();
 //TODO default ImagePath???

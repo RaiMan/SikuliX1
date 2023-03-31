@@ -90,7 +90,7 @@ public class JythonSupport implements IRunnerSupport {
     }
     File sitePackages = getSitePackages();
     File sitesTxt = getSitesTxt();
-    if ((!sitePackages.exists() && sitePackages.mkdir()) || !sitesTxt.exists() ) {
+    if ((!sitePackages.exists() && sitePackages.mkdir()) || !sitesTxt.exists()) {
       FileManager.writeStringToFile(getSitesTxtDefault(), sitesTxt);
     }
 
@@ -417,6 +417,24 @@ public class JythonSupport implements IRunnerSupport {
     }
   }
 
+  public List<String> getSysPathAsList() {
+    List<String> paths = new ArrayList<>();
+    if (null != interpreter) {
+      try {
+        PySystemState pyState = interpreter.getSystemState();
+        PyList pyPath = pyState.path;
+        int pathLen = pyPath.__len__();
+        for (int i = 0; i < pathLen; i++) {
+          String entry = (String) pyPath.get(i);
+          paths.add(entry);
+        }
+      } catch (Exception ex) {
+        paths.clear();
+      }
+    }
+    return paths;
+  }
+
   public void setSysPath() {
     synchronized (sysPath) {
       if (null == interpreter || null == sysPath) {
@@ -452,7 +470,7 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   public void addSysPath(File fFolder) {
-    addSysPath(fFolder.getAbsolutePath());
+    addSysPath(fFolder.getAbsolutePath()); // addSysPath(File fFolder)
   }
 
   public void addSysPath(String fpFolder) {
@@ -478,11 +496,20 @@ public class JythonSupport implements IRunnerSupport {
   public void putSysPath(String fpFolder, int n) {
     synchronized (sysPath) {
       if (n < 1 || n > sysPath.size()) {
-        addSysPath(fpFolder);
+        addSysPath(fpFolder); // putSysPath(String fpFolder, int n)
       } else {
         sysPath.add(n, fpFolder);
         setSysPath();
         nPathAdded++;
+      }
+    }
+  }
+
+  public void replaceSysPath(String fpFolder, int n) {
+    synchronized (sysPath) {
+      if (n >= 0 && n <= sysPath.size()) {
+        sysPath.set(n, fpFolder);
+        setSysPath();
       }
     }
   }
@@ -570,7 +597,7 @@ public class JythonSupport implements IRunnerSupport {
                 continue;
               }
               if (!path.isEmpty()) {
-                addSysPath(path);
+                addSysPath(path); // addSitePackages()
                 log(lvl, "added as Jython::sys.path[0] from Lib/site-packages/sites.txt:\n%s", path);
               }
             }
@@ -589,7 +616,7 @@ public class JythonSupport implements IRunnerSupport {
       }
       String fpBundle = ImagePath.getBundlePath();
       if (fpBundle != null) {
-        addSysPath(fpBundle);
+        addSysPath(fpBundle); // addSitePackages()
       }
     }
   }
@@ -612,6 +639,16 @@ public class JythonSupport implements IRunnerSupport {
         addSysPath(fpp);
         log(lvl, "added python.path: %s", fpp);
       }
+    }
+  }
+
+  public void resetSysPath(List<String> importPlaces) {
+    synchronized (sysPath) {
+        sysPath.clear();
+        for (String path : importPlaces) {
+          sysPath.add(path);
+        }
+        setSysPath();
     }
   }
   //</editor-fold>
@@ -674,12 +711,12 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   public String loadModulePrepare(String modName, String modPath) {
-    log(lvl + 1, "loadModulePrepare: %s in %s", modName, modPath);
+    log(lvl, "loadModulePrepare: %s in %s", modName, modPath);
     int nDot = modName.lastIndexOf(".");
     if (nDot > -1) {
       modName = modName.substring(nDot + 1);
     }
-    addSysPath(modPath);
+    addSysPath(modPath); // loadModulePrepare(String modName, String modPath)
     if (modPath.endsWith(".sikuli")) {
       ImagePath.appendFromImport(modPath);
     }
