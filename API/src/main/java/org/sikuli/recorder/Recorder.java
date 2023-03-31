@@ -16,9 +16,12 @@ public enum Recorder {
 
     INSTANCE;
 
-    private boolean recording = false;
     private CaptureScreenshots captureScreenshots;
     private CaptureUserInputs captureUserInputs;
+    private boolean recording = false;
+    private String recordingDirectory = "sikulix-recorder";
+    private String screenshotBaseFilename = "sikuliximage";
+    private int screenshotDelay = 1000;
 
     Recorder() {
         captureScreenshots = new CaptureScreenshots();
@@ -32,7 +35,7 @@ public enum Recorder {
     public void startRecording() {
         if (recording) return;
         recording = true;
-        captureScreenshots.startCapturing("sikulix-recorder","sikuliximage", 1000);
+        captureScreenshots.startCapturing(recordingDirectory, screenshotBaseFilename, screenshotDelay);
         captureUserInputs.startRecording();
     }
 
@@ -44,7 +47,25 @@ public enum Recorder {
         if (!recording) return;
         recording = false;
         captureScreenshots.stopCapturing();
-        captureUserInputs.stopRecording("\\sikulix-recorder\\input-history.xml");
+        captureUserInputs.stopRecording("\\" + recordingDirectory + "\\input-history.xml");
+    }
+
+    public boolean setRecordingDirectory(String directory) {
+        if (recording) return false;
+        recordingDirectory = directory;
+        return true;
+    }
+
+    public boolean setScreenshotBaseFilename(String filename) {
+        if (recording) return false;
+        screenshotBaseFilename = filename;
+        return true;
+    }
+
+    public boolean setScreenshotDelay(int delay) {
+        if (recording) return false;
+        screenshotDelay = delay;
+        return true;
     }
 
 }
