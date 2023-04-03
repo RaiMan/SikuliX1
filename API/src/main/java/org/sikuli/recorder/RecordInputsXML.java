@@ -7,13 +7,6 @@ import org.w3c.dom.Element;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.nio.file.FileSystems;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -56,35 +49,8 @@ public class RecordInputsXML implements RecordInputs {
         child.setAttribute("nativeEventOutput", value);
     }
 
-    public void saveDocument(String path) {
-        if (doc == null) return;
-        String fullPath = FileSystems.getDefault().getPath(".") + path;
-        FileOutputStream output;
-        try {
-            output = new FileOutputStream(fullPath);
-            writeXml(doc, output);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    // write doc to output stream
-    private void writeXml(Document doc, OutputStream output) {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer;
-        try {
-            transformer = transformerFactory.newTransformer();
-        } catch (TransformerConfigurationException e) {
-            throw new RuntimeException(e);
-        }
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes"); // makes it look nice
-        DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(output);
-        try {
-            transformer.transform(source, result);
-        } catch (TransformerException e) {
-            throw new RuntimeException(e);
-        }
+    public Document getDoc() {
+        return doc;
     }
 
 }

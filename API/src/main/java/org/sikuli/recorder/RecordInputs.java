@@ -1,8 +1,10 @@
 package org.sikuli.recorder;
 
+import org.w3c.dom.Document;
+
 public interface RecordInputs {
 
-    public void initDocument();
-    public void addElement(String name, String key, String value);
-    public void saveDocument(String path);
+    void initDocument();
+    void addElement(String name, String key, String value);
+    Document getDoc();
 }

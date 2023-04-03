@@ -1,5 +1,10 @@
 package org.sikuli.recorder;
 
+import org.sikuli.script.support.Commons;
+import org.w3c.dom.Document;
+
+import java.util.Date;
+
 /**
  * This package implements a recorder for SikuliX. The saved recordings can be used in SikuliX or other programs,
  *   e.g. for training a neural network.
@@ -18,14 +23,22 @@ public enum Recorder {
 
     private CaptureScreenshots captureScreenshots;
     private CaptureUserInputs captureUserInputs;
+    private SaveFile saveFile;
+    private ProcessRecording processRecording;
+
     private boolean recording = false;
-    private String recordingDirectory = "sikulix-recorder";
+    private String recordingDirectory = Commons.getTempFolder().getName();
+    private String dirWithDate;
     private String screenshotBaseFilename = "sikuliximage";
     private int screenshotDelay = 1000;
 
     Recorder() {
         captureScreenshots = new CaptureScreenshots();
-        captureUserInputs = new CaptureUserInputs(new RecordInputsXML());
+        RecordInputs recordInputs = new RecordInputsXML();
+        captureUserInputs = new CaptureUserInputs(recordInputs);
+        saveFile = new StandardSaveToFile();
+        ProcessNode processNode = new ProcessNodePauses();
+        processRecording = new ProcessRecording(processNode);
     }
 
     /**
@@ -35,7 +48,8 @@ public enum Recorder {
     public void startRecording() {
         if (recording) return;
         recording = true;
-        captureScreenshots.startCapturing(recordingDirectory, screenshotBaseFilename, screenshotDelay);
+        dirWithDate = recordingDirectory  + "-" + new Date().getTime();
+        captureScreenshots.startCapturing(dirWithDate, screenshotBaseFilename, screenshotDelay);
         captureUserInputs.startRecording();
     }
 
@@ -47,7 +61,12 @@ public enum Recorder {
         if (!recording) return;
         recording = false;
         captureScreenshots.stopCapturing();
-        captureUserInputs.stopRecording("\\" + recordingDirectory + "\\input-history.xml");
+        String pathToSaveRawData = String.format("\\%s\\%s", dirWithDate, "sikulix_rawinputs.xml");
+        Document rawDoc = captureUserInputs.finalizeRecording();
+        saveFile.saveXML(rawDoc, pathToSaveRawData);
+        Document simplifiedDoc = processRecording.process(rawDoc);
+        String pathToSaveForSimplifiedDoc = String.format("\\%s\\%s", dirWithDate, "sikulix_inputs.xml");
+        saveFile.saveXML(simplifiedDoc, pathToSaveForSimplifiedDoc);
     }
 
     public boolean setRecordingDirectory(String directory) {

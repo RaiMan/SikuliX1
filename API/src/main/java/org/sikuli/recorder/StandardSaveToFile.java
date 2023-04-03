@@ -3,11 +3,15 @@ package org.sikuli.recorder;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.SikuliXception;
+import org.w3c.dom.Document;
 
 import javax.imageio.ImageIO;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.Date;
 
@@ -38,6 +42,42 @@ public class StandardSaveToFile implements SaveFile {
             return screenshotDir;
         } catch (IOException e) {
             throw new SikuliXception("Recorder: createTempDirectory: not possible");
+        }
+    }
+
+    /**
+     * Save as XML to file.
+     * @param doc the XML Document
+     * @param path to save to
+     */
+    public void saveXML(Document doc, String path) {
+        if (doc == null) return;
+        String fullPath = FileSystems.getDefault().getPath(".") + path;
+        FileOutputStream output;
+        try {
+            output = new FileOutputStream(fullPath);
+            writeXml(doc, output);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // write doc to output stream
+    private void writeXml(Document doc, OutputStream output) {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer;
+        try {
+            transformer = transformerFactory.newTransformer();
+        } catch (TransformerConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes"); // makes it look nice
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(output);
+        try {
+            transformer.transform(source, result);
+        } catch (TransformerException e) {
+            throw new RuntimeException(e);
         }
     }
 }

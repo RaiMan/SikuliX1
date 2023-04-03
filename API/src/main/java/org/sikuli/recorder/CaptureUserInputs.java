@@ -11,6 +11,7 @@ import com.github.kwhat.jnativehook.mouse.*;
 //import org.jnativehook.mouse.*;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.w3c.dom.Document;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,13 +62,13 @@ public class CaptureUserInputs implements NativeKeyListener, NativeMouseListener
         GlobalScreen.addNativeMouseWheelListener(this);
     }
 
-    public void stopRecording(String pathForSaving) {
+    public Document finalizeRecording() {
         GlobalScreen.removeNativeKeyListener(this);
         GlobalScreen.removeNativeMouseListener(this);
         GlobalScreen.removeNativeMouseMotionListener(this);
         GlobalScreen.removeNativeMouseWheelListener(this);
         unregisterNativeHook();
-        recordInputs.saveDocument(pathForSaving);
+        return recordInputs.getDoc();
     }
 
     /**
