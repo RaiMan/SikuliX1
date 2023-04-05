@@ -26,12 +26,10 @@ public class CaptureScreenshots {
 
     private final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
 
-    public synchronized void startCapturing(String screenshotDirectory, String baseFilename, int delayInMilliseconds) {
-        StandardSaveToFile standardSaveToFile = new StandardSaveToFile();
-        File directory = standardSaveToFile.createDirectory(screenshotDirectory);
-        CaptureScreenshot captureScreenshot = new CaptureScreenshot(standardSaveToFile);
+    public synchronized void startCapturing(SaveToFile saveToFile, String baseFilename, int delayInMilliseconds) {
+        CaptureScreenshot captureScreenshot = new CaptureScreenshot(saveToFile);
         SCHEDULER.scheduleAtFixedRate((() -> {
-            captureScreenshot.saveScreenshot(directory, baseFilename);
+            captureScreenshot.saveScreenshot(baseFilename);
         }), 0, delayInMilliseconds, MILLISECONDS);
     }
 

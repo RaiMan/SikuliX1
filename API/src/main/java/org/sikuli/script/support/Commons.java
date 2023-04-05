@@ -1114,20 +1114,20 @@ Software:
     if (null == option || option.isBlank()) {
       terminate(999, "Commons: asFolder(): not possible for %s", option);
     }
-    File folder = new File(option);
-    if (!folder.isAbsolute()) {
-      folder = new File(Commons.getWorkDir(), option);
+    File folderOrFile = new File(option);
+    if (!folderOrFile.isAbsolute()) {
+      folderOrFile = new File(Commons.getWorkDir(), option);
     }
-    if (!folder.isDirectory()) {
-      if (folder.exists()) {
-        return folder.getParentFile();
-      }
-      folder.mkdirs();
-      if (!folder.exists()) {
-        terminate(999, "Commons: asFolder(): not possible for %s", folder);
+    if (folderOrFile.isFile()) {
+      if (folderOrFile.exists()) {
+        return folderOrFile.getParentFile();
       }
     }
-    return folder;
+    folderOrFile.mkdirs();
+    if (!folderOrFile.exists()) {
+      terminate(999, "Commons: asFolder(): not possible for %s", folderOrFile);
+    }
+    return folderOrFile;
   }
   //</editor-fold>
 

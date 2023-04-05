@@ -3,6 +3,7 @@ package org.sikuli.recorder;
 import org.sikuli.script.support.Commons;
 import org.w3c.dom.Document;
 
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -23,64 +24,64 @@ public enum Recorder {
 
     private CaptureScreenshots captureScreenshots;
     private CaptureUserInputs captureUserInputs;
-    private SaveFile saveFile;
+    private SaveToFile saveToFile;
     private ProcessRecording processRecording;
 
     private boolean recording = false;
-    private String recordingDirectory = Commons.getTempFolder().getName();
-    private String dirWithDate;
-    private String screenshotBaseFilename = "sikuliximage";
+    private File recordingFolder = new File(Commons.getTempFolder(), "Recorder");
     private int screenshotDelay = 1000;
 
     Recorder() {
         captureScreenshots = new CaptureScreenshots();
-        RecordInputs recordInputs = new RecordInputsXML();
-        captureUserInputs = new CaptureUserInputs(recordInputs);
-        saveFile = new StandardSaveToFile();
-        ProcessNode processNode = new ProcessNodePauses();
-        processRecording = new ProcessRecording(processNode);
+
+        captureUserInputs = new CaptureUserInputs(new RecordInputsXML());
+
+        processRecording = new ProcessRecording(new ProcessNodePauses());
     }
 
     /**
-     * Starts recording the user's actions and capturing screenshots.
-     * The screenshots are saved in the directory defined below.
+     * Starts capturing screenshots and recording the user's actions<br>
+     * The screenshots are saved in the directory defined below as sikuliximage_TIMESTAMP.png.
      */
     public void startRecording() {
         if (recording) return;
         recording = true;
-        dirWithDate = recordingDirectory  + "-" + new Date().getTime();
-        captureScreenshots.startCapturing(dirWithDate, screenshotBaseFilename, screenshotDelay);
+
+        File folderWithDate = Commons.asFolder(new File(recordingFolder, "recording"  + "-" + new Date().getTime()).getAbsolutePath());
+        saveToFile = new RecorderSaveToFile(folderWithDate);
+
+        captureScreenshots.startCapturing(saveToFile, "sikuliximage", screenshotDelay);
         captureUserInputs.startRecording();
     }
 
     /**
-     * Stops recording the user's actions and capturing screenshots.
-     * The user's actions are saved in the path defined below.
+     * Stops recording the user's actions and capturing screenshots.<br>
+     * The user's actions raw data are saved in the path defined below as: sikulixrawinputs.xml<br>
+     * Finally the raw actions are reduced to relevant actions: sikulixinputs.xml
      */
     public void stopRecording() {
         if (!recording) return;
         recording = false;
+
         captureScreenshots.stopCapturing();
-        String pathToSaveRawData = String.format("\\%s\\%s", dirWithDate, "sikulix_rawinputs.xml");
+
         Document rawDoc = captureUserInputs.finalizeRecording();
-        saveFile.saveXML(rawDoc, pathToSaveRawData);
+        saveToFile.saveXML(rawDoc, "sikulixrawinputs.xml");
         Document simplifiedDoc = processRecording.process(rawDoc);
-        String pathToSaveForSimplifiedDoc = String.format("\\%s\\%s", dirWithDate, "sikulix_inputs.xml");
-        saveFile.saveXML(simplifiedDoc, pathToSaveForSimplifiedDoc);
+        saveToFile.saveXML(simplifiedDoc, "sikulixinputs.xml");
     }
 
     public boolean setRecordingDirectory(String directory) {
         if (recording) return false;
-        recordingDirectory = directory;
+        recordingFolder = new File(directory);
         return true;
     }
 
-    public boolean setScreenshotBaseFilename(String filename) {
+    public boolean setRecordingFolder(File folder) {
         if (recording) return false;
-        screenshotBaseFilename = filename;
+        recordingFolder = folder;
         return true;
     }
-
     public boolean setScreenshotDelay(int delay) {
         if (recording) return false;
         screenshotDelay = delay;

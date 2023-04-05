@@ -3,6 +3,8 @@ package org.sikuli.recorder;
 import org.sikuli.script.Mouse;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -47,6 +49,21 @@ public class RecordInputsXML implements RecordInputs {
         child.setAttribute("key", key);
         child.setAttribute("millis", String.valueOf(Duration.between(startTime, LocalDateTime.now()).toMillis()));
         child.setAttribute("nativeEventOutput", value);
+    }
+
+    /** Copy the action details to a new child elemnt in this doc
+     * @param other the action node to copy
+     */
+    public void addElement(Node other) {
+        if (doc == null || rootElement == null) return;
+        Element child = doc.createElement(other.getNodeName());
+        rootElement.appendChild(child);
+        NamedNodeMap nodeMap = other.getAttributes();
+        child.setAttribute("x", nodeMap.getNamedItem("x").getNodeValue());
+        child.setAttribute("y", nodeMap.getNamedItem("y").getNodeValue());
+        child.setAttribute("key", nodeMap.getNamedItem("key").getNodeValue());
+        child.setAttribute("millis", nodeMap.getNamedItem("millis").getNodeValue());
+        child.setAttribute("nativeEventOutput", nodeMap.getNamedItem("nativeEventOutput").getNodeValue());
     }
 
     public Document getDoc() {
