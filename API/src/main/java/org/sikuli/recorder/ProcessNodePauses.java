@@ -1,6 +1,5 @@
 package org.sikuli.recorder;
 
-import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -16,18 +15,23 @@ public class ProcessNodePauses implements ProcessNode {
 
     private double timelapseFromStartOfRecording; // in milliseconds
     private double lastTimeLapse = 0.0;
-    private double minTimeDifference = 0.4; // time difference between adjacent points necessary to include the point in the new NodeList
+    private double minTimeDifference = 400; // time difference between adjacent points necessary to include the point in the new NodeList
 
-    public void populateNodeList(NodeList rawData, Element newRoot) {
+    public void populateNodeList(NodeList rawData, RecordInputsXML doc) {
         for (int count = 0; count < rawData.getLength(); count++) {
             Node tempNode = rawData.item(count);
             if (tempNode.getNodeType() == Node.ELEMENT_NODE) { // make sure it's element node.
                 if (tempNode.hasAttributes()) {
-                    NamedNodeMap nodeMap = tempNode.getAttributes();
-                    timelapseFromStartOfRecording = Double.parseDouble(nodeMap.getNamedItem("millis").getNodeValue());
-                    if (timelapseFromStartOfRecording - lastTimeLapse >= minTimeDifference
+                    if (tempNode.getNodeName().equals("MOVE")) {
+                        NamedNodeMap nodeMap = tempNode.getAttributes();
+                        timelapseFromStartOfRecording = Double.parseDouble(nodeMap.getNamedItem("millis").getNodeValue());
+                        if (timelapseFromStartOfRecording - lastTimeLapse >= minTimeDifference
                             || lastTimeLapse == 0.0) {
-                        newRoot.appendChild(tempNode);
+                            doc.addElement(tempNode);
+                            lastTimeLapse = timelapseFromStartOfRecording;
+                        }
+                    } else {
+                        doc.addElement(tempNode);
                     }
                 }
             }

@@ -42,7 +42,10 @@ public class ProcessRecording {
         newDoc.appendChild(root);
 
         if (nodeList.item(0).hasChildNodes()) {
-            processNode.populateNodeList(nodeList.item(0).getChildNodes(), root);
+            RecordInputsXML processedInputsXML = new RecordInputsXML();
+            processedInputsXML.initDocument();
+            processNode.populateNodeList(nodeList.item(0).getChildNodes(), processedInputsXML);
+            return processedInputsXML.getDoc();
         }
 
         return newDoc;

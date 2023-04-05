@@ -12,5 +12,5 @@ import org.w3c.dom.NodeList;
  *   which inputs are pivotal inputs. Developers are welcome to code new implementations of ProcessNode.
  */
 public interface ProcessNode {
-    void populateNodeList(NodeList childNodes, Element root);
+    void populateNodeList(NodeList childNodes, RecordInputsXML doc);
 }
