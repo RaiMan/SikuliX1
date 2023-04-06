@@ -178,7 +178,7 @@ public class Image extends Element {
     bimg = img;
     w = bimg.getWidth();
     h = bimg.getHeight();
-    log(logLevel, "BufferedImage: (%d, %d)%s", w, h,
+    log(logLevel + 1, "BufferedImage: (%d, %d)%s", w, h,
         (name == null ? "" : " with name: " + name));
   }
 
@@ -926,7 +926,7 @@ public class Image extends Element {
       File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
       if (FileManager.xcopy(fOrg, fBack)) {
         hasBackup = fBack.getPath();
-        log(logLevel, "backup: %s created", fBack.getName());
+        log(logLevel + 1, "backup: %s created", fBack.getName());
         return true;
       }
       log(-1, "backup: %s did not work", fBack.getName());
@@ -939,7 +939,7 @@ public class Image extends Element {
       File fBack = new File(hasBackup);
       File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
       if (FileManager.xcopy(fBack, fOrg)) {
-        log(logLevel, "restore: %s restored", fOrg.getName());
+        log(logLevel + 1, "restore: %s restored", fOrg.getName());
         FileManager.deleteFileOrFolder(fBack);
         hasBackup = "";
         return true;
@@ -1071,7 +1071,7 @@ public class Image extends Element {
       w = bImage.getWidth();
       h = bImage.getHeight();
       bsize = bImage.getData().getDataBuffer().getSize();
-      log(logLevel, "loaded again: %s (%s)", getName(), fileURL);
+      log(logLevel + 1, "loaded again: %s (%s)", getName(), fileURL);
     }
     return bImage;
   }

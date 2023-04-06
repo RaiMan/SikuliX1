@@ -37,7 +37,6 @@ public class RecorderSaveToFile implements SaveToFile {
     File fImage = new File(folderToUse, String.format("%s-%d.png", baseFileName, new Date().getTime()));
     try {
       ImageIO.write(img.get(), FilenameUtils.getExtension(fImage.getName()), fImage);
-      Debug.log(3, "ScreenImage::saveImage: %s", fImage);
     } catch (Exception ex) {
       Debug.error("ScreenImage::saveImage: did not work: %s (%s)", fImage, ex.getMessage());
       return null;
