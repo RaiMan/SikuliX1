@@ -2,7 +2,6 @@
 Lists of 22 third-party dependencies.
      (BSD 3-clause License w/nuclear disclaimer) Java Advanced Imaging Image I/O Tools API core (standalone) (com.github.jai-imageio:jai-imageio-core:1.4.0 - https://github.com/jai-imageio/jai-imageio-core)
      (GNU General Public License (GPL), Version 3.0) (GNU Lesser General Public License (LGPL), Version 3.0) JNativeHook (com.github.kwhat:jnativehook:2.2.2 - https://github.com/kwhat/jnativehook)
-     (GNU General Public License v2.0) sikulix2opencv (com.sikulix:sikulix2opencv:4.5.4-20211108.155100-1 - http://www.sikulix.com)
      (Apache License, Version 2.0) Apache Commons CLI (commons-cli:commons-cli:1.4 - http://commons.apache.org/proper/commons-cli/)
      (Apache License, Version 2.0) Apache Commons IO (commons-io:commons-io:2.11.0 - https://commons.apache.org/proper/commons-io/)
      (The Apache Software License, Version 2.0) Apache Commons Logging (commons-logging:commons-logging:1.2 - http://commons.apache.org/proper/commons-logging/)
@@ -20,5 +19,6 @@ Lists of 22 third-party dependencies.
      (Apache License, Version 2.0) Apache PDFBox tools (org.apache.pdfbox:pdfbox-tools:2.0.27 - https://www.apache.org/pdfbox-parent/pdfbox-tools/)
      (asl) JBoss VFS (org.jboss:jboss-vfs:3.2.17.Final - http://www.jboss.org)
      (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.1.4.GA - http://www.jboss.org)
+     (BSD License) OpenPnP OpenCV (org.openpnp:opencv:4.7.0-0 - http://github.com/openpnp/opencv)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.6 - http://www.slf4j.org)
      (MIT License) SLF4J NOP Binding (org.slf4j:slf4j-nop:2.0.6 - http://www.slf4j.org)

@@ -12,6 +12,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.natives.OpenCV;
 import org.sikuli.script.Options;
 import org.sikuli.script.Region;
 import org.sikuli.script.SX;
@@ -1394,18 +1395,6 @@ Software:
     return jnaPath;
   }
 
-  private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-
-  public static boolean loadOpenCV() {
-    if(loadLibrary(libOpenCV))
-      try {
-        new Mat();
-      } catch (Exception e) {
-        terminate(999, "FATAL: loadOpenCV: %s not not useable (%s)", libOpenCV, e.getMessage());
-      }
-    return true;
-  }
-
   public static String getLibFilename(String aFile) {
     if (runningWindows()) {
       aFile += ".dll";
@@ -1419,6 +1408,24 @@ Software:
 
   private static List<String> libsLoaded = new ArrayList<>();
   private static boolean areLibsExported = false;
+
+  public static void loadOpenCV() {
+    if (libsLoaded.contains("OPENCV")) {
+      return;
+    }
+    if (!areLibsExported) {
+      libsExport();
+      if (!areLibsExported) {
+        terminate(999, "loadLib: deferred exporting of libs did not work");
+      }
+    }
+    File lib = OpenCV.load();
+    if (null != loadLib(lib)) {
+      libsLoaded.add("OPENCV");
+    } else {
+      terminate(999, "OpenCV not useable");
+    }
+  }
 
   public static boolean loadLibrary(String libName) {
     Debug.log(3, "loadLibrary: trying: %s", libName);
@@ -1436,24 +1443,24 @@ Software:
       if (!areLibsExported) {
         libsExport();
         if (!areLibsExported) {
-          throw new SikuliXception("loadLib: deferred exporting of libs did not work");
+          terminate(999, "loadLib: deferred exporting of libs did not work");
         }
       }
       fLib = loadLib(new File(getLibsFolder(), libFileName));
     }
     if (fLib == null) {
       //try from system library folders
-      fLib = loadLib(new File(libFileName));
+      fLib = loadLib(new File(libName));
     }
     if (null == fLib) {
-      terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libFileName);
+      terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libName);
     }
     libsLoaded.add(libName);
     Debug.log(3, "loadLibrary: success: %s%s", userLib, fLib);
     return true;
   }
 
-  private static File loadLib(File fLib) {
+  public static File loadLib(File fLib) {
     if (fLib == null) {
       return null;
     }
@@ -1468,14 +1475,13 @@ Software:
         System.loadLibrary("" + fLib);
       }
     } catch (Exception e) {
-      Debug.error("loadLibrary: not useable: %s (%s)", fLib.getName(), e.getMessage());
+      Debug.error("loadLibrary: not useable: %s (%s)", fLib, e.getMessage());
       return null;
     }
     return fLib;
   }
 
   private static void libsExport() {
-    String OPENCV_JAVA = "opencv_java";
     String fpJarLibs = getJarLibsPath();
     File fLibsFolder = getLibsFolder();
     if (fLibsFolder.exists()) {
@@ -1527,18 +1533,14 @@ Software:
         inFile = new File(fpJarLibs, aFile).getPath();
       }
       if (inFile != null) {
-        if (OPENCV_JAVA.equals(aFile)) {
-          inFile = inFile.replace(OPENCV_JAVA, getLibFilename(libOpenCV));
-          aFile = new File(inFile).getName();
-        }
-        outFile = new File(fLibsFolder, aFile);
-        try (FileOutputStream outFileStream = new FileOutputStream(outFile);
-             InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
-          RunTime.copy(inStream, outFileStream);
-        } catch (Exception ex) {
-          copyMsg = String.format(": failed: %s", ex.getMessage());
-        }
-        copyMsg = String.format("libsExport: %s%s", aFile, copyMsg);
+          outFile = new File(fLibsFolder, aFile);
+          try (FileOutputStream outFileStream = new FileOutputStream(outFile);
+               InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
+            RunTime.copy(inStream, outFileStream);
+          } catch (Exception ex) {
+            copyMsg = String.format(": failed: %s", ex.getMessage());
+          }
+          copyMsg = String.format("libsExport: %s%s", aFile, copyMsg);
       }
       if (copyMsg.contains("failed")) {
         FileManager.deleteFileOrFolder(fLibsFolder);
@@ -1548,7 +1550,9 @@ Software:
         if (isExecutable) {
           outFile.setExecutable(true);
         }
-        Debug.log(3, copyMsg);
+        if (!copyMsg.isEmpty()) {
+          Debug.log(3, copyMsg);
+        }
       }
     }
     areLibsExported = true;

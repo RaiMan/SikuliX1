@@ -91,9 +91,9 @@
       <!--License LGPL, version 2.1 - Apache License v2.0-->
     </dependency>
     <dependency>
-      <groupId>com.sikulix</groupId>
-      <artifactId>sikulix2opencv</artifactId>
-      <version>4.5.4-SNAPSHOT</version>
+      <groupId>org.openpnp</groupId>
+      <artifactId>opencv</artifactId>
+      <version>[4.7.0,]</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
