@@ -69,13 +69,13 @@ public class Finder implements Iterator<Match> {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
       _region = where;
-      _findInput.setSource(Commons.makeMat(_region.getScreen().capture(_region).getImage()));
+      _findInput.setSource(Image.makeMat(_region.getScreen().capture(_region).getImage()));
     } else if (inWhat instanceof Image) {
-      _findInput.setSource(Commons.makeMat(((Image) inWhat).get()));
+      _findInput.setSource(Image.makeMat(((Image) inWhat).get()));
     } else if (inWhat instanceof String) {
-      _findInput.setSource(Commons.makeMat(Image.create((String) inWhat).get()));
+      _findInput.setSource(Image.makeMat(Image.create((String) inWhat).get()));
     } else if (inWhat instanceof BufferedImage) {
-      _findInput.setSource(Commons.makeMat(((BufferedImage) inWhat)));
+      _findInput.setSource(Image.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
       Commons.terminate(999, "Finder::new::ScreenImage: deprecated"); //TODO use sImg.get()
       //initScreenFinder(((ScreenImage) inWhat), null);
@@ -92,7 +92,7 @@ public class Finder implements Iterator<Match> {
    */
   public Finder(ScreenImage simg, Region region) { //TODO to be revised
     this();
-    _findInput.setSource(Commons.makeMat(simg.getImage()));
+    _findInput.setSource(Image.makeMat(simg.getImage()));
     _region = region;
     where = _region;
   }
@@ -100,7 +100,7 @@ public class Finder implements Iterator<Match> {
 
   //<editor-fold defaultstate="collapsed" desc="internal repeating">
   public void newShot() {
-    _findInput.setSource(Commons.makeMat(_region.getScreen().capture(_region).getImage()));
+    _findInput.setSource(Image.makeMat(_region.getScreen().capture(_region).getImage()));
   }
 
   /**
@@ -162,16 +162,16 @@ public class Finder implements Iterator<Match> {
     if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
       factor = Settings.AlwaysResize;
     }
-    Mat mat = Commons.makeMat(img.get(), false);
+    Mat mat = Image.makeMat(img.get(), false);
     if (factor > 0 && factor != 1) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: resize");
       if (!mat.empty()) {
-        Commons.resize(mat, factor);
+        Image.resize(mat, factor);
       }
     } else if (Settings.ImageCallback != null) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
       BufferedImage newBimg = Settings.ImageCallback.callback(img);
-      mat = Commons.makeMat(newBimg, false);
+      mat = Image.makeMat(newBimg, false);
     }
     if (mat.empty()) {
       log(-1, "%s: conversion error --- find will fail", img);
@@ -613,8 +613,8 @@ public class Finder implements Iterator<Match> {
 
     private static Log log = new Log("Finder2");
 
-    private Mat mBase = Commons.getNewMat();
-    private Mat mResult = Commons.getNewMat();
+    private Mat mBase = Image.getNewMat();
+    private Mat mResult = Image.getNewMat();
 
     private enum FindType {
       ONE, ALL
@@ -692,8 +692,8 @@ public class Finder implements Iterator<Match> {
       boolean downSizeFound = false;
       double downSizeScore = -1;
       double downSizeWantedScore = 0;
-      Mat findWhere = Commons.getNewMat();
-      Mat findWhat = Commons.getNewMat();
+      Mat findWhere = Image.getNewMat();
+      Mat findWhat = Image.getNewMat();
 
       boolean trueOrFalse = findInput.shouldSearchDownsized(resizeMinFactor);
       //TODO search downsized?
@@ -772,7 +772,7 @@ public class Finder implements Iterator<Match> {
     }
 
     private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
-      Mat mResult = Commons.getNewMat();
+      Mat mResult = Image.getNewMat();
       if (what.empty()) {
         log.error("doFindMatch: image conversion to cvMat did not work");
       } else {
@@ -945,10 +945,10 @@ public class Finder implements Iterator<Match> {
 
     public static List<Region> findChanges(FindInput2 findInput) {
       findInput.setAttributes();
-      Mat previousGray = Commons.getNewMat();
-      Mat nextGray = Commons.getNewMat();
-      Mat mDiffAbs = Commons.getNewMat();
-      Mat mDiffTresh = Commons.getNewMat();
+      Mat previousGray = Image.getNewMat();
+      Mat nextGray = Image.getNewMat();
+      Mat mDiffAbs = Image.getNewMat();
+      Mat mDiffTresh = Image.getNewMat();
 
       Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
       Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
@@ -958,12 +958,12 @@ public class Finder implements Iterator<Match> {
       List<Region> rectangles = new ArrayList<>();
       if (Core.countNonZero(mDiffTresh) > IMAGE_DIFF_THRESHOLD) {
         Imgproc.threshold(mDiffAbs, mDiffAbs, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
-        Imgproc.dilate(mDiffAbs, mDiffAbs, Commons.getNewMat());
+        Imgproc.dilate(mDiffAbs, mDiffAbs, Image.getNewMat());
         Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
         Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Mat mHierarchy = Commons.getNewMat();
+        Mat mHierarchy = Image.getNewMat();
         Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         rectangles = contoursToRectangle(contours);
 
@@ -1002,7 +1002,7 @@ public class Finder implements Iterator<Match> {
     //<editor-fold desc="OpenCV Mat">
     public static boolean isOpaque(BufferedImage bImg) {
       if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
-        List<Mat> mats = Commons.getMatList(bImg);
+        List<Mat> mats = Image.getMatList(bImg);
         Mat transMat = mats.get(0);
         int allPixel = (int) transMat.size().area();
         int nonZeroPixel = Core.countNonZero(transMat);
@@ -1021,7 +1021,7 @@ public class Finder implements Iterator<Match> {
       for (int n = 0; n < channels; n++) {
         listMat.add(mat);
       }
-      Mat mResult = Commons.getNewMat();
+      Mat mResult = Image.getNewMat();
       Core.merge(listMat, mResult);
       return mResult;
     }
@@ -1102,7 +1102,7 @@ public class Finder implements Iterator<Match> {
       if (where != null) {
         return where.getScreen().capture(where).getImage();
       } else if (source != null) {
-        return Commons.getBufferedImage(source);
+        return Image.getBufferedImage(source);
       } else if (image != null) {
         return image.get();
       }

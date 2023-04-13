@@ -676,12 +676,13 @@ public class ImagePath {
     PathEntry entry = getPathEntry(folder, null); // setBundleFolder
     if (entry != null && entry.isValid()) {
       PathEntry oldBundle = getBundle();
-      if (entry.equals(oldBundle)) {
+      if (null == oldBundle || entry.equals(oldBundle)) {
         return folder;
       }
       Image.purge(oldBundle);
       setBundle(entry);
       log(lvl, "new BundlePath: %s", entry);
+      return folder;
     }
     return null;
   }

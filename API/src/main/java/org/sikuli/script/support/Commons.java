@@ -5,9 +5,6 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
-import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
@@ -15,24 +12,18 @@ import org.sikuli.basics.Settings;
 import org.sikuli.natives.OpenCV;
 import org.sikuli.script.Options;
 import org.sikuli.script.Region;
-import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.image.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.nio.file.*;
 import java.security.CodeSource;
 import java.util.List;
@@ -1911,233 +1902,6 @@ Software:
 
   public static String[] asArray(String val) {
     return val.split(File.pathSeparator);
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="80 image handling">
-  public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
-    final AffineTransform af = new AffineTransform();
-    af.scale((double) width / originalImage.getWidth(),
-        (double) height / originalImage.getHeight());
-    final AffineTransformOp operation = new AffineTransformOp(
-        af, AffineTransformOp.TYPE_BILINEAR);
-    BufferedImage rescaledImage = new BufferedImage(width, height,
-        BufferedImage.TYPE_INT_ARGB);
-    rescaledImage = operation.filter(originalImage, rescaledImage);
-    return rescaledImage;
-  }
-
-  /**
-   * Available resize interpolation algorithms
-   */
-  public enum Interpolation {
-    NEAREST(Imgproc.INTER_NEAREST),
-    LINEAR(Imgproc.INTER_LINEAR),
-    CUBIC(Imgproc.INTER_CUBIC),
-    AREA(Imgproc.INTER_AREA),
-    LANCZOS4(Imgproc.INTER_LANCZOS4),
-    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
-    MAX(Imgproc.INTER_MAX);
-
-    private int value;
-
-    Interpolation(int value) {
-      this.value = value;
-    }
-
-  }
-
-  /**
-   * resize the given image with factor using OpenCV ImgProc.resize()
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param bimg   given image
-   * @param factor resize factor
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public static BufferedImage resize(BufferedImage bimg, float factor) {
-    return resize(bimg, factor, Interpolation.CUBIC);
-  }
-
-  /**
-   * resize the given image with factor using OpenCV ImgProc.resize()
-   *
-   * @param bimg          given image
-   * @param factor        resize factor
-   * @param interpolation algorithm used for pixel interpolation
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
-    return getBufferedImage(cvResize(bimg, factor, interpolation));
-  }
-
-  /**
-   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param mat    given image as cvMat
-   * @param factor resize factor
-   */
-  public static void resize(Mat mat, float factor) {
-    resize(mat, factor, Interpolation.CUBIC);
-  }
-
-  /**
-   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
-   *
-   * @param mat           given image as cvMat
-   * @param factor        resize factor
-   * @param interpolation algorithm used for pixel interpolation.
-   */
-  public static void resize(Mat mat, float factor, Interpolation interpolation) {
-    cvResize(mat, factor, interpolation);
-  }
-
-  private static Mat cvResize(BufferedImage bimg, double rFactor, Interpolation interpolation) {
-    Mat mat = makeMat(bimg);
-    cvResize(mat, rFactor, interpolation);
-    return mat;
-  }
-
-  private static void cvResize(Mat mat, double rFactor, Interpolation interpolation) {
-    int newW = (int) (rFactor * mat.width());
-    int newH = (int) (rFactor * mat.height());
-    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, interpolation.value);
-  }
-
-  public static Mat getNewMat() {
-    return new Mat();
-  }
-
-  public static Mat getNewMat(Size size, int type, int fill) {
-    switch (type) {
-      case 1:
-        type = CvType.CV_8UC1;
-        break;
-      case 3:
-        type = CvType.CV_8UC3;
-        break;
-      case 4:
-        type = CvType.CV_8UC4;
-        break;
-      default:
-        type = -1;
-    }
-    if (type < 0) {
-      return new Mat();
-    }
-    Mat result;
-    if (fill < 0) {
-      result = new Mat(size, type);
-    } else {
-      result = new Mat(size, type, new Scalar(fill));
-    }
-    return result;
-  }
-
-  public static List<Mat> getMatList(BufferedImage bImg) {
-    byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-    Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
-    aMat.put(0, 0, data);
-    List<Mat> mats = new ArrayList<Mat>();
-    Core.split(aMat, mats);
-    return mats;
-  }
-
-  public static Mat makeMat(BufferedImage bImg) {
-    return makeMat(bImg, true);
-  }
-
-  public static Mat makeMat(BufferedImage bImg, boolean asBGR) {
-    if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
-      int[] data = ((DataBufferInt) bImg.getRaster().getDataBuffer()).getData();
-      ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);
-      IntBuffer intBuffer = byteBuffer.asIntBuffer();
-      intBuffer.put(data);
-      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
-      aMat.put(0, 0, byteBuffer.array());
-      Mat oMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-      Mat oMatA = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
-      List<Mat> mixIn = new ArrayList<Mat>(Arrays.asList(new Mat[]{aMat}));
-      List<Mat> mixOut = new ArrayList<Mat>(Arrays.asList(new Mat[]{oMatA, oMatBGR}));
-      //A 0 - R 1 - G 2 - B 3 -> A 0 - B 1 - G 2 - R 3
-      Core.mixChannels(mixIn, mixOut, new MatOfInt(0, 0, 1, 3, 2, 2, 3, 1));
-      return oMatBGR;
-    } else if (bImg.getType() == BufferedImage.TYPE_3BYTE_BGR) {
-      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-      aMatBGR.put(0, 0, data);
-      return aMatBGR;
-    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
-        || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
-      String bImgType = "BYTE_BINARY";
-      if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-        bImgType = "BYTE_INDEXED";
-      }
-      BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-      Graphics graphics = bimg3b.getGraphics();
-      graphics.drawImage(bImg, 0, 0, null);
-      byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
-      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-      aMatBGR.put(0, 0, data);
-      return aMatBGR;
-    } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) { //TODO || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
-      List<Mat> mats = getMatList(bImg);
-      Size size = mats.get(0).size();
-      if (!asBGR) {
-        Mat mBGRA = getNewMat(size, 4, -1);
-        mats.add(mats.remove(0));
-        Core.merge(mats, mBGRA);
-        return mBGRA;
-      } else {
-        Mat mBGR = getNewMat(size, 3, -1);
-        mats.remove(0);
-        Core.merge(mats, mBGR);
-        return mBGR;
-      }
-    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_GRAY) {
-      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
-      aMat.put(0, 0, data);
-      return aMat;
-    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
-      BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-      Graphics graphics = bimg3b.getGraphics();
-      graphics.drawImage(bImg, 0, 0, null);
-      byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
-      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-      aMatBGR.put(0, 0, data);
-      return aMatBGR;
-    } else {
-      Debug.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
-    }
-    return getNewMat();
-  }
-
-  public final static String PNG = "png";
-  public final static String dotPNG = "." + PNG;
-
-  public static BufferedImage getBufferedImage(Mat mat) {
-    return getBufferedImage(mat, dotPNG);
-  }
-
-  public static BufferedImage getBufferedImage(Mat mat, String type) {
-    BufferedImage bImg = null;
-    MatOfByte bytemat = new MatOfByte();
-    if (SX.isNull(mat)) {
-      mat = getNewMat();
-    }
-    Imgcodecs.imencode(type, mat, bytemat);
-    byte[] bytes = bytemat.toArray();
-    InputStream in = new ByteArrayInputStream(bytes);
-    try {
-      bImg = ImageIO.read(in);
-    } catch (IOException ex) {
-      Debug.error("getBufferedImage: %s error(%s)", mat, ex.getMessage());
-    }
-    return bImg;
   }
   //</editor-fold>
 

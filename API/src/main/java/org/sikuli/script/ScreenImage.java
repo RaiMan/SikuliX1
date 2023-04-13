@@ -259,8 +259,8 @@ public class ScreenImage {
     Mat otherGray = new Mat();
     Mat mDiffAbs = new Mat();
 
-    Imgproc.cvtColor(Commons.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
-    Imgproc.cvtColor(Commons.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Image.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Image.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
     Core.absdiff(thisGray, otherGray, mDiffAbs);
     return Core.countNonZero(mDiffAbs) == 0;
   }

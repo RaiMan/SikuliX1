@@ -7,7 +7,6 @@ package org.sikuli.script;
 import net.sourceforge.tess4j.ITesseract;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Commons;
 
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -173,7 +172,7 @@ public class OCR {
       dataPath = null;
       isLightFont = false;
       textHeight = getDefaultTextHeight();
-      resizeInterpolation = Commons.Interpolation.LINEAR;
+      resizeInterpolation = Image.Interpolation.LINEAR;
       variables.clear();
       configs.clear();
       bestDPI = null;
@@ -507,19 +506,19 @@ public class OCR {
       }
     }
 
-    private Commons.Interpolation resizeInterpolation;
+    private Image.Interpolation resizeInterpolation;
 
-    protected Commons.Interpolation resizeInterpolation() {
+    protected Image.Interpolation resizeInterpolation() {
       return resizeInterpolation;
     }
 
     /**
      * INTERNAL (under investigation).
      * <p>should not be used - not supported
-     * @param method {@link Commons.Interpolation}
+     * @param method {@link Image.Interpolation}
      * @return this Options
      */
-    public Options resizeInterpolation(Commons.Interpolation method) {
+    public Options resizeInterpolation(Image.Interpolation method) {
       resizeInterpolation = method;
       return this;
     }

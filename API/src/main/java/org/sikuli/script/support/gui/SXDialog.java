@@ -5,6 +5,7 @@
 package org.sikuli.script.support.gui;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.Image;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.devices.ScreenDevice;
 
@@ -1929,7 +1930,7 @@ public class SXDialog extends JFrame {
     }
 
     private BufferedImage resizeImage(BufferedImage img, int width, int height) {
-      return Commons.resizeImage(img, width, height);
+      return Image.resizeImage(img, width, height);
     }
 
     BasicItem create() {
