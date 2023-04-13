@@ -176,6 +176,7 @@ public class OpenCV {
       if (null != lib) {
         try {
           new Mat();
+          Debug.log(3,"OpenCV::load: %s", lib);
         } catch (Exception e) {
           Debug.error("FATAL: loadOpenCV: %s not not useable (%s)", lib, e.getMessage());
           lib = null;
