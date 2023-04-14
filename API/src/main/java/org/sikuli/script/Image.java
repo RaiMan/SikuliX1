@@ -78,11 +78,13 @@ public class Image extends Element {
   private Image() {
   }
 
-  public static <SFIRBS> Image get(SFIRBS whatEver) {
+  public static <SFIRBS> Image from(SFIRBS whatEver) {
     if (whatEver instanceof String) {
       return Image.create((String) whatEver);
     } else if (whatEver instanceof File) {
       return Image.create((File) whatEver);
+    } else if (whatEver instanceof URL) {
+      return Image.create((URL) whatEver);
     } else if (whatEver instanceof Match) {
       Region theRegion = new Region((Match) whatEver);
       return theRegion.getImage();
@@ -558,6 +560,108 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="01 create">
+  /**
+   * create a new Image as copy of the given Image
+   *
+   * @param imgSrc given Image
+   * @return new Image
+   */
+  private static Image create(Image imgSrc) {
+    return imgSrc.copy();
+  }
+
+  /**
+   * create a new image from a filename <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param fName image filename
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  private static Image create(String fName) {
+    Image img = get(fName);
+    return createImageValidate(img); // create(String fName)
+  }
+
+  public static Image createSilent(String fName) {
+    silent = true;
+    Image image = create(fName);
+    silent = false;
+    return image;
+  }
+
+  /**
+   * create a new image from the given file <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param imageFile a Java File object
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  private static Image create(File imageFile) {
+    Image img = get(imageFile.getAbsolutePath());
+    return createImageValidate(img); // create(File imageFile)
+  }
+
+  /**
+   * create a new image from the given url <br>
+   * file ending .png is added if missing <br>
+   * filename: ...url-path.../name[.png] is loaded from the url and and cached
+   * <br>
+   * already loaded image with same url is reused (reference) and taken from
+   * cache
+   *
+   * @param url image file URL
+   * @return the image
+   */
+  private static Image create(URL url) {
+    Image img = null;
+    if (url != null) {
+      img = get(url);
+    }
+    if (img == null) {
+      img = new Image(url);
+    }
+    return createImageValidate(img); // create(URL url)
+  }
+
+  /**
+   * FOR INTERNAL USE: from IDE - suppresses load error message
+   *
+   * @param fName image filename
+   * @return this
+   */
+  public static Image createThumbNail(String fName) {
+    Image img = get(fName);
+    return createImageValidate(img); // createThumbNail(String fName)
+  }
+
+  private static Image createImageValidate(Image img) {
+    if (img == null) {
+      return new Image("", null);
+    }
+    if (!img.isValid()) {
+      if (Commons.isValidImageFilename(img.getNameGiven())) {
+        img.setIsText(false);
+      } else {
+        img.setIsText(true);
+      }
+    }
+    return img;
+  }
+//</editor-fold>
+
+//<editor-fold desc="02 getSub">
   public Image getSub(Rectangle r) {
     return getSub(r.x, r.y, r.width, r.height);
   }
@@ -587,163 +691,15 @@ public class Image extends Element {
    * @return the new image
    */
   public Image getSub(int x, int y, int w, int h) {
-//    BufferedImage bi;
-//    if (get().getType() == BufferedImage.TYPE_3BYTE_BGR) {
-//      bi = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-//      Graphics graphics = bi.getGraphics();
-//      graphics.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
-//      graphics.dispose();
-//    } else {
-//      bi = createBufferedImage(w, h);
     BufferedImage bi = new BufferedImage(w, h, get().getType());
     Graphics2D g = bi.createGraphics();
     g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
     g.dispose();
-//    }
     return new Image(bi);
-  }
-
-//  private static BufferedImage createBufferedImage(int w, int h) {
-//    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-//    int[] nBits = {8, 8, 8, 8};
-//    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-//    SampleModel sm = cm.createCompatibleSampleModel(w, h);
-//    DataBufferByte db = new DataBufferByte(w * h * 4);
-//    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-//    BufferedImage bm = new BufferedImage(cm, r, false, null);
-//    return bm;
-//  }
-
-  /**
-   * create a new Image as copy of the given Image
-   *
-   * @param imgSrc given Image
-   * @return new Image
-   */
-  public static Image create(Image imgSrc) {
-    return imgSrc.copy();
-  }
-
-  /**
-   * create a new image from a filename <br>
-   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
-   * relative filename: [...path.../]name[.png] is searched on current image path<br>
-   * absolute filename is taken as is
-   * if image exists, it is loaded to cache <br>
-   * already loaded image with same name (given path) is reused (taken from cache) <br>
-   * <p>
-   * if image not found, it might be a text to be searched (imageIsText = true)
-   *
-   * @param fName image filename
-   * @return an Image object (might not be valid - check with isValid())
-   */
-  public static Image create(String fName) {
-    Image img = get(fName);
-    return createImageValidate(img);
-  }
-
-  public static Image createSilent(String fName) {
-    silent = true;
-    Image image = create(fName);
-    silent = false;
-    return image;
-  }
-
-  /**
-   * create a new image from the given file <br>
-   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
-   * relative filename: [...path.../]name[.png] is searched on current image path<br>
-   * absolute filename is taken as is
-   * if image exists, it is loaded to cache <br>
-   * already loaded image with same name (given path) is reused (taken from cache) <br>
-   * <p>
-   * if image not found, it might be a text to be searched (imageIsText = true)
-   *
-   * @param imageFile a Java File object
-   * @return an Image object (might not be valid - check with isValid())
-   */
-  public static Image create(File imageFile) {
-    Image img = get(imageFile.getAbsolutePath());
-    return createImageValidate(img);
-  }
-
-  /**
-   * create a new Image with Pattern aspects from an existing Pattern
-   *
-   * @param p a Pattern
-   * @return the new Image
-   */
-  public static Image create(Pattern p) {
-    Image img = p.getImage().copy();
-    img.setIsPattern(true);
-    img.setSimilarity(p.getSimilar());
-    img.setOffset(p.getTargetOffset());
-    img.setWaitAfter(p.getTimeAfter());
-    return img;
-  }
-
-  /**
-   * create a new image from the given url <br>
-   * file ending .png is added if missing <br>
-   * filename: ...url-path.../name[.png] is loaded from the url and and cached
-   * <br>
-   * already loaded image with same url is reused (reference) and taken from
-   * cache
-   *
-   * @param url image file URL
-   * @return the image
-   */
-  public static Image create(URL url) {
-    Image img = null;
-    if (url != null) {
-      img = get(url);
-    }
-    if (img == null) {
-      img = new Image(url);
-    }
-    return createImageValidate(img);
-  }
-
-  /**
-   * FOR INTERNAL USE: from IDE - suppresses load error message
-   *
-   * @param fName image filename
-   * @return this
-   */
-  public static Image createThumbNail(String fName) {
-    Image img = get(fName);
-    return createImageValidate(img);
-  }
-
-  private static Image createImageValidate(Image img) {
-    if (img == null) {
-      return new Image("", null);
-    }
-    if (!img.isValid()) {
-      if (isValidImageFilename(img.getNameGiven())) {
-        img.setIsText(false);
-      } else {
-        img.setIsText(true);
-      }
-    }
-    return img;
-  }
-
-  public static boolean isValidImageFilename(String fname) {
-    String validEndings = ".png.jpg.jpeg";
-    String ending = FilenameUtils.getExtension(fname);
-    return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
-  }
-
-  public static String getValidImageFilename(String fname) {
-    if (isValidImageFilename(fname)) {
-      return fname;
-    }
-    return fname + ".png";
   }
   //</editor-fold>
 
-  //<editor-fold desc="02 caching">
+  //<editor-fold desc="04 caching">
   private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
   private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
   private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
@@ -963,7 +919,7 @@ public class Image extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="03 load/save">
+  //<editor-fold desc="06 load/save">
 
   /**
    * FOR INTERNAL USE: tries to get the image from the cache, if not cached yet:
@@ -982,20 +938,17 @@ public class Image extends Element {
       image = new Image();
       image.setIsText(true);
       image.textSearch = true;
+      image.imageNameGiven = fName;
     } else {
-      URL imageURL = null;
-      String imageFileName = getValidImageFilename(fName);
-      if (imageFileName.isEmpty()) {
-        log(-1, "not a valid image type: " + fName);
-        imageFileName = fName;
-      }
+      URL imageURL;
+      String imageFileName = Commons.getValidImageFilename(fName);
       File imageFile = new File(imageFileName);
-      if (imageFile.isAbsolute() && imageFile.exists()) {
-        imageURL = Commons.makeURL(imageFile); // get
-//        try {
-//          imageURL = new URL("file", null, imageFile.getPath());
-//        } catch (MalformedURLException e) {
-//        }
+      if (imageFile.isAbsolute()) {
+        if (imageFile.exists()) {
+          imageURL = Commons.makeURL(imageFile); // get
+        } else {
+          return null;
+        }
       } else {
         imageURL = imageNames.get(imageFileName);
         if (imageURL == null) {
@@ -1020,8 +973,8 @@ public class Image extends Element {
           }
         }
       }
+      image.imageNameGiven = fName;
     }
-    image.imageNameGiven = fName;
     return image;
   }
 

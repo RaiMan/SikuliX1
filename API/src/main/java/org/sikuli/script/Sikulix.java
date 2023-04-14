@@ -95,7 +95,7 @@ public class Sikulix {
 
     if ("xxx".equals(arg)) {
       Region reg = new Region(35, 0, 100, 25);
-      Image image = Image.get(reg);
+      Image image = Image.from(reg);
       String text = image.text();
       Debug.info("testxxx: %s", text);
     }
@@ -112,7 +112,7 @@ public class Sikulix {
 
       URL jarimage = aClass.getResource("/jarimages/jarimg.png");
 
-      Image urlimg = Image.create(jarimage);
+      Image urlimg = Image.from(jarimage);
 
       List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
       Match match;
@@ -147,7 +147,7 @@ public class Sikulix {
       Region reg = new Region(0, 0, 500, 600);
       ScreenImage screenImage = scr.capture(reg);
       Image image = new Image(screenImage);
-      image = Image.create("SikulixTest001");
+      image = Image.from("SikulixTest001");
       Commons.pause(1);
 
       reg = scr;

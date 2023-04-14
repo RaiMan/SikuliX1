@@ -5,6 +5,7 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
@@ -1365,6 +1366,19 @@ Software:
       terminate(999, "Commons: asFile(): path invalid %s", path);
     }
     return asFile(new File(folder, option).getPath());
+  }
+
+  public static boolean isValidImageFilename(String fname) {
+    String validEndings = ".png.jpg.jpeg";
+    String ending = FilenameUtils.getExtension(fname);
+    return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
+  }
+
+  public static String getValidImageFilename(String fname) {
+    if (isValidImageFilename(fname)) {
+      return fname;
+    }
+    return fname + ".png";
   }
   //</editor-fold>
 

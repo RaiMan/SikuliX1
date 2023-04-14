@@ -755,13 +755,13 @@ public class Screen extends Region implements IScreen {
     SXDialog sxDialogImage = null;
     URL url = ImagePath.find(imgName);
     if (null != url && "file".equals(url.getProtocol())) {
-      Image img = Image.create(url);
+      Image img = Image.from(url);
       if (img == null) {
         Debug.error("Image not possible: %s", url);
         return null;
       }
       Location where = getCenter().above(img.h / 2).left(img.w / 2);
-      String imgPath = Image.getValidImageFilename(url.getPath());
+      String imgPath = Commons.getValidImageFilename(url.getPath());
       sxDialogImage = new SXDialog("#image; file:" + imgPath,
           new Point(where.x, where.y), SXDialog.POSITION.TOPLEFT);
     } else {

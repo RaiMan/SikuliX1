@@ -73,7 +73,7 @@ public class Finder implements Iterator<Match> {
     } else if (inWhat instanceof Image) {
       _findInput.setSource(Image.makeMat(((Image) inWhat).get()));
     } else if (inWhat instanceof String) {
-      _findInput.setSource(Image.makeMat(Image.create((String) inWhat).get()));
+      _findInput.setSource(Image.makeMat(Image.from((String) inWhat).get()));
     } else if (inWhat instanceof BufferedImage) {
       _findInput.setSource(Image.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
@@ -143,7 +143,7 @@ public class Finder implements Iterator<Match> {
       log(-1, "not valid");
       return null;
     }
-    Image img = Image.create(imageOrText);
+    Image img = Image.from(imageOrText);
     if (img.isText()) {
       return findText(imageOrText);
     }
@@ -246,7 +246,7 @@ public class Finder implements Iterator<Match> {
       log(-1, "not valid");
       return null;
     }
-    return find(new Image(img));
+    return find(Image.from(img));
   }
 
   public List<Region> findChanges(Object changedImage) {
@@ -254,7 +254,7 @@ public class Finder implements Iterator<Match> {
       return null;
     }
     if (changedImage instanceof String) {
-      Image img = Image.create((String) changedImage);
+      Image img = Image.from((String) changedImage);
       _findInput.setTarget(possibleImageResizeOrCallback(img));
     } else if (changedImage instanceof ScreenImage) {
       Image img = new Image((ScreenImage) changedImage);
@@ -278,7 +278,7 @@ public class Finder implements Iterator<Match> {
       log(-1, "not valid");
       return null;
     }
-    Image img = Image.create(imageOrText);
+    Image img = Image.from(imageOrText);
     _image = img;
     if (img.isText()) {
       return findAllText(imageOrText);

@@ -714,13 +714,16 @@ public class ImagePath {
   //</editor-fold>
 
   //<editor-fold desc="10 find image">
-  public static String check(String name) {
-    String validImageFilename = Image.getValidImageFilename(name);
-    URL url = find(validImageFilename, true);
-    if (url != null) {
-      validImageFilename = url.toExternalForm();
+  public static String check(Object toCheck) {
+    if (toCheck instanceof String) {
+      String validImageFilename = Commons.getValidImageFilename((String) toCheck);
+      URL url = find(validImageFilename, true);
+      if (url != null) {
+        validImageFilename = url.toExternalForm();
+      }
+      return validImageFilename;
     }
-    return validImageFilename;
+    return Image.from(toCheck).getFilename();
   }
 
   /**
@@ -737,9 +740,9 @@ public class ImagePath {
 
   private static URL find(String imageName, boolean silent) {
     String proto = "";
-    String imageFileName = Image.getValidImageFilename(imageName);
+    String imageFileName = Commons.getValidImageFilename(imageName);
     if (imageName.endsWith("#")) {
-      imageFileName = imageName.substring(0, imageName.length() -1);
+      imageFileName = imageName.substring(0, imageName.length() - 1);
     }
     File imageFile = new File(imageFileName);
     if (imageFile.isAbsolute()) {
