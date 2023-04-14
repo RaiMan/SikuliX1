@@ -98,7 +98,7 @@
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
-      <version>5.5.0</version>
+      <version>5.7.0</version>
       <!--License Apache 2-->
     </dependency>
     <dependency>
