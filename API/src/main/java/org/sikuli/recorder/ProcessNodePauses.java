@@ -15,7 +15,7 @@ public class ProcessNodePauses implements ProcessNode {
 
     private double timelapseFromStartOfRecording; // in milliseconds
     private double lastTimeLapse = 0.0;
-    private double minTimeDifference = 400; // time difference between adjacent points necessary to include the point in the new NodeList
+    static double minTimeDifference = 400; // time difference between adjacent points necessary to include the point in the new NodeList
 
     public void populateNodeList(NodeList rawData, RecordInputsXML doc) {
         for (int count = 0; count < rawData.getLength(); count++) {

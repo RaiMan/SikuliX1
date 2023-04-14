@@ -352,7 +352,7 @@ public class Sikulix {
       SX.popup("ok to start recording");
       Recorder.INSTANCE.startRecording();
       SX.popup("ok to stop recording");
-      Recorder.INSTANCE.stopRecording();
+      Recorder.INSTANCE.finishRecording();
       Commons.terminate();
       //endregion
     }
