@@ -59,7 +59,7 @@ public enum Recorder {
      * The user's actions raw data are saved in the path defined below as: sikulixrawinputs.xml<br>
      * Finally the raw actions are reduced to relevant actions: sikulixinputs.xml
      */
-    public void stopRecording() {
+    public void finishRecording() {
         if (!recording) return;
         recording = false;
 
