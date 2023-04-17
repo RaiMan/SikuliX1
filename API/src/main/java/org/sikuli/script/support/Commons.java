@@ -612,7 +612,7 @@ Software:
   public static File setAppDataPath(String givenAppPath) {
     if (givenAppPath.isEmpty()) {
       appDataPath = Commons.getMainClassLocation().getParentFile();
-      if (!Commons.isRunningFromJar() || appDataPath.getAbsolutePath().contains("IdeaProjects/SikuliX1/IDE/target")) {
+      if (!Commons.isRunningFromJar()) {
         appDataPath = appDataPath.getParentFile();
       }
       appDataPath = new File(appDataPath, "SikulixAppData");
@@ -1121,6 +1121,10 @@ Software:
       terminate(999, "Commons: asFolder(): not possible for %s", folderOrFile);
     }
     return folderOrFile;
+  }
+
+  public static boolean deleteFileOrFolder(File file) {
+    return FileManager.deleteFileOrFolder(file);
   }
   //</editor-fold>
 
