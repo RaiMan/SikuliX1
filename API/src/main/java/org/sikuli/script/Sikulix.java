@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.recorder.Recorder;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
@@ -13,6 +14,7 @@ import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
 import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.HelpDevice;
+import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 
@@ -23,6 +25,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.sikuli.util.CommandArgsEnum.APPDATA;
 
 public class Sikulix {
 
@@ -40,8 +44,8 @@ public class Sikulix {
       Debug.print("osVersion: %s", Commons.getOSInfo());
 
       String arg = args[0];
-      if (arg.startsWith("test")) {
-        arg = arg.replace("test", "");
+      if (arg.toLowerCase().startsWith("test")) {
+        arg = arg.toLowerCase().replace("test", "");
         try {
           testRun(arg);
         } catch (Exception e) {
@@ -57,6 +61,33 @@ public class Sikulix {
 
   public static void testRun(String arg) throws Exception {
     Screen scr = new Screen();
+
+    if (arg.startsWith("rec")) {
+      //region recording
+      Device.checkAccessibility();
+      if(!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
+        Commons.terminate(999, "Mouse and/or Screen not useable");
+      }
+
+      // we are running in API context
+      Commons.setStartClass(Sikulix.class);
+
+      // AppDataPath as SikulixAppData in Project/API
+      File path = Commons.setAppDataPath(Commons.getStartArg(APPDATA));
+      Commons.setTempFolder(new File(path, "Temp"));
+
+      // delete previous recordings
+      Recorder.INSTANCE.resetRecordingDirectory();
+
+      SX.popup("ok to start recording");
+      Recorder.INSTANCE.startRecording();
+
+      SX.popup("ok to stop recording");
+      Recorder.INSTANCE.finishRecording();
+
+      Commons.terminate();
+      //endregion
+    }
 
     if ("app".equals(arg)) {
       final IScriptRunner.Options options = new IScriptRunner.Options().setOutput();
