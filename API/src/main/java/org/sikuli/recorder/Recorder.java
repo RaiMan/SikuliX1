@@ -1,5 +1,6 @@
 package org.sikuli.recorder;
 
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.Commons;
 import org.w3c.dom.Document;
 
@@ -75,6 +76,11 @@ public enum Recorder {
         if (recording) return false;
         recordingFolder = new File(directory);
         return true;
+    }
+
+    public boolean resetRecordingDirectory() {
+        if (recording) return false;
+        return Commons.deleteFileOrFolder(recordingFolder);
     }
 
     public boolean setRecordingFolder(File folder) {
