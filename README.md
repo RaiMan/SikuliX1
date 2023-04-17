@@ -12,16 +12,16 @@ Great thanks for the new logo and all the help with the new webpage to [@Waleed 
 ---
 **2.0.6 (branch release_2.0.x) preparing for release - snapshots available**
 
-**Latest Upload: August 17th, 2022**
+**Latest Upload: April 17th, 2023**
 
 **Direct IDE downloads** &nbsp;&nbsp;&nbsp;&nbsp;
-[> for Windows <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidewin&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Intel <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemac&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Silicon Mx <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemacm1&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for Linux <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidelux&v=2.0.6-SNAPSHOT&e=jar) 
+[> for Windows <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidewin&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Intel <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemac&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Silicon Mx <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemacm&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for Linux <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidelux&v=2.0.6-SNAPSHOT&e=jar) 
 
-You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can place wherever you want and rename them to whatever you want. It is recommended to run with Java 11+ (preferably from [Adoptium/AdoptOpenJDK](https://adoptium.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk)) from a commandline/Terminal. 
+You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can place wherever you want and rename them to whatever you want. 
 
 **JAVA: must be Java 11 or later** (best places to get it: [Eclipse Temurin](https://adoptium.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk))
 
-**OCR (macOS/Linux):** now using Tess4J/Tesseract 5 - have a Tesseract 5.0.1 ready (tesseract runs on commandline)
+**OCR (macOS/Linux):** now using Tess4J/Tesseract 5 - have a Tesseract 5.x ready (tesseract runs on commandline)
 
 **OpenCV Support:** Windows/macOS have it bundled - for Linux you have to make it ready yourself 
 
