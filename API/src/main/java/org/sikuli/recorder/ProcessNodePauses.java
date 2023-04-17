@@ -22,7 +22,8 @@ public class ProcessNodePauses implements ProcessNode {
             Node tempNode = rawData.item(count);
             if (tempNode.getNodeType() == Node.ELEMENT_NODE) { // make sure it's element node.
                 if (tempNode.hasAttributes()) {
-                    if (tempNode.getNodeName().equals("MOVE")) {
+                    if (tempNode.getNodeName().equals("MOVE") ||
+                        tempNode.getNodeName().equals("DRAG")) {
                         NamedNodeMap nodeMap = tempNode.getAttributes();
                         timelapseFromStartOfRecording = Double.parseDouble(nodeMap.getNamedItem("millis").getNodeValue());
                         if (timelapseFromStartOfRecording - lastTimeLapse >= minTimeDifference
