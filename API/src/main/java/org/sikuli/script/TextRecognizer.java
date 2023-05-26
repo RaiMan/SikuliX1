@@ -396,7 +396,13 @@ public class TextRecognizer {
 //      Core.bitwise_not(mimg, mimg);
 //    }
 
-    return Image.getBufferedImage(mimg);
+    Mat binaryImage = new Mat();
+    if (options.isGrayFont()) {
+      Imgproc.adaptiveThreshold(mimg, binaryImage, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C,
+              Imgproc.THRESH_BINARY, 13, 16);
+    }
+
+    return Image.getBufferedImage(binaryImage);
   }
 
   /*
