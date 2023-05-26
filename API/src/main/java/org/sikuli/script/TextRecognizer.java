@@ -395,14 +395,13 @@ public class TextRecognizer {
 //    else if (Core.mean(mimg).val[0] < 127) {
 //      Core.bitwise_not(mimg, mimg);
 //    }
-
-    Mat binaryImage = new Mat();
+    
     if (options.isGrayFont()) {
-      Imgproc.adaptiveThreshold(mimg, binaryImage, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C,
-              Imgproc.THRESH_BINARY, 13, 16);
+      Imgproc.adaptiveThreshold(mimg, mimg, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C,
+              Imgproc.THRESH_BINARY, 15, 13);
     }
 
-    return Image.getBufferedImage(binaryImage);
+    return Image.getBufferedImage(mimg);
   }
 
   /*
