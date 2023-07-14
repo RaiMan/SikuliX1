@@ -1,4 +1,4 @@
-******** Paused (not available) till June 20th ********
+******** Paused (not available) till September 20th ********
 ---
 
 ---
