@@ -38,8 +38,21 @@ public class ScreenImage {
 	protected Rectangle rect;
 	protected BufferedImage _img;
 	protected String _filename = null;
-	public Location start;
-	public Location end;
+
+	public long getTimeCreated() {
+		return timeCreated;
+	}
+
+	public void setTimeCreated(long timeCreated) {
+		this.timeCreated = timeCreated;
+	}
+
+	private long timeCreated = -1;
+
+
+
+	private Location start;
+	private Location end;
 
 	public void setStartEnd(Location start, Location end) {
 		this.start = start;
@@ -72,14 +85,6 @@ public class ScreenImage {
 	public Rectangle getRect() {
 		return rect;
 	}
-
-  public ScreenImage getSub(Rectangle sub) {
-    if (!rect.contains(sub)) {
-      return this;
-    }
-    BufferedImage img = _img.getSubimage(sub.x - x, sub.y - y, sub.width, sub.height);
-    return new ScreenImage(sub, img);
-  }
 
 	/**
 	 * creates the PNG tempfile only when needed.

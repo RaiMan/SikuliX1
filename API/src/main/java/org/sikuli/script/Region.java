@@ -161,7 +161,12 @@ public class Region extends Element {
   //<editor-fold defaultstate="collapsed" desc="005 Init & special use">
 
   public Image getImage() {
-    return new Image(getScreen().capture(x, y, w, h));
+    long before = new Date().getTime();
+    ScreenImage capture = getScreen().capture(x, y, w, h);
+    long after = new Date().getTime();
+    long when = before + (after - before) / 2;
+    capture.setTimeCreated(when);
+    return new Image(capture);
   }
 
   /**

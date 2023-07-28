@@ -60,6 +60,8 @@ public class Image extends Element {
 
   private static String logName = "Image: ";
 
+  private long whenCaptured = -1;
+
   //<editor-fold desc="00 0  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
