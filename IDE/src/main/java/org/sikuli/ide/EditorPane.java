@@ -1809,8 +1809,6 @@ public class EditorPane extends JTextPane {
   }
 
   public void runLines(String lines) {
-    if (lines.startsWith(" ") || lines.startsWith("\t ")) {
-    }
     SikulixIDE.doHide();
     new Thread(new Runnable() {
       @Override
@@ -1820,7 +1818,7 @@ public class EditorPane extends JTextPane {
         try {
           ide.setCurrentRunner(editorPane.editorPaneRunner);
           ide.setCurrentScript(editorPane.getCurrentFile());
-          ide.setIsRunningScript(true);
+          //TODO ? ide.setIsRunningScript(true);
           ide.clearMessageArea();
           ide.resetErrorMark();
 
@@ -1833,7 +1831,7 @@ public class EditorPane extends JTextPane {
           SikulixIDE.showAgain();
           ide.setCurrentRunner(null);
           ide.setCurrentScript(null);
-          ide.setIsRunningScript(false);
+          //TODO ? ide.setIsRunningScript(false);
         }
       }
     }).start();

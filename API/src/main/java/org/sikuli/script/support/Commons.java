@@ -1950,9 +1950,9 @@ Software:
     Object instanceSup = null;
     Method method = null;
     try {
-      instanceSup = classSup.getMethod("get", null).invoke(null, null);
+      instanceSup = classSup.getMethod("get", (Class<?>[]) null).invoke(null, (Object[]) null);
       if (args == null) {
-        method = classSup.getMethod(function, null);
+        method = classSup.getMethod(function, (Class<?>[]) null);
         returnSup = method.invoke(instanceSup);
       } else {
         method = classSup.getMethod(function, Object[].class);
