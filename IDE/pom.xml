@@ -180,6 +180,10 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.11.0</version>
         <configuration>
+          <compilerArgs>
+            <arg>-Xlint:unchecked</arg>
+            <arg>-Xlint:deprecation</arg>
+          </compilerArgs>
           <source>11</source>
           <target>11</target>
         </configuration>

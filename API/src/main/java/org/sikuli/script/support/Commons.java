@@ -1013,7 +1013,8 @@ Software:
           }
         } else {
           try {
-            url = new URI(mainFile.getPath()).toURL();
+            URI uri = new URI(mainFile.getPath());
+            url = uri.toURL();
           } catch (IOException | URISyntaxException e) {
             Debug.error(enter);
             Debug.error("makeURL: %s -> %s(%s)", mainFile, e.getCause(), e.getMessage());
