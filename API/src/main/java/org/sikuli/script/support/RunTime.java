@@ -11,9 +11,7 @@ import org.sikuli.script.SikuliXception;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -203,22 +201,18 @@ public class RunTime {
         log(-1, "extractResourcesToFolderFromJar: does not exist:\n%s", faJar);
         return null;
       }
-      try {
-        uaJar = new URL("jar", null, "file:" + aJar);
-      } catch (MalformedURLException ex) {
+      uaJar = Commons.makeURL(aJar);
+      if (uaJar == null) {
         log(-1, "extractResourcesToFolderFromJar: bad URL for:\n%s", faJar);
         return null;
       }
-    } else {
       uaJar = fromClasspath(aJar);
       if (uaJar == null) {
         log(-1, "extractResourcesToFolderFromJar: not on classpath: %s", aJar);
         return null;
       }
-      try {
-        String sJar = "file:" + uaJar.getPath() + "!/";
-        uaJar = new URL("jar", null, sJar);
-      } catch (MalformedURLException ex) {
+      uaJar = Commons.makeURL(uaJar.getPath() + "!/");
+      if (uaJar == null) {
         log(-1, "extractResourcesToFolderFromJar: bad URL for:\n%s", uaJar);
         return null;
       }
@@ -351,15 +345,15 @@ public class RunTime {
       }
       return files;
     }
-    try {
-      uFolder = new URL(uFolder.toExternalForm().replaceAll(" ", "%20"));
-    } catch (Exception ex) {
-    }
     URL uContentList = clsRef.getResource(folder + "/" + fpContent);
     if (uContentList != null) {
       return doResourceListWithList(folder, files, filter);
     }
+    uFolder = Commons.makeURL(uFolder.toExternalForm().replaceAll(" ", "%20"));
     try {
+      if (uFolder == null) {
+        throw new RuntimeException("URL not possible");
+      }
       fFolder = new File(uFolder.toURI());
       log(lvl, "resourceList: having folder: %s", fFolder);
       files.add(fFolder.getPath());
@@ -613,7 +607,11 @@ public class RunTime {
     String subFolder = "";
     boolean skip = false;
     try {
-      zJar = new ZipInputStream(new URL(fpJar).openStream());
+      URL ufpjar = Commons.makeURL(fpJar);
+      if (ufpjar == null) {
+        return files;
+      }
+      zJar = new ZipInputStream(ufpjar.openStream());
       while ((zEntry = zJar.getNextEntry()) != null) {
         if (zEntry.getName().endsWith("/")) {
           continue;
@@ -681,7 +679,11 @@ public class RunTime {
     List<String> files = new ArrayList<>();
     ZipEntry zEntry;
     try {
-      zJar = new ZipInputStream(new URL(fpJar).openStream());
+      URL ufpjar = Commons.makeURL(fpJar);
+      if (ufpjar == null) {
+        return files;
+      }
+      zJar = new ZipInputStream(ufpjar.openStream());
       while ((zEntry = zJar.getNextEntry()) != null) {
         if (zEntry.getName().endsWith("/")) {
           continue;
@@ -723,7 +725,11 @@ public class RunTime {
     String current = "/";
     boolean shouldStop = false;
     try {
-      zJar = new ZipInputStream(new URL(fpJar).openStream());
+      URL ufpjar = Commons.makeURL(fpJar);
+      if (ufpjar == null) {
+        return false;
+      }
+      zJar = new ZipInputStream(ufpjar.openStream());
       while ((zEntry = zJar.getNextEntry()) != null) {
         zPath = zEntry.getName();
         if (zPath.endsWith("/")) {
@@ -922,8 +928,8 @@ public class RunTime {
     }
     if (null != scpe) {
       try {
-        cpe = new URL(scpe);
-      } catch (MalformedURLException e) {
+        cpe = new URI(scpe).toURL(); // new URL(scpe);
+      } catch (URISyntaxException | MalformedURLException e) {
       }
     }
     return cpe;

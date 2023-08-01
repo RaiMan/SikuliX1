@@ -17,7 +17,7 @@ import java.util.List;
  */
 
 public interface Carbon extends Library {
-    public static com.tulskiy.keymaster.osx.Carbon Lib = (com.tulskiy.keymaster.osx.Carbon) Native.loadLibrary("Carbon", com.tulskiy.keymaster.osx.Carbon.class);
+    public static com.tulskiy.keymaster.osx.Carbon Lib = (com.tulskiy.keymaster.osx.Carbon) Native.load("Carbon", com.tulskiy.keymaster.osx.Carbon.class);
 
     public static final int cmdKey = 0x0100;
     public static final int shiftKey = 0x0200;
@@ -43,7 +43,7 @@ public interface Carbon extends Library {
         public int eventKind;
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return Arrays.asList("eventClass", "eventKind");
         }
     }
@@ -54,7 +54,7 @@ public interface Carbon extends Library {
         public int id;
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return Arrays.asList("signature", "id");
         }
 

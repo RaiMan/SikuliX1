@@ -819,7 +819,7 @@ public class Image extends Element {
 
   //TODO make obsolete
   public static void unCache(String fileName) {
-    unCache(FileManager.makeURL(new File(fileName).getAbsolutePath()));
+    unCache(Commons.makeURL(new File(fileName).getAbsolutePath()));
   }
 
   /**

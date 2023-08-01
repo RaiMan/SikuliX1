@@ -478,11 +478,11 @@ public class PreferencesUser {
     String locale = pref.get("LOCALE", Locale.getDefault().toString());
     String[] code = locale.split("_");
     if (code.length == 1) {
-      return new Locale(code[0]);
+      return new Locale.Builder().setLanguage(code[0]).build();
     } else if (code.length == 2) {
-      return new Locale(code[0], code[1]);
+      return new Locale.Builder().setLanguage(code[0]).setRegion(code[1]).build();
     } else {
-      return new Locale(code[0], code[1], code[2]);
+      return new Locale.Builder().setLanguage(code[0]).setRegion(code[1]).setVariant(code[2]).build();
     }
   }
 

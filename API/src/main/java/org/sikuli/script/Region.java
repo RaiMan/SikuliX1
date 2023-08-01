@@ -2288,7 +2288,7 @@ public class Region extends Element {
     }
   }
 */
-
+  @SuppressWarnings("unchecked")
   protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
     if (target instanceof ArrayList) {
       ArrayList parms = (ArrayList) target;
@@ -2808,6 +2808,7 @@ public class Region extends Element {
    * @return 1 if possible, 0 otherwise
    * @throws FindFailed for Pattern or Filename
    */
+  @SuppressWarnings("unchecked")
   public <PFRML> int click(PFRML target, Integer modifiers) throws FindFailed {
     int ret = 0;
     if (target instanceof ArrayList) {
@@ -2820,7 +2821,7 @@ public class Region extends Element {
     }
     Location loc = getLocationFromTarget(target);
     if (null != loc) {
-      ret = Mouse.click(loc, InputEvent.BUTTON1_MASK, modifiers, false, this);
+      ret = Mouse.click(loc, InputEvent.BUTTON1_DOWN_MASK, modifiers, false, this);
     }
     //TODO      SikuliActionManager.getInstance().clickTarget(this, target, _lastScreenImage, _lastMatch);
     return ret;
@@ -2869,7 +2870,7 @@ public class Region extends Element {
     Location loc = getLocationFromTarget(target);
     int ret = 0;
     if (null != loc) {
-      ret = Mouse.click(loc, InputEvent.BUTTON1_MASK, modifiers, true, this);
+      ret = Mouse.click(loc, InputEvent.BUTTON1_DOWN_MASK, modifiers, true, this);
     }
     //TODO      SikuliActionManager.getInstance().doubleClickTarget(this, target, _lastScreenImage, _lastMatch);
     return ret;
@@ -2917,7 +2918,7 @@ public class Region extends Element {
     Location loc = getLocationFromTarget(target);
     int ret = 0;
     if (null != loc) {
-      ret = Mouse.click(loc, InputEvent.BUTTON3_MASK, modifiers, false, this);
+      ret = Mouse.click(loc, InputEvent.BUTTON3_DOWN_MASK, modifiers, false, this);
     }
     //TODO      SikuliActionManager.getInstance().rightClickTarget(this, target, _lastScreenImage, _lastMatch);
     return ret;
@@ -2969,7 +2970,7 @@ public class Region extends Element {
         Mouse.use(this);
         r1.smoothMove(loc1);
         r1.delay((int) (Settings.DelayBeforeMouseDown * 1000));
-        r1.mouseDown(InputEvent.BUTTON1_MASK);
+        r1.mouseDown(InputEvent.BUTTON1_DOWN_MASK);
         double DelayBeforeDrag = Settings.DelayBeforeDrag;
         if (DelayBeforeDrag < 0.0) {
           DelayBeforeDrag = Settings.DelayAfterDrag;
@@ -2977,7 +2978,7 @@ public class Region extends Element {
         r1.delay((int) (DelayBeforeDrag * 1000));
         r2.smoothMove(loc2);
         r2.delay((int) (Settings.DelayBeforeDrop * 1000));
-        r2.mouseUp(InputEvent.BUTTON1_MASK);
+        r2.mouseUp(InputEvent.BUTTON1_DOWN_MASK);
         Mouse.let(this);
         retVal = 1;
       }
@@ -3007,7 +3008,7 @@ public class Region extends Element {
         Mouse.use(this);
         r.smoothMove(loc);
         r.delay((int) (Settings.DelayBeforeMouseDown * 1000));
-        r.mouseDown(InputEvent.BUTTON1_MASK);
+        r.mouseDown(InputEvent.BUTTON1_DOWN_MASK);
         double DelayBeforeDrag = Settings.DelayBeforeDrag;
         if (DelayBeforeDrag < 0.0) {
           DelayBeforeDrag = Settings.DelayAfterDrag;
@@ -3044,7 +3045,7 @@ public class Region extends Element {
         Mouse.use(this);
         r.smoothMove(loc);
         r.delay((int) (Settings.DelayBeforeDrop * 1000));
-        r.mouseUp(InputEvent.BUTTON1_MASK);
+        r.mouseUp(InputEvent.BUTTON1_DOWN_MASK);
         r.waitForIdle();
         Mouse.let(this);
         retVal = 1;

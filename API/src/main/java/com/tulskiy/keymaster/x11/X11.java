@@ -15,7 +15,7 @@ import java.util.List;
  */
 @SuppressWarnings({"UnusedDeclaration"})
 public interface X11 extends Library {
-    public static com.tulskiy.keymaster.x11.X11 Lib = (com.tulskiy.keymaster.x11.X11) Native.loadLibrary("X11", com.tulskiy.keymaster.x11.X11.class);
+    public static com.tulskiy.keymaster.x11.X11 Lib = (com.tulskiy.keymaster.x11.X11) Native.load("X11", com.tulskiy.keymaster.x11.X11.class);
 
     public static final int GrabModeAsync = 1;
     public static final int KeyPress = 2;
@@ -78,7 +78,7 @@ public interface X11 extends Library {
         public int same_screen;     // same screen flag
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return Arrays.asList("type", "serial", "send_event", "display", "window", "root", "subwindow", "time",
                     "x", "y", "x_root", "y_root", "state", "keycode", "same_screen");
         }
@@ -94,7 +94,7 @@ public interface X11 extends Library {
         public byte minor_code;     // Minor op-code of failed request
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return Arrays.asList("type", "display", "serial", "error_code", "request_code", "minor_code", "resourceid");
         }
     }

@@ -4,9 +4,8 @@
 package org.sikuli.basics;
 
 /**
- * @deprecated use Settings.isWindows(), ...isMac() or ...isLinux() instead
+ * BETTER: use Settings.isWindows(), ...isMac() or ...isLinux() instead
  */
-@Deprecated
 public enum OS {
    MAC, WINDOWS, LINUX,
    NOT_SUPPORTED

@@ -64,7 +64,7 @@ public class HelpDevice extends Device {
     return clazz;
   }
 
-  private static Object invokeMethod(Class clazz, String methodName) {
+  private static Object invokeMethod(Class<?> clazz, String methodName) {
     Method method = null;
     Object result = null;
     if (null != clazz) {
@@ -77,9 +77,7 @@ public class HelpDevice extends Device {
       String error = "";
       try {
         result = method.invoke(null, (Object[]) null);
-      } catch (IllegalAccessException e) {
-        error = e.getMessage();
-      } catch (InvocationTargetException e) {
+      } catch (IllegalAccessException | InvocationTargetException e) {
         error = e.getMessage();
       }
       if (!error.isEmpty()) {
@@ -106,7 +104,7 @@ public class HelpDevice extends Device {
 
   //<editor-fold desc="20 Mobile actions (Android)">
   private static void stopAndroid() {
-    Class cADB = null;
+    Class<?> cADB = null;
     Method cADBstop = null;
     try {
       cADB = Class.forName("org.sikuli.vnc.VNCScreen");
@@ -122,9 +120,7 @@ public class HelpDevice extends Device {
       String error = "";
       try {
         cADBstop.invoke(null, (Object[]) null);
-      } catch (IllegalAccessException e) {
-        error = e.getMessage();
-      } catch (InvocationTargetException e) {
+      } catch (IllegalAccessException | InvocationTargetException e) {
         error = e.getMessage();
       }
       if (!error.isEmpty()) {
