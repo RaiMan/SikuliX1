@@ -46,7 +46,7 @@ public class Commons {
     Settings.init();
   }
 
-  //<editor-fold desc="00 static">
+  //<editor-fold desc="00 static / IDE support">
   private static Class COMMONS_CLASS = Commons.class;
   private static final long START_MOMENT;
   protected static boolean RUNNINGIDE = false;
