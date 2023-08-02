@@ -1013,7 +1013,7 @@ Software:
           }
         } else {
           try {
-            URI uri = new URI(mainFile.getPath());
+            URI uri = new URI("file:" + mainFile.getPath()); //TODO getURL()
             url = uri.toURL();
           } catch (IOException | URISyntaxException e) {
             Debug.error(enter);
@@ -1318,7 +1318,7 @@ Software:
 
   }
 
-  private static void copy(InputStream in, OutputStream out) throws IOException {
+  public static void copy(InputStream in, OutputStream out) throws IOException {
     byte[] tmp = new byte[8192];
     int len;
     while (true) {
@@ -1562,7 +1562,7 @@ Software:
         outFile = new File(fLibsFolder, aFile);
         try (FileOutputStream outFileStream = new FileOutputStream(outFile);
              InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
-          RunTime.copy(inStream, outFileStream);
+          copy(inStream, outFileStream);
         } catch (Exception ex) {
           copyMsg = String.format(": failed: %s", ex.getMessage());
         }
