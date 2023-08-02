@@ -39,6 +39,25 @@ public class FileManager {
   private static SplashFrame _progress = null;
   private static final String EXECUTABLE = "#executable";
 
+  private static URL getURL(String sURI) {
+    URL aURL = null;
+    if (sURI == null || sURI.isBlank()) {
+      return aURL;
+    }
+    boolean okURI = sURI.startsWith("file:") ||
+        sURI.startsWith("http:") ||
+        sURI.startsWith("https:") ||
+        sURI.startsWith("jar:");
+    if (!okURI) {
+      sURI = "file:" + sURI;
+    }
+    try {
+      aURL = new URI(sURI).toURL();
+    } catch (MalformedURLException | URISyntaxException e) {
+    }
+    return aURL;
+  }
+
   private static int tryGetFileSize(URL aUrl) {
     HttpURLConnection conn = null;
     try {
@@ -61,18 +80,6 @@ public class FileManager {
     }
   }
 
-  public static URL getURL(String sURI) { //TODO error msg?
-    URL aURL = null;
-    if (sURI == null || sURI.isBlank()) {
-      return aURL;
-    }
-    try {
-      aURL = new URI(sURI).toURL();
-    } catch (MalformedURLException | URISyntaxException e) {
-    }
-    return aURL;
-  }
-
   public static int isUrlUseabel(String sURI) {
     URL url = getURL(sURI);
     if (url == null) {
@@ -82,6 +89,9 @@ public class FileManager {
   }
 
   public static int isUrlUseabel(URL aURL) {
+    if (!aURL.getProtocol().startsWith("http")) {
+      return -1;
+    }
     HttpURLConnection conn = null;
     try {
 //			HttpURLConnection.setFollowRedirects(false);
