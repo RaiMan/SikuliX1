@@ -44,9 +44,9 @@ public class Mouse {
   protected int innerWait;
   protected int afterWait;
 
-  public static final int LEFT = InputEvent.BUTTON1_MASK;
-  public static final int MIDDLE = InputEvent.BUTTON2_MASK;
-  public static final int RIGHT = InputEvent.BUTTON3_MASK;
+  public static final int LEFT = InputEvent.BUTTON1_DOWN_MASK;
+  public static final int MIDDLE = InputEvent.BUTTON2_DOWN_MASK;
+  public static final int RIGHT = InputEvent.BUTTON3_DOWN_MASK;
   public static final int WHEEL_UP = -1;
   public static int WHEEL_DOWN = 1;
   public static final int WHEEL_STEP_DELAY = 50;
@@ -323,17 +323,17 @@ public class Mouse {
   private static String getClickMsg(Location loc, int buttons, int modifiers, boolean dblClick, long duration) {
     String msg = "";
     if (modifiers != 0 && modifiers < 16) {
-      msg += KeyEvent.getKeyModifiersText(modifiers).replaceAll(" ", "") + " + ";
+      msg += InputEvent.getModifiersExText(modifiers).replaceAll(" ", "") + " + ";
     }
-    if (buttons == InputEvent.BUTTON1_MASK && !dblClick) {
+    if (buttons == LEFT && !dblClick) {
       msg += "CLICK";
     }
-    if (buttons == InputEvent.BUTTON1_MASK && dblClick) {
+    if (buttons == LEFT && dblClick) {
       msg += "DOUBLE CLICK";
     }
-    if (buttons == InputEvent.BUTTON3_MASK) {
+    if (buttons == RIGHT) {
       msg += "RIGHT CLICK";
-    } else if (buttons == InputEvent.BUTTON2_MASK) {
+    } else if (buttons == MIDDLE) {
       msg += "MID CLICK";
     }
     msg += String.format(" on %s (%d msec)", loc, duration);

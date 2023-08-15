@@ -60,6 +60,8 @@ public class Image extends Element {
 
   private static String logName = "Image: ";
 
+  private long whenCaptured = -1;
+
   //<editor-fold desc="00 0  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
@@ -817,7 +819,7 @@ public class Image extends Element {
 
   //TODO make obsolete
   public static void unCache(String fileName) {
-    unCache(FileManager.makeURL(new File(fileName).getAbsolutePath()));
+    unCache(Commons.makeURL(new File(fileName).getAbsolutePath()));
   }
 
   /**

@@ -39,6 +39,25 @@ public class FileManager {
   private static SplashFrame _progress = null;
   private static final String EXECUTABLE = "#executable";
 
+  private static URL getURL(String sURI) {
+    URL aURL = null;
+    if (sURI == null || sURI.isBlank()) {
+      return aURL;
+    }
+    boolean okURI = sURI.startsWith("file:") ||
+        sURI.startsWith("http:") ||
+        sURI.startsWith("https:") ||
+        sURI.startsWith("jar:");
+    if (!okURI) {
+      sURI = "file:" + sURI;
+    }
+    try {
+      aURL = new URI(sURI).toURL();
+    } catch (MalformedURLException | URISyntaxException e) {
+    }
+    return aURL;
+  }
+
   private static int tryGetFileSize(URL aUrl) {
     HttpURLConnection conn = null;
     try {
@@ -61,15 +80,18 @@ public class FileManager {
     }
   }
 
-  public static int isUrlUseabel(String sURL) {
-    try {
-      return isUrlUseabel(new URL(sURL));
-    } catch (Exception ex) {
+  public static int isUrlUseabel(String sURI) {
+    URL url = getURL(sURI);
+    if (url == null) {
       return -1;
     }
+    return(isUrlUseabel(url));
   }
 
   public static int isUrlUseabel(URL aURL) {
+    if (!aURL.getProtocol().startsWith("http")) {
+      return -1;
+    }
     HttpURLConnection conn = null;
     try {
 //			HttpURLConnection.setFollowRedirects(false);
@@ -305,14 +327,11 @@ public class FileManager {
    * @return the absolute path to the downloaded file or null on any error
    */
   public static String downloadURL(String url, String localPath) {
-    URL urlSrc = null;
-    try {
-      urlSrc = new URL(url);
-    } catch (MalformedURLException ex) {
-      log(-1, "download: bad URL: " + url);
-      return null;
+    URL urlSrc = getURL(url);
+    if (urlSrc != null) {
+      return downloadURL(urlSrc, localPath);
     }
-    return downloadURL(urlSrc, localPath);
+    return null;
   }
 
   public static String downloadURL(String url, String localPath, JFrame progress) {
@@ -326,10 +345,8 @@ public class FileManager {
       silent = true;
       src = src.substring(1);
     }
-    URL url = null;
-    try {
-      url = new URL(src);
-    } catch (MalformedURLException ex) {
+    URL url = getURL(src);
+    if (url == null) {
       log(-1, "download to string: bad URL:\n%s", src);
       return null;
     }
@@ -380,8 +397,7 @@ public class FileManager {
    */
   public static boolean openURL(String url) {
     try {
-      URL u = new URL(url);
-      Desktop.getDesktop().browse(u.toURI());
+      Desktop.getDesktop().browse(new URI(url));
     } catch (Exception ex) {
       log(-1, "show in browser: not possible: %s (try manually)", url);
       return false;
@@ -744,43 +760,6 @@ public class FileManager {
     return false;
   }
 
-  public static URL makeURL(String fName) {
-    return makeURL(fName, "file");
-  }
-
-  public static URL makeJarURL(File fJar) {
-    return makeURL(fJar.getAbsolutePath(), "jar");
-  }
-
-  public static URL makeURL(String fName, String type) {
-    try {
-      if ("file".equals(type)) {
-        fName = normalizeAbsolute(fName);
-        if (!fName.startsWith("/")) {
-          fName = "/" + fName;
-        }
-      }
-      if ("jar".equals(type)) {
-        if (!fName.contains("!/")) {
-          fName += "!/";
-        }
-        fName = fName.startsWith("file:") ? "jar:" + fName : "jar:file:" + fName;
-        URL url = new URL(fName);
-        return url;
-      } else if ("file".equals(type)) {
-        File aFile = new File(fName);
-        if (aFile.exists() && aFile.isDirectory()) {
-          if (!fName.endsWith("/")) {
-            fName += "/";
-          }
-        }
-      }
-      return new URL(type, null, fName);
-    } catch (MalformedURLException ex) {
-      return null;
-    }
-  }
-
   public static int getPort(String p) {
     int port;
     int pDefault = 50000;
@@ -953,7 +932,10 @@ public class FileManager {
       if (!folderName.startsWith("http://") && !folderName.startsWith("https://")) {
         folderName = "file://" + (new File(folderName)).getAbsolutePath();
       }
-      URL src = new URL(folderName);
+      URL src = getURL(folderName);
+      if (src == null) {
+        throw new RuntimeException(String.format("URL(%s) not possible", folderName));
+      }
       JarOutputStream jout = new JarOutputStream(new FileOutputStream(jarName));
       addToJar(jout, new File(src.getFile()), prefix);
       jout.close();
@@ -978,7 +960,7 @@ public class FileManager {
     try {
       JarOutputStream jout = new JarOutputStream(new FileOutputStream(targetJar));
       if (jars != null) {
-        ArrayList done = new ArrayList();
+        ArrayList<String> done = new ArrayList<>();
         for (int i = 0; i < jars.length; i++) {
           if (jars[i] == null) {
             continue;

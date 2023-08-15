@@ -427,7 +427,7 @@ public class RobotDesktop extends Robot implements IRobot {
           hCode = "000".substring(0, 4 - hCode.length()) + hCode;
         }
         retVal = hCode;
-        if (hCode.charAt(0) == '0' && hCode.charAt(3) == '0') {
+        if (false) { //TODO needed on Mac?? (hCode.charAt(0) == '0' && hCode.charAt(3) == '0') {
           Debug.error("Robot::typex: cannot be typed using ALT+ABCD (macOS problem: 0x0..0): %s (0x%s)", (char) nCode, hCode);
         } else {
           Map<Character, int[]> keys = KeyboardLayout.getAwtEnUS();

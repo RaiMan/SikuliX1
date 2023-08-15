@@ -154,7 +154,7 @@ public class OpenCV {
     if (!outFile.exists()) {
       try (FileOutputStream outStream = new FileOutputStream(outFile);
            InputStream inStream = Commons.class.getResourceAsStream(location)) {
-        RunTime.copy(inStream, outStream);
+        Commons.copy(inStream, outStream);
         Debug.log(3, "OpenCV lib: %s (%s %s)", outFile, os, arch);
       } catch (Exception ex) {
         return null;

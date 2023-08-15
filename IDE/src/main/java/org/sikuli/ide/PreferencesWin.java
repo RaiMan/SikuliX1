@@ -559,11 +559,11 @@ public class PreferencesWin extends JFrame {
     int count = 0;
     for (String locale_code : SUPPORT_LOCALES) {
       Locale l;
-      if (locale_code.indexOf("_") >= 0) {
+      if (locale_code.contains("_")) {
         String[] lang_country = locale_code.split("_");
-        l = new Locale(lang_country[0], lang_country[1]);
+        l = new Locale.Builder().setLanguage(lang_country[0]).setRegion(lang_country[1]).build();
       } else {
-        l = new Locale(locale_code);
+        l = new Locale.Builder().setLanguage(locale_code).build();
       }
       sortedLocales[count++] = l;
     }

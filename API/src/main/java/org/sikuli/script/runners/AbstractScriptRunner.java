@@ -49,6 +49,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   private boolean running = false;
 
+  public final boolean isRunning() {
+    return running;
+  }
+
   private PrintStream redirectedStdout;
   private PrintStream redirectedStderr;
 
@@ -291,10 +295,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   static ArrayList<String> codeBefore = null;
   static ArrayList<String> codeAfter = null;
-
-  public final boolean isRunning() {
-    return running;
-  }
 
   public boolean isAbortSupported() {
     return false;

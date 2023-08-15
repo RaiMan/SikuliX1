@@ -39,12 +39,14 @@ import static org.sikuli.util.CommandArgsEnum.*;
 public class Commons {
 
   //TODO force early Commons static initializer (RunTime)
-  private Commons(){}
+  private Commons() {
+  }
+
   public static void init() {
     Settings.init();
   }
 
-  //<editor-fold desc="00 static">
+  //<editor-fold desc="00 static / IDE support">
   private static Class COMMONS_CLASS = Commons.class;
   private static final long START_MOMENT;
   protected static boolean RUNNINGIDE = false;
@@ -90,7 +92,7 @@ public class Commons {
   private static final String SX_TEMP_DIR = System.getProperty("java.io.tmpdir");
   private static File SX_TEMP_FOLDER = null;
 
-  private static Locale SX_LOCALE = new Locale("en", "US");
+  private static Locale SX_LOCALE = new Locale.Builder().setLanguage("en").setRegion("US").build();
 
   public static boolean isRunningIDE() {
     if (RUNNINGIDE &&
@@ -368,7 +370,7 @@ Software:
     return getMainClassLocation().getAbsolutePath().endsWith(".jar");
   }
 
- static boolean runningApp = false;
+  static boolean runningApp = false;
 
   public static boolean isRunningApp(Object... state) {
     if (state.length > 0) {
@@ -944,10 +946,12 @@ Software:
               mainPath = mainPath + "/" + sub;
             }
           }
+          String sUri = "jar:" + mainPath;
           try {
-            mainURL = new URL("jar:" + mainPath);
-          } catch (IOException e) {
-            e.printStackTrace();
+            mainURL = new URI(sUri).toURL();
+          } catch (IOException | URISyntaxException e) {
+            Debug.error(enter);
+            Debug.error("makeURL: %s -> %s(%s)", sUri, e.getCause(), e.getMessage());
           }
           return mainURL;
         } else {
@@ -970,10 +974,10 @@ Software:
         mainPath += sub;
       }
       try {
-        url = new URL(mainPath);
-      } catch (MalformedURLException e) {
+        url = new URI(mainPath).toURL();
+      } catch (IOException | URISyntaxException e) {
         Debug.error(enter);
-        Debug.error("makeURL: net url malformed: %s (%s)", mainPath, e.getMessage());
+        Debug.error("makeURL: %s -> %s(%s)", mainPath, e.getCause(), e.getMessage());
       }
     } else {
       if (mainFile.getPath().endsWith(".jar") || mainFile.getPath().contains(".jar!")) {
@@ -989,26 +993,39 @@ Software:
           Debug.error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
         }
       }
-      try {
-        if (!isJar) {
-          if (!mainFile.isAbsolute()) {
-            mainFile = new File(getWorkDir(), mainFile.getPath());
-          }
+      if (!isJar) {
+        if (!mainFile.isAbsolute()) {
+          mainFile = new File(getWorkDir(), mainFile.getPath());
+        }
+        try {
           mainFile = mainFile.getCanonicalFile();
-          if (!mainFile.exists()) {
-            if (main instanceof String) {
-              url = makeClassURL((String) main);
-            }
-            if (url == null) {
-              Debug.error(enter);
-              Debug.error("makeURL(%s): file does not exist and is not a class resource", main);
-            }
-          } else {
-            url = mainFile.toURI().toURL();
+        } catch (IOException e) {
+          Debug.error(enter);
+          Debug.error("makeURL: %s -> %s(%s)", mainFile, e.getCause(), e.getMessage());
+        }
+        if (!mainFile.exists()) {
+          if (main instanceof String) {
+            url = makeClassURL((String) main);
+          }
+          if (url == null) {
+            Debug.error(enter);
+            Debug.error("makeURL(%s): file does not exist and is not a class resource", main);
           }
         } else {
+          try {
+            URI uri = new URI("file:" + mainFile.getPath()); //TODO getURL()
+            url = uri.toURL();
+          } catch (IOException | URISyntaxException e) {
+            Debug.error(enter);
+            Debug.error("makeURL: %s -> %s(%s)", mainFile, e.getCause(), e.getMessage());
+          }
+        }
+      } else {
+        String sJar = "";
+        try {
           String[] parts = mainFile.getPath().split("\\.jar");
           String jarPart = parts[0] + ".jar";
+          sJar = jarPart;
           if (!new File(jarPart).exists()) {
             throw new IOException();
           }
@@ -1021,14 +1038,12 @@ Software:
           }
           subPart = "!/" + subPart.replace("\\", "/");
           subPart = subPart.replace("//", "/");
-          url = new URL("jar:file:" + jarPart + subPart);
+          sJar = "jar:file:" + jarPart + subPart;
+          url = new URI(sJar).toURL();
+        } catch (IOException | URISyntaxException e) {
+          Debug.error(enter);
+          Debug.error("makeURL: %s -> %s(%s)", sJar, e.getCause(), e.getMessage());
         }
-      } catch (MalformedURLException e) {
-        Debug.error(enter);
-        Debug.error("makeURL: malformed: %s", mainFile);
-      } catch (IOException e) {
-        Debug.error(enter);
-        Debug.error("makeURL: not found: %s", mainFile);
       }
     }
 
@@ -1066,17 +1081,19 @@ Software:
 
   private static URL makeURLFromPath(String path) {
     URL dirURL;
+    String sUri = "";
     if (path.startsWith("<appdata>")) {
       String path1 = getAppDataPath().getAbsolutePath();
       path = path.replace("<appdata>", path1);
     }
+    File resFolderFile = new File(path);
+    if (!resFolderFile.isAbsolute()) {
+      resFolderFile = new File(resFolderFile.getAbsolutePath());
+    }
+    sUri = "file:" + (runningWindows() ? "/" : "") + resFolderFile;
     try {
-      File resFolderFile = new File(path);
-      if (!resFolderFile.isAbsolute()) {
-        resFolderFile = new File(resFolderFile.getAbsolutePath());
-      }
-      dirURL = new URL("file:" + (runningWindows() ? "/" : "") + resFolderFile);
-    } catch (MalformedURLException e) {
+      dirURL = new URI(sUri).toURL();
+    } catch (IOException | URISyntaxException e) {
       dirURL = null;
     }
     return dirURL;
@@ -1301,7 +1318,7 @@ Software:
 
   }
 
-  private static void copy(InputStream in, OutputStream out) throws IOException {
+  public static void copy(InputStream in, OutputStream out) throws IOException {
     byte[] tmp = new byte[8192];
     int len;
     while (true) {
@@ -1542,14 +1559,14 @@ Software:
         inFile = new File(fpJarLibs, aFile).getPath();
       }
       if (inFile != null) {
-          outFile = new File(fLibsFolder, aFile);
-          try (FileOutputStream outFileStream = new FileOutputStream(outFile);
-               InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
-            RunTime.copy(inStream, outFileStream);
-          } catch (Exception ex) {
-            copyMsg = String.format(": failed: %s", ex.getMessage());
-          }
-          copyMsg = String.format("libsExport: %s%s", aFile, copyMsg);
+        outFile = new File(fLibsFolder, aFile);
+        try (FileOutputStream outFileStream = new FileOutputStream(outFile);
+             InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
+          copy(inStream, outFileStream);
+        } catch (Exception ex) {
+          copyMsg = String.format(": failed: %s", ex.getMessage());
+        }
+        copyMsg = String.format("libsExport: %s%s", aFile, copyMsg);
       }
       if (copyMsg.contains("failed")) {
         FileManager.deleteFileOrFolder(fLibsFolder);
@@ -1950,9 +1967,9 @@ Software:
     Object instanceSup = null;
     Method method = null;
     try {
-      instanceSup = classSup.getMethod("get", null).invoke(null, null);
+      instanceSup = classSup.getMethod("get", (Class<?>[]) null).invoke(null, (Object[]) null);
       if (args == null) {
-        method = classSup.getMethod(function, null);
+        method = classSup.getMethod(function, (Class<?>[]) null);
         returnSup = method.invoke(instanceSup);
       } else {
         method = classSup.getMethod(function, Object[].class);

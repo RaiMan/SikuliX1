@@ -40,9 +40,7 @@ public class Env {
 
   /**
    * @return current Location
-   * @deprecated use {@link Mouse#at()} instead
    */
-  @Deprecated
   public static Location getMouseLocation() {
     return Mouse.at();
   }

@@ -114,6 +114,28 @@ public class Sikulix {
       }
     }
 
+    if ("click".equals(arg)) {
+      Debug.on(3);
+      File userHome = Commons.getUserHome();
+      File testBundle = new File(userHome, "IdeaProjects/SikuliX1/API/src/main/resources/images");
+      ImagePath.setBundleFolder(testBundle);
+      ImagePath.dump(0);
+
+      Image img = Image.from("img");
+      Debug.log("%s", img);
+      Debug.log("%s", img.getFilename());
+
+      Match mimg = scr.exists(img, 0);
+      try {
+        Debug.log(3, "Match::%s", mimg);
+        Settings.MoveMouseDelay = 0;
+        int clicked = scr.click(mimg);
+        Debug.log(3, "Click::%s", clicked);
+      } catch (FindFailed e) {
+        Debug.error("click::FindFailed");
+      }
+    }
+
     if ("zzz".equals(arg)) {
       Debug.on(3);
       try {
