@@ -26,6 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.nio.file.*;
+import java.nio.file.FileSystem;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
@@ -1391,7 +1392,12 @@ Software:
 
   public static boolean isValidImageFilename(String fname) {
     String validEndings = ".png.jpg.jpeg";
-    String ending = FilenameUtils.getExtension(fname);
+    String ending = "";
+    try {
+        ending = FilenameUtils.getExtension(fname);
+    } catch(IllegalArgumentException e) {
+        return false;
+    }
     return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
   }
 
