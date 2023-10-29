@@ -23,7 +23,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
@@ -242,9 +244,12 @@ public class Sikulix {
           isRunning.createNewFile();
           isRunningFile = new FileOutputStream(isRunning);
           if (null == isRunningFile.getChannel().tryLock()) {
+            stopSplash();
+/*
             Class<?> classIDE = Class.forName("org.sikuli.ide.SikulixIDE");
             Method stopSplash = classIDE.getMethod("stopSplash", new Class[0]);
             stopSplash.invoke(null, new Object[0]);
+*/
             org.sikuli.script.Sikulix.popError("Terminating: IDE already running");
             shouldTerminate = true;
           } else {
@@ -257,11 +262,11 @@ public class Sikulix {
         if (shouldTerminate) {
           System.exit(1);
         }
-        for (String aFile : Commons.getTempFolder().list()) {
-          if ((aFile.startsWith("Sikulix"))
-              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
-            FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), aFile));
-          }
+        File tempFolder = Commons.getTempFolder();
+        if (tempFolder != null) {
+          Arrays.stream(Objects.requireNonNull(tempFolder.list())).filter(aFile -> (aFile.startsWith("Sikulix"))
+              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp")))
+              .map(aFile -> new File(Commons.getTempFolder(), aFile)).forEach(FileManager::deleteFileOrFolder);
         }
       }
       //endregion
@@ -324,25 +329,19 @@ public class Sikulix {
       //region run server
       Debug.isIDEstarting(false);
       Debug.getIdeStartLog();
-      Class cServer = null;
+      Class<?> cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
         cServer.getMethod("run").invoke(null);
         Commons.terminate();
-      } catch (ClassNotFoundException e) {
-      } catch (NoSuchMethodException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InvocationTargetException e) {
+      } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
       }
       try {
         cServer = Class.forName("org.sikuli.script.support.SikulixServer");
         if (!(Boolean) cServer.getMethod("run").invoke(null)) {
           Commons.terminate(1, "SikulixServer: terminated with errors");
         }
-      } catch (ClassNotFoundException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InvocationTargetException e) {
-      } catch (NoSuchMethodException e) {
+      } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
       }
       Commons.terminate();
       //endregion
