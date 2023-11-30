@@ -36,7 +36,7 @@ You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can pl
 **2.1.0 (branch master) currently not useable - development suspended**
 <hr>
 
-**Latest stable version is 2.0.5** (still runs with Java 8)
+**Latest stable version is 2.0.5** (still works with Java 8, does not run on Mac mX machines)
 
 [Important: Read about changes/issues/enhancements](https://github.com/RaiMan/SikuliX1/wiki/About-actual-release-version)
 
