@@ -1,4 +1,4 @@
-******** Paused (not available) till October 2023 ********
+******** Paused (not available) till January 2024 ********
 ---
 
 ---
@@ -42,7 +42,7 @@ You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can pl
 
 [List of fixes](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
 
-[Get SikuliX ready to use](https://raiman.github.io/SikuliX1/downloads.html)
+[Get SikuliX ready to use](https://raimans-sikulix.gitbook.io/untitled/)
  
 For use in **Java Maven projects** the dependency coordinates are:
 ```
