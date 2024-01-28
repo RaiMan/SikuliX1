@@ -4,6 +4,9 @@
 package org.sikuli.script;
 
 import org.apache.commons.io.FilenameUtils;
+import org.opencv.core.*;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -13,10 +16,16 @@ import org.sikuli.script.support.gui.SXDialog;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.Point;
+import java.awt.geom.AffineTransform;
 import java.awt.image.*;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.List;
 import java.util.*;
 
@@ -45,25 +54,39 @@ import java.util.*;
  */
 public class Image extends Element {
 
+  static {
+    Commons.loadOpenCV();
+  }
+
   private static String logName = "Image: ";
 
-  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
-  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
-  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
+  private long whenCaptured = -1;
 
   //<editor-fold desc="00 0  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
   }
 
+  public Location getTopLeft() {
+    return Optional.ofNullable(topLeft).map(Location::new).orElseGet(() -> new Location(0, 0));
+  }
+
+  public void setTopLeft(int x, int y) {
+    topLeft = new Point(x, y);
+  }
+
+  private Point topLeft = null;
+
   private Image() {
   }
 
-  public static <SFIRBS> Image get(SFIRBS whatEver) {
+  public static <SFIRBS> Image from(SFIRBS whatEver) {
     if (whatEver instanceof String) {
       return Image.create((String) whatEver);
     } else if (whatEver instanceof File) {
       return Image.create((File) whatEver);
+    } else if (whatEver instanceof URL) {
+      return Image.create((URL) whatEver);
     } else if (whatEver instanceof Match) {
       Region theRegion = new Region((Match) whatEver);
       return theRegion.getImage();
@@ -172,7 +195,7 @@ public class Image extends Element {
     bimg = img;
     w = bimg.getWidth();
     h = bimg.getHeight();
-    log(logLevel, "BufferedImage: (%d, %d)%s", w, h,
+    log(logLevel + 1, "BufferedImage: (%d, %d)%s", w, h,
         (name == null ? "" : " with name: " + name));
   }
 
@@ -184,6 +207,7 @@ public class Image extends Element {
    */
   public Image(ScreenImage img) {
     this(img.getImage(), null);
+    this.setTopLeft(img.x, img.y);
   }
 
   /**
@@ -196,6 +220,7 @@ public class Image extends Element {
    */
   public Image(ScreenImage img, String name) {
     this(img.getImage(), name);
+    this.setTopLeft(img.x, img.y);
   }
 
   /**
@@ -226,7 +251,9 @@ public class Image extends Element {
     return String.format("I[" +
         (getName() != null ? getName() : "__UNKNOWN__") + "(%dx%d)]", w, h)
         + (lastSeen == null ? ""
-        : String.format(" at(%d,%d)%%%.2f", lastSeen.x, lastSeen.y, lastScore * 100.0));
+        : String.format(" at(%d,%d)%%%.2f", lastSeen.x, lastSeen.y, lastScore * 100.0))
+        + (topLeft == null ? ""
+        : String.format(" from(%d,%d)", topLeft.x, topLeft.y, lastScore * 100.0));
   }
   //</editor-fold>
 
@@ -409,7 +436,7 @@ public class Image extends Element {
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public BufferedImage resize(float factor) {
-    return resize(factor, Commons.Interpolation.CUBIC);
+    return resize(factor, Interpolation.CUBIC);
   }
 
   /**
@@ -419,8 +446,8 @@ public class Image extends Element {
    * @param interpolation algorithm used for pixel interpolation
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
-  public BufferedImage resize(float factor, Commons.Interpolation interpolation) {
-    return Commons.resize(get(), factor, interpolation);
+  public BufferedImage resize(float factor, Interpolation interpolation) {
+    return resize(get(), factor, interpolation);
   }
 
   //</editor-fold>
@@ -535,6 +562,108 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="01 create">
+  /**
+   * create a new Image as copy of the given Image
+   *
+   * @param imgSrc given Image
+   * @return new Image
+   */
+  private static Image create(Image imgSrc) {
+    return imgSrc.copy();
+  }
+
+  /**
+   * create a new image from a filename <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param fName image filename
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  private static Image create(String fName) {
+    Image img = get(fName);
+    return createImageValidate(img); // create(String fName)
+  }
+
+  public static Image createSilent(String fName) {
+    silent = true;
+    Image image = create(fName);
+    silent = false;
+    return image;
+  }
+
+  /**
+   * create a new image from the given file <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param imageFile a Java File object
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  private static Image create(File imageFile) {
+    Image img = get(imageFile.getAbsolutePath());
+    return createImageValidate(img); // create(File imageFile)
+  }
+
+  /**
+   * create a new image from the given url <br>
+   * file ending .png is added if missing <br>
+   * filename: ...url-path.../name[.png] is loaded from the url and and cached
+   * <br>
+   * already loaded image with same url is reused (reference) and taken from
+   * cache
+   *
+   * @param url image file URL
+   * @return the image
+   */
+  private static Image create(URL url) {
+    Image img = null;
+    if (url != null) {
+      img = get(url);
+    }
+    if (img == null) {
+      img = new Image(url);
+    }
+    return createImageValidate(img); // create(URL url)
+  }
+
+  /**
+   * FOR INTERNAL USE: from IDE - suppresses load error message
+   *
+   * @param fName image filename
+   * @return this
+   */
+  public static Image createThumbNail(String fName) {
+    Image img = get(fName);
+    return createImageValidate(img); // createThumbNail(String fName)
+  }
+
+  private static Image createImageValidate(Image img) {
+    if (img == null) {
+      return new Image("", null);
+    }
+    if (!img.isValid()) {
+      if (Commons.isValidImageFilename(img.getNameGiven())) {
+        img.setIsText(false);
+      } else {
+        img.setIsText(true);
+      }
+    }
+    return img;
+  }
+//</editor-fold>
+
+//<editor-fold desc="02 getSub">
   public Image getSub(Rectangle r) {
     return getSub(r.x, r.y, r.width, r.height);
   }
@@ -564,163 +693,18 @@ public class Image extends Element {
    * @return the new image
    */
   public Image getSub(int x, int y, int w, int h) {
-//    BufferedImage bi;
-//    if (get().getType() == BufferedImage.TYPE_3BYTE_BGR) {
-//      bi = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-//      Graphics graphics = bi.getGraphics();
-//      graphics.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
-//      graphics.dispose();
-//    } else {
-//      bi = createBufferedImage(w, h);
     BufferedImage bi = new BufferedImage(w, h, get().getType());
     Graphics2D g = bi.createGraphics();
     g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
     g.dispose();
-//    }
     return new Image(bi);
-  }
-
-//  private static BufferedImage createBufferedImage(int w, int h) {
-//    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-//    int[] nBits = {8, 8, 8, 8};
-//    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-//    SampleModel sm = cm.createCompatibleSampleModel(w, h);
-//    DataBufferByte db = new DataBufferByte(w * h * 4);
-//    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-//    BufferedImage bm = new BufferedImage(cm, r, false, null);
-//    return bm;
-//  }
-
-  /**
-   * create a new Image as copy of the given Image
-   *
-   * @param imgSrc given Image
-   * @return new Image
-   */
-  public static Image create(Image imgSrc) {
-    return imgSrc.copy();
-  }
-
-  /**
-   * create a new image from a filename <br>
-   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
-   * relative filename: [...path.../]name[.png] is searched on current image path<br>
-   * absolute filename is taken as is
-   * if image exists, it is loaded to cache <br>
-   * already loaded image with same name (given path) is reused (taken from cache) <br>
-   * <p>
-   * if image not found, it might be a text to be searched (imageIsText = true)
-   *
-   * @param fName image filename
-   * @return an Image object (might not be valid - check with isValid())
-   */
-  public static Image create(String fName) {
-    Image img = get(fName);
-    return createImageValidate(img);
-  }
-
-  public static Image createSilent(String fName) {
-    silent = true;
-    Image image = create(fName);
-    silent = false;
-    return image;
-  }
-
-  /**
-   * create a new image from the given file <br>
-   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
-   * relative filename: [...path.../]name[.png] is searched on current image path<br>
-   * absolute filename is taken as is
-   * if image exists, it is loaded to cache <br>
-   * already loaded image with same name (given path) is reused (taken from cache) <br>
-   * <p>
-   * if image not found, it might be a text to be searched (imageIsText = true)
-   *
-   * @param imageFile a Java File object
-   * @return an Image object (might not be valid - check with isValid())
-   */
-  public static Image create(File imageFile) {
-    Image img = get(imageFile.getAbsolutePath());
-    return createImageValidate(img);
-  }
-
-  /**
-   * create a new Image with Pattern aspects from an existing Pattern
-   *
-   * @param p a Pattern
-   * @return the new Image
-   */
-  public static Image create(Pattern p) {
-    Image img = p.getImage().copy();
-    img.setIsPattern(true);
-    img.setSimilarity(p.getSimilar());
-    img.setOffset(p.getTargetOffset());
-    img.setWaitAfter(p.getTimeAfter());
-    return img;
-  }
-
-  /**
-   * create a new image from the given url <br>
-   * file ending .png is added if missing <br>
-   * filename: ...url-path.../name[.png] is loaded from the url and and cached
-   * <br>
-   * already loaded image with same url is reused (reference) and taken from
-   * cache
-   *
-   * @param url image file URL
-   * @return the image
-   */
-  public static Image create(URL url) {
-    Image img = null;
-    if (url != null) {
-      img = get(url);
-    }
-    if (img == null) {
-      img = new Image(url);
-    }
-    return createImageValidate(img);
-  }
-
-  /**
-   * FOR INTERNAL USE: from IDE - suppresses load error message
-   *
-   * @param fName image filename
-   * @return this
-   */
-  public static Image createThumbNail(String fName) {
-    Image img = get(fName);
-    return createImageValidate(img);
-  }
-
-  private static Image createImageValidate(Image img) {
-    if (img == null) {
-      return new Image("", null);
-    }
-    if (!img.isValid()) {
-      if (isValidImageFilename(img.getNameGiven())) {
-        img.setIsText(false);
-      } else {
-        img.setIsText(true);
-      }
-    }
-    return img;
-  }
-
-  public static boolean isValidImageFilename(String fname) {
-    String validEndings = ".png.jpg.jpeg";
-    String ending = FilenameUtils.getExtension(fname);
-    return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
-  }
-
-  public static String getValidImageFilename(String fname) {
-    if (isValidImageFilename(fname)) {
-      return fname;
-    }
-    return fname + ".png";
   }
   //</editor-fold>
 
-  //<editor-fold desc="02 caching">
+  //<editor-fold desc="04 caching">
+  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
+  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
+  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
   private static final int KB = 1024;
   private static final int MB = KB * KB;
   private final static String isBImg = "__BufferedImage__";
@@ -835,7 +819,7 @@ public class Image extends Element {
 
   //TODO make obsolete
   public static void unCache(String fileName) {
-    unCache(FileManager.makeURL(new File(fileName).getAbsolutePath()));
+    unCache(Commons.makeURL(new File(fileName).getAbsolutePath()));
   }
 
   /**
@@ -913,7 +897,7 @@ public class Image extends Element {
       File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
       if (FileManager.xcopy(fOrg, fBack)) {
         hasBackup = fBack.getPath();
-        log(logLevel, "backup: %s created", fBack.getName());
+        log(logLevel + 1, "backup: %s created", fBack.getName());
         return true;
       }
       log(-1, "backup: %s did not work", fBack.getName());
@@ -926,7 +910,7 @@ public class Image extends Element {
       File fBack = new File(hasBackup);
       File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
       if (FileManager.xcopy(fBack, fOrg)) {
-        log(logLevel, "restore: %s restored", fOrg.getName());
+        log(logLevel + 1, "restore: %s restored", fOrg.getName());
         FileManager.deleteFileOrFolder(fBack);
         hasBackup = "";
         return true;
@@ -937,7 +921,7 @@ public class Image extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="03 load/save">
+  //<editor-fold desc="06 load/save">
 
   /**
    * FOR INTERNAL USE: tries to get the image from the cache, if not cached yet:
@@ -956,20 +940,17 @@ public class Image extends Element {
       image = new Image();
       image.setIsText(true);
       image.textSearch = true;
+      image.imageNameGiven = fName;
     } else {
-      URL imageURL = null;
-      String imageFileName = getValidImageFilename(fName);
-      if (imageFileName.isEmpty()) {
-        log(-1, "not a valid image type: " + fName);
-        imageFileName = fName;
-      }
+      URL imageURL;
+      String imageFileName = Commons.getValidImageFilename(fName);
       File imageFile = new File(imageFileName);
-      if (imageFile.isAbsolute() && imageFile.exists()) {
-        imageURL = Commons.makeURL(imageFile); // get
-//        try {
-//          imageURL = new URL("file", null, imageFile.getPath());
-//        } catch (MalformedURLException e) {
-//        }
+      if (imageFile.isAbsolute()) {
+        if (imageFile.exists()) {
+          imageURL = Commons.makeURL(imageFile); // get
+        } else {
+          return null;
+        }
       } else {
         imageURL = imageNames.get(imageFileName);
         if (imageURL == null) {
@@ -994,8 +975,8 @@ public class Image extends Element {
           }
         }
       }
+      image.imageNameGiven = fName;
     }
-    image.imageNameGiven = fName;
     return image;
   }
 
@@ -1058,7 +1039,7 @@ public class Image extends Element {
       w = bImage.getWidth();
       h = bImage.getHeight();
       bsize = bImage.getData().getDataBuffer().getSize();
-      log(logLevel, "loaded again: %s (%s)", getName(), fileURL);
+      log(logLevel + 1, "loaded again: %s (%s)", getName(), fileURL);
     }
     return bImage;
   }
@@ -1392,6 +1373,233 @@ public class Image extends Element {
   public static String textChar(String imgFile) {
     return OCR.readChar(imgFile);
   }
+  //</editor-fold>
+
+  //<editor-fold desc="80 image handling resize Mat">
+  public final static String PNG = "png";
+  public final static String dotPNG = "." + PNG;
+
+  /**
+   * Available resize interpolation algorithms
+   */
+  public enum Interpolation {
+    NEAREST(Imgproc.INTER_NEAREST),
+    LINEAR(Imgproc.INTER_LINEAR),
+    CUBIC(Imgproc.INTER_CUBIC),
+    AREA(Imgproc.INTER_AREA),
+    LANCZOS4(Imgproc.INTER_LANCZOS4),
+    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
+    MAX(Imgproc.INTER_MAX);
+
+    private int value;
+
+    Interpolation(int value) {
+      this.value = value;
+    }
+
+  }
+  public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
+    final AffineTransform af = new AffineTransform();
+    af.scale((double) width / originalImage.getWidth(),
+        (double) height / originalImage.getHeight());
+    final AffineTransformOp operation = new AffineTransformOp(
+        af, AffineTransformOp.TYPE_BILINEAR);
+    BufferedImage rescaledImage = new BufferedImage(width, height,
+        BufferedImage.TYPE_INT_ARGB);
+    rescaledImage = operation.filter(originalImage, rescaledImage);
+    return rescaledImage;
+  }
+
+  /**
+   * resize the given image with factor using OpenCV ImgProc.resize()
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param bimg   given image
+   * @param factor resize factor
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public static BufferedImage resize(BufferedImage bimg, float factor) {
+    return resize(bimg, factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the given image with factor using OpenCV ImgProc.resize()
+   *
+   * @param bimg          given image
+   * @param factor        resize factor
+   * @param interpolation algorithm used for pixel interpolation
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
+    return getBufferedImage(cvResize(bimg, factor, interpolation));
+  }
+
+  /**
+   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param mat    given image as cvMat
+   * @param factor resize factor
+   */
+  public static void resize(Mat mat, float factor) {
+    resize(mat, factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
+   *
+   * @param mat           given image as cvMat
+   * @param factor        resize factor
+   * @param interpolation algorithm used for pixel interpolation.
+   */
+  public static void resize(Mat mat, float factor, Interpolation interpolation) {
+    cvResize(mat, factor, interpolation);
+  }
+
+  private static Mat cvResize(BufferedImage bimg, double rFactor, Interpolation interpolation) {
+    Mat mat = makeMat(bimg);
+    cvResize(mat, rFactor, interpolation);
+    return mat;
+  }
+
+  private static void cvResize(Mat mat, double rFactor, Interpolation interpolation) {
+    int newW = (int) (rFactor * mat.width());
+    int newH = (int) (rFactor * mat.height());
+    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, interpolation.value);
+  }
+
+  public static Mat getNewMat() {
+    return new Mat();
+  }
+
+  public static Mat getNewMat(Size size, int type, int fill) {
+    switch (type) {
+      case 1:
+        type = CvType.CV_8UC1;
+        break;
+      case 3:
+        type = CvType.CV_8UC3;
+        break;
+      case 4:
+        type = CvType.CV_8UC4;
+        break;
+      default:
+        type = -1;
+    }
+    if (type < 0) {
+      return new Mat();
+    }
+    Mat result;
+    if (fill < 0) {
+      result = new Mat(size, type);
+    } else {
+      result = new Mat(size, type, new Scalar(fill));
+    }
+    return result;
+  }
+
+  public static List<Mat> getMatList(BufferedImage bImg) {
+    byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+    Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+    aMat.put(0, 0, data);
+    List<Mat> mats = new ArrayList<Mat>();
+    Core.split(aMat, mats);
+    return mats;
+  }
+
+  public static Mat makeMat(BufferedImage bImg) {
+    return makeMat(bImg, true);
+  }
+
+  public static Mat makeMat(BufferedImage bImg, boolean asBGR) {
+    if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
+      int[] data = ((DataBufferInt) bImg.getRaster().getDataBuffer()).getData();
+      ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);
+      IntBuffer intBuffer = byteBuffer.asIntBuffer();
+      intBuffer.put(data);
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+      aMat.put(0, 0, byteBuffer.array());
+      Mat oMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      Mat oMatA = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      List<Mat> mixIn = new ArrayList<Mat>(Arrays.asList(new Mat[]{aMat}));
+      List<Mat> mixOut = new ArrayList<Mat>(Arrays.asList(new Mat[]{oMatA, oMatBGR}));
+      //A 0 - R 1 - G 2 - B 3 -> A 0 - B 1 - G 2 - R 3
+      Core.mixChannels(mixIn, mixOut, new MatOfInt(0, 0, 1, 3, 2, 2, 3, 1));
+      return oMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
+        || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+      String bImgType = "BYTE_BINARY";
+      if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        bImgType = "BYTE_INDEXED";
+      }
+      BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+      Graphics graphics = bimg3b.getGraphics();
+      graphics.drawImage(bImg, 0, 0, null);
+      byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) { //TODO || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
+      List<Mat> mats = getMatList(bImg);
+      Size size = mats.get(0).size();
+      if (!asBGR) {
+        Mat mBGRA = getNewMat(size, 4, -1);
+        mats.add(mats.remove(0));
+        Core.merge(mats, mBGRA);
+        return mBGRA;
+      } else {
+        Mat mBGR = getNewMat(size, 3, -1);
+        mats.remove(0);
+        Core.merge(mats, mBGR);
+        return mBGR;
+      }
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      aMat.put(0, 0, data);
+      return aMat;
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+      BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+      Graphics graphics = bimg3b.getGraphics();
+      graphics.drawImage(bImg, 0, 0, null);
+      byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
+    } else {
+      Debug.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
+    }
+    return getNewMat();
+  }
+
+  public static BufferedImage getBufferedImage(Mat mat) {
+    return getBufferedImage(mat, dotPNG);
+  }
+
+  public static BufferedImage getBufferedImage(Mat mat, String type) {
+    BufferedImage bImg = null;
+    MatOfByte bytemat = new MatOfByte();
+    if (SX.isNull(mat)) {
+      mat = getNewMat();
+    }
+    Imgcodecs.imencode(type, mat, bytemat);
+    byte[] bytes = bytemat.toArray();
+    InputStream in = new ByteArrayInputStream(bytes);
+    try {
+      bImg = ImageIO.read(in);
+    } catch (IOException ex) {
+      Debug.error("getBufferedImage: %s error(%s)", mat, ex.getMessage());
+    }
+    return bImg;
+  }
+
   //</editor-fold>
 
   public void show() {

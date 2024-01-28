@@ -4,6 +4,7 @@
 
 package jxgrabkey;
 
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Vector;
 
@@ -123,7 +124,7 @@ public class JXGrabKey {
         int x11Keysym = X11KeysymDefinitions.awtKeyToX11Keysym(awtKey);
 
         debugCallback("registerAwtHotkey() - converted AWT mask '"+
-                KeyEvent.getKeyModifiersText(awtMask)+"' (0x"+Integer.toHexString(awtMask)+
+            InputEvent.getModifiersExText(awtMask) +"' (0x"+Integer.toHexString(awtMask)+
                 ") to X11 mask (0x"+Integer.toHexString(x11Mask)+")");
 
         debugCallback("registerAwtHotkey() - converted AWT key '"+

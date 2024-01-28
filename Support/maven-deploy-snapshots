@@ -8,4 +8,4 @@ Support/maven-deploy-IDE lux $ver
 echo ************************** deploy IDE Mac
 Support/maven-deploy-IDE mac $ver
 echo ************************** deploy IDE Mac M1
-Support/maven-deploy-IDE macm1 $ver
+Support/maven-deploy-IDE macm $ver

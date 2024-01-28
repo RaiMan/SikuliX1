@@ -5,7 +5,6 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Key;
@@ -14,6 +13,7 @@ import org.sikuli.script.ScreenImage;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
@@ -94,7 +94,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
   public void capture(int delay) {
     defaultScreen = SikulixIDE.getDefaultScreen();
     if (defaultScreen == null) {
-      if (Commons.isCaptureBlocked()) {
+      if (Device.isCaptureBlocked()) {
         Debug.error("FATAL: Capture is blocked");
         return;
       }

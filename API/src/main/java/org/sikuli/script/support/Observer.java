@@ -27,13 +27,13 @@ public class Observer {
   }
 
   private Region observedRegion = null;
-  private Map<String, State> eventStates = Collections.synchronizedMap(new HashMap());
-  private Map<String, Long> eventRepeatWaitTimes = Collections.synchronizedMap(new HashMap());
-  private Map<String, Match> eventMatches = Collections.synchronizedMap(new HashMap());
-  private Map<String, Object> eventNames = Collections.synchronizedMap(new HashMap());
-  private Map<String, ObserveEvent.Type> eventTypes = Collections.synchronizedMap(new HashMap());
-  private Map<String, Object> eventCallBacks = Collections.synchronizedMap(new HashMap());
-  private Map<String, Integer> eventCounts = Collections.synchronizedMap(new HashMap());
+  private Map<String, State> eventStates = Collections.synchronizedMap(new HashMap<String, State>());
+  private Map<String, Long> eventRepeatWaitTimes = Collections.synchronizedMap(new HashMap<String, Long>());
+  private Map<String, Match> eventMatches = Collections.synchronizedMap(new HashMap<String, Match>());
+  private Map<String, Object> eventNames = Collections.synchronizedMap(new HashMap<String, Object>());
+  private Map<String, ObserveEvent.Type> eventTypes = Collections.synchronizedMap(new HashMap<String, ObserveEvent.Type>());
+  private Map<String, Object> eventCallBacks = Collections.synchronizedMap(new HashMap<String, Object>());
+  private Map<String, Integer> eventCounts = Collections.synchronizedMap(new HashMap<String, Integer>());
   private static boolean shouldStopOnFirstEvent = false;
 
   private Observer() {

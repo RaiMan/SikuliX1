@@ -11,9 +11,7 @@ import org.sikuli.script.SikuliXception;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -139,7 +137,7 @@ public class RunTime {
    * @return the filtered list of files (compact sikulixcontent format)
    */
 
-  public static List<String> extractResourcesToFolder(String fpRessources, File fFolder, FilenameFilter filter) {
+  private static List<String> extractResourcesToFolder(String fpRessources, File fFolder, FilenameFilter filter) {
     List<String> content;
     content = resourceList(fpRessources, filter);
     if (content == null) {
@@ -192,7 +190,7 @@ public class RunTime {
    * @param filter       implementation of interface FilenameFilter or null for no filtering
    * @return the filtered list of files (compact sikulixcontent format)
    */
-  public List<String> extractResourcesToFolderFromJar(String aJar, String fpRessources, File fFolder, FilenameFilter
+  private List<String> extractResourcesToFolderFromJar(String aJar, String fpRessources, File fFolder, FilenameFilter
       filter) {
     List<String> content = new ArrayList<String>();
     File faJar = new File(aJar);
@@ -203,22 +201,18 @@ public class RunTime {
         log(-1, "extractResourcesToFolderFromJar: does not exist:\n%s", faJar);
         return null;
       }
-      try {
-        uaJar = new URL("jar", null, "file:" + aJar);
-      } catch (MalformedURLException ex) {
+      uaJar = Commons.makeURL(aJar); //TODO not used
+      if (uaJar == null) {
         log(-1, "extractResourcesToFolderFromJar: bad URL for:\n%s", faJar);
         return null;
       }
-    } else {
       uaJar = fromClasspath(aJar);
       if (uaJar == null) {
         log(-1, "extractResourcesToFolderFromJar: not on classpath: %s", aJar);
         return null;
       }
-      try {
-        String sJar = "file:" + uaJar.getPath() + "!/";
-        uaJar = new URL("jar", null, sJar);
-      } catch (MalformedURLException ex) {
+      uaJar = Commons.makeURL(uaJar.getPath() + "!/"); //TODO not used
+      if (uaJar == null) {
         log(-1, "extractResourcesToFolderFromJar: bad URL for:\n%s", uaJar);
         return null;
       }
@@ -239,7 +233,7 @@ public class RunTime {
    * @param outDir   a folder where to export
    * @return success
    */
-  public static boolean extractResourceToFile(String inPrefix, String inFile, File outDir) {
+  private static boolean extractResourceToFile(String inPrefix, String inFile, File outDir) {
     return extractResourceToFile(inPrefix, inFile, outDir, "");
   }
 
@@ -252,7 +246,7 @@ public class RunTime {
    * @param outFile  the filename for export
    * @return success
    */
-  public static boolean extractResourceToFile(String inPrefix, String inFile, File outDir, String outFile) {
+  private static boolean extractResourceToFile(String inPrefix, String inFile, File outDir, String outFile) {
     InputStream aIS;
     FileOutputStream aFileOS;
     String content = inPrefix + "/" + inFile;
@@ -292,7 +286,7 @@ public class RunTime {
    * @param encoding
    * @return file content
    */
-  public static String extractResourceToString(String inPrefix, String inFile, String encoding) {
+  private static String extractResourceToString(String inPrefix, String inFile, String encoding) {
     InputStream aIS = null;
     String out = null;
     String content = inPrefix + "/" + inFile;
@@ -327,7 +321,7 @@ public class RunTime {
     return out;
   }
 
-  public static URL resourceLocation(String folderOrFile) {
+  private static URL resourceLocation(String folderOrFile) {
     log(lvl, "resourceLocation: (%s) %s", clsRef, folderOrFile);
     if (!folderOrFile.startsWith("/")) {
       folderOrFile = "/" + folderOrFile;
@@ -351,15 +345,15 @@ public class RunTime {
       }
       return files;
     }
-    try {
-      uFolder = new URL(uFolder.toExternalForm().replaceAll(" ", "%20"));
-    } catch (Exception ex) {
-    }
     URL uContentList = clsRef.getResource(folder + "/" + fpContent);
     if (uContentList != null) {
       return doResourceListWithList(folder, files, filter);
     }
+    uFolder = Commons.makeURL(uFolder.toExternalForm().replaceAll(" ", "%20"));
     try {
+      if (uFolder == null) {
+        throw new RuntimeException("URL not possible");
+      }
       fFolder = new File(uFolder.toURI());
       log(lvl, "resourceList: having folder: %s", fFolder);
       files.add(fFolder.getPath());
@@ -394,7 +388,7 @@ public class RunTime {
    * @param filter implementation of interface FilenameFilter or null for no filtering
    * @return success
    */
-  public String[] resourceListAsFile(String folder, File target, FilenameFilter filter) {
+  private String[] resourceListAsFile(String folder, File target, FilenameFilter filter) {
     String content = resourceListAsString(folder, filter);
     if (content == null) {
       log(-1, "resourceListAsFile: did not work: %s", folder);
@@ -424,7 +418,7 @@ public class RunTime {
    * @param filter       implementation of interface FilenameFilter or null for no filtering
    * @return success
    */
-  public String[] resourceListAsSikulixContent(String folder, File targetFolder, FilenameFilter filter) {
+  private String[] resourceListAsSikulixContent(String folder, File targetFolder, FilenameFilter filter) {
     List<String> contentList = resourceList(folder, filter);
     if (contentList == null) {
       log(-1, "resourceListAsSikulixContent: did not work: %s", folder);
@@ -467,7 +461,7 @@ public class RunTime {
    * @param filter       implementation of interface FilenameFilter or null for no filtering
    * @return success
    */
-  public String[] resourceListAsSikulixContentFromJar(String aJar, String folder, File targetFolder, FilenameFilter
+  private String[] resourceListAsSikulixContentFromJar(String aJar, String folder, File targetFolder, FilenameFilter
       filter) {
     List<String> contentList = extractResourcesToFolderFromJar(aJar, folder, null, filter);
     if (contentList == null || contentList.size() == 0) {
@@ -508,7 +502,7 @@ public class RunTime {
    * @param filter implementation of interface FilenameFilter or null for no filtering
    * @return the resulting string
    */
-  public String resourceListAsString(String folder, FilenameFilter filter) {
+  private String resourceListAsString(String folder, FilenameFilter filter) {
     return resourceListAsString(folder, filter, null);
   }
 
@@ -521,7 +515,7 @@ public class RunTime {
    * @param separator to be used to separate the entries
    * @return the resulting string
    */
-  public String resourceListAsString(String folder, FilenameFilter filter, String separator) {
+  private String resourceListAsString(String folder, FilenameFilter filter, String separator) {
     List<String> aList = resourceList(folder, filter);
     if (aList == null) {
       return null;
@@ -613,7 +607,11 @@ public class RunTime {
     String subFolder = "";
     boolean skip = false;
     try {
-      zJar = new ZipInputStream(new URL(fpJar).openStream());
+      URL ufpjar = Commons.makeURL(fpJar);
+      if (ufpjar == null) {
+        return files;
+      }
+      zJar = new ZipInputStream(ufpjar.openStream());
       while ((zEntry = zJar.getNextEntry()) != null) {
         if (zEntry.getName().endsWith("/")) {
           continue;
@@ -669,7 +667,7 @@ public class RunTime {
     return files;
   }
 
-  public List<String> listFilesInJar(URL uJar) {
+  private List<String> listFilesInJar(URL uJar) {
     ZipInputStream zJar;
     String fpJar = uJar.getPath().split("!")[0];
     int localLevel = testing ? lvl : lvl + 1;
@@ -681,7 +679,11 @@ public class RunTime {
     List<String> files = new ArrayList<>();
     ZipEntry zEntry;
     try {
-      zJar = new ZipInputStream(new URL(fpJar).openStream());
+      URL ufpjar = Commons.makeURL(fpJar);
+      if (ufpjar == null) {
+        return files;
+      }
+      zJar = new ZipInputStream(ufpjar.openStream());
       while ((zEntry = zJar.getNextEntry()) != null) {
         if (zEntry.getName().endsWith("/")) {
           continue;
@@ -723,7 +725,11 @@ public class RunTime {
     String current = "/";
     boolean shouldStop = false;
     try {
-      zJar = new ZipInputStream(new URL(fpJar).openStream());
+      URL ufpjar = Commons.makeURL(fpJar);
+      if (ufpjar == null) {
+        return false;
+      }
+      zJar = new ZipInputStream(ufpjar.openStream());
       while ((zEntry = zJar.getNextEntry()) != null) {
         zPath = zEntry.getName();
         if (zPath.endsWith("/")) {
@@ -774,7 +780,7 @@ public class RunTime {
     return true;
   }
 
-  public static void copy(InputStream in, OutputStream out) throws IOException {
+  private static void copy(InputStream in, OutputStream out) throws IOException {
     byte[] tmp = new byte[8192];
     int len;
     while (true) {
@@ -797,7 +803,7 @@ public class RunTime {
     return baos.toByteArray();
   }
 
-  public class oneFileFilter implements FilenameFilter {
+  private class oneFileFilter implements FilenameFilter {
 
     String aFile;
 
@@ -898,15 +904,15 @@ public class RunTime {
     return cpe;
   }
 
-  public String isJarOnClasspath(String artefact) {
+  private String isJarOnClasspath(String artefact) {
     return isOnClasspath(artefact, true);
   }
 
-  public String isOnClasspath(String artefact) {
+  private String isOnClasspath(String artefact) {
     return isOnClasspath(artefact, false);
   }
 
-  public URL fromClasspath(String artefact) {
+  private URL fromClasspath(String artefact) {
     artefact = FileManager.slashify(artefact, false).toUpperCase();
     URL cpe = null;
     String scpe = null;
@@ -922,8 +928,8 @@ public class RunTime {
     }
     if (null != scpe) {
       try {
-        cpe = new URL(scpe);
-      } catch (MalformedURLException e) {
+        cpe = new URI(scpe).toURL(); // new URL(scpe);
+      } catch (URISyntaxException | MalformedURLException e) {
       }
     }
     return cpe;
@@ -935,7 +941,7 @@ public class RunTime {
    * @param path URL to look for
    * @return true if found else otherwise
    */
-  public boolean isOnClasspath(URL path) {
+  private boolean isOnClasspath(URL path) {
     if (classPathActual.isEmpty()) {
       storeClassPath();
     }
@@ -946,11 +952,11 @@ public class RunTime {
 
   List<String> sxClasspath = new ArrayList<>();
 
-  public boolean addToClasspath(String jarOrFolder) {
+  private boolean addToClasspath(String jarOrFolder) {
     return addToClasspath(jarOrFolder, "");
   }
 
-  public boolean addToClasspath(String jarOrFolder, String caller) {
+  private boolean addToClasspath(String jarOrFolder, String caller) {
     if (null != isOnClasspath(jarOrFolder)) {
       return true;
     }

@@ -3,7 +3,6 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.Key;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.KeyboardLayout;
@@ -39,8 +38,8 @@ public abstract class HotkeyManager {
         String cls = getOSHotkeyManagerClass();
         if (cls != null) {
           try {
-            Class c = Class.forName(cls);
-            Constructor constr = c.getConstructor();
+            Class<?> c = Class.forName(cls);
+            Constructor<?> constr = c.getConstructor();
             _instance = (HotkeyManager) constr.newInstance();
           } catch (Exception e) {
             Debug.error("HotkeyManager: Can't create " + cls + ": " + e.getMessage());

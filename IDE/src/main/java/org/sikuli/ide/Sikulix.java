@@ -6,6 +6,7 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.*;
 import org.sikuli.idesupport.IDEDesktopSupport;
+import org.sikuli.recorder.Recorder;
 import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
@@ -13,6 +14,7 @@ import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.PreferencesUser;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
@@ -21,7 +23,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
@@ -76,6 +80,7 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(APPDATA)) {
+      //TODO when no path is given
       File path = Commons.setAppDataPath(Commons.getStartArg(APPDATA));
       Commons.setTempFolder(new File(path, "Temp"));
     } else {
@@ -202,7 +207,7 @@ public class Sikulix {
     //endregion
 
     //region checkAccessibility
-    Commons.checkAccessibility();
+    Device.checkAccessibility();
     boolean muse = !MouseDevice.isUseable();
     boolean suse = !ScreenDevice.isUseable();
     Boolean popAnswer = true;
@@ -217,7 +222,7 @@ public class Sikulix {
     }
     //endregion
 
-    if (!Commons.hasStartArg(RUN) && !Commons.hasStartArg(RUNSERVER)) {
+    if (!Commons.hasStartArg(RUN) && !Commons.hasStartArg(RUNSERVER) && !Commons.hasStartArg(RECORD)) {
       //region start IDE
       Debug.log(3, "IDE starting");
       ideSplash = null;
@@ -239,9 +244,12 @@ public class Sikulix {
           isRunning.createNewFile();
           isRunningFile = new FileOutputStream(isRunning);
           if (null == isRunningFile.getChannel().tryLock()) {
+            stopSplash();
+/*
             Class<?> classIDE = Class.forName("org.sikuli.ide.SikulixIDE");
             Method stopSplash = classIDE.getMethod("stopSplash", new Class[0]);
             stopSplash.invoke(null, new Object[0]);
+*/
             org.sikuli.script.Sikulix.popError("Terminating: IDE already running");
             shouldTerminate = true;
           } else {
@@ -254,11 +262,11 @@ public class Sikulix {
         if (shouldTerminate) {
           System.exit(1);
         }
-        for (String aFile : Commons.getTempFolder().list()) {
-          if ((aFile.startsWith("Sikulix"))
-              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
-            FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), aFile));
-          }
+        File tempFolder = Commons.getTempFolder();
+        if (tempFolder != null) {
+          Arrays.stream(Objects.requireNonNull(tempFolder.list())).filter(aFile -> (aFile.startsWith("Sikulix"))
+              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp")))
+              .map(aFile -> new File(Commons.getTempFolder(), aFile)).forEach(FileManager::deleteFileOrFolder);
         }
       }
       //endregion
@@ -321,26 +329,29 @@ public class Sikulix {
       //region run server
       Debug.isIDEstarting(false);
       Debug.getIdeStartLog();
-      Class cServer = null;
+      Class<?> cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
         cServer.getMethod("run").invoke(null);
         Commons.terminate();
-      } catch (ClassNotFoundException e) {
-      } catch (NoSuchMethodException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InvocationTargetException e) {
+      } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
       }
       try {
         cServer = Class.forName("org.sikuli.script.support.SikulixServer");
         if (!(Boolean) cServer.getMethod("run").invoke(null)) {
           Commons.terminate(1, "SikulixServer: terminated with errors");
         }
-      } catch (ClassNotFoundException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InvocationTargetException e) {
-      } catch (NoSuchMethodException e) {
+      } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
       }
+      Commons.terminate();
+      //endregion
+
+    } else if (Commons.hasStartArg(RECORD)) {
+      //region recording
+      SX.popup("ok to start recording");
+      Recorder.INSTANCE.startRecording();
+      SX.popup("ok to stop recording");
+      Recorder.INSTANCE.finishRecording();
       Commons.terminate();
       //endregion
     }

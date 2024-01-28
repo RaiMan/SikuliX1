@@ -12,7 +12,10 @@ import org.sikuli.script.support.Commons;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 /**
@@ -97,11 +100,12 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
             jythonSupport.interpreterExecString("import sys");
             jythonSupport.interpreterExecString("import org.sikuli.script.runnerSupport.Runner as Runner");
             interpreterVersion = ("" + jythonSupport.interpreterEval("sys.version")).split(" ")[0];
-          } catch (Exception e) {}
+          } catch (Exception e) {
+          }
           if (interpreterVersion.isEmpty()) {
             log(-1, "not ready --- scripts cannot be run");
           } else {
-            log(3,"ready: %s", interpreterVersion);
+            log(3, "ready: %s", interpreterVersion);
           }
         } else {
           log(-1, "JythonSupport not ready --- scripts cannot be run");
@@ -111,12 +115,13 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   }
 
   private void initAbort() {
-    jythonSupport.interpreterExecString("sx_runner_sx = Runner.getRunner(\"" + NAME + "\")\n"
+    String script = "sx_runner_sx = Runner.getRunner(\"" + NAME + "\")\n"
         + "def trace_calls_for_abort(frame, evt, arg):\n"
         + "  if sx_runner_sx.isAborted():\n"
         + "    raise RuntimeError(\"Aborted\")\n"
         + "  return trace_calls_for_abort\n"
-        + "sys.settrace(trace_calls_for_abort)");
+        + "sys.settrace(trace_calls_for_abort)";
+    jythonSupport.interpreterExecString(script);
   }
 
   static JythonSupport jythonSupport = null;
@@ -128,6 +133,14 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   public void doClose() {
     jythonSupport.interpreterClose();
     redirected = false;
+  }
+
+  public List<String> getImportPlaces() {
+    if (jythonSupport == null) {
+      return new ArrayList<>();
+    }
+    List<String> places = jythonSupport.getSysPathAsList();
+    return places;
   }
   //</editor-fold>
 
@@ -206,9 +219,20 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
             + "\nSave your work and restart the IDE!", "Fatal Error");
       }
 
+      Debug.setDebugLevel(savedLevel);
       log(3, "after: %s (returns: %d)", pyFile, exitCode);
       return exitCode;
     }
+  }
+
+  private static List<String> importPlacesBeforeRun;
+
+  public void beforeScriptRun(String script, Options options) {
+    importPlacesBeforeRun = getImportPlaces();
+  }
+
+  public void afterScriptRun(String script, Options options) {
+    jythonSupport.resetSysPath(importPlacesBeforeRun);
   }
 
   @Override
@@ -263,4 +287,26 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
    */
   //</editor-fold>
 
+  public void adjustImportPath(Map<String, String> files, IScriptRunner.Options options) {
+    if (files.get("isBundle").equals("true")) {
+      List<String> importPlaces = getImportPlaces();
+      if (importPlaces.size() == 0) {
+        return;
+      }
+      String syspath0 = importPlaces.get(0);
+      String importFrom = files.get("folder");
+      if (!importFrom.equals(syspath0)) {
+/*
+      if (importFrom.endsWith(".sikuli")) {
+        importFrom = new File(importFrom).getParent();
+      }
+*/
+        jythonSupport.getSysPath();
+        jythonSupport.replaceSysPath(importFrom, 0);
+        List<String> syspath = getImportPlaces();
+        syspath0 = syspath.get(0);
+      }
+      log(lvl, "syspath[0]: %s", syspath0);
+    }
+  }
 }

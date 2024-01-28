@@ -6,13 +6,15 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.recorder.Recorder;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
-import org.sikuli.script.support.devices.Devices;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.HelpDevice;
+import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 
@@ -23,6 +25,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.sikuli.util.CommandArgsEnum.APPDATA;
 
 public class Sikulix {
 
@@ -40,8 +44,8 @@ public class Sikulix {
       Debug.print("osVersion: %s", Commons.getOSInfo());
 
       String arg = args[0];
-      if (arg.startsWith("test")) {
-        arg = arg.replace("test", "");
+      if (arg.toLowerCase().startsWith("test")) {
+        arg = arg.toLowerCase().replace("test", "");
         try {
           testRun(arg);
         } catch (Exception e) {
@@ -57,6 +61,33 @@ public class Sikulix {
 
   public static void testRun(String arg) throws Exception {
     Screen scr = new Screen();
+
+    if (arg.startsWith("rec")) {
+      //region recording
+      Device.checkAccessibility();
+      if(!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
+        Commons.terminate(999, "Mouse and/or Screen not useable");
+      }
+
+      // we are running in API context
+      Commons.setStartClass(Sikulix.class);
+
+      // AppDataPath as SikulixAppData in Project/API
+      File path = Commons.setAppDataPath(Commons.getStartArg(APPDATA));
+      Commons.setTempFolder(new File(path, "Temp"));
+
+      // delete previous recordings
+      Recorder.INSTANCE.resetRecordingDirectory();
+
+      SX.popup("ok to start recording");
+      Recorder.INSTANCE.startRecording();
+
+      SX.popup("ok to stop recording");
+      Recorder.INSTANCE.finishRecording();
+
+      Commons.terminate();
+      //endregion
+    }
 
     if ("app".equals(arg)) {
       final IScriptRunner.Options options = new IScriptRunner.Options().setOutput();
@@ -83,6 +114,28 @@ public class Sikulix {
       }
     }
 
+    if ("click".equals(arg)) {
+      Debug.on(3);
+      File userHome = Commons.getUserHome();
+      File testBundle = new File(userHome, "IdeaProjects/SikuliX1/API/src/main/resources/images");
+      ImagePath.setBundleFolder(testBundle);
+      ImagePath.dump(0);
+
+      Image img = Image.from("img");
+      Debug.log("%s", img);
+      Debug.log("%s", img.getFilename());
+
+      Match mimg = scr.exists(img, 0);
+      try {
+        Debug.log(3, "Match::%s", mimg);
+        Settings.MoveMouseDelay = 0;
+        int clicked = scr.click(mimg);
+        Debug.log(3, "Click::%s", clicked);
+      } catch (FindFailed e) {
+        Debug.error("click::FindFailed");
+      }
+    }
+
     if ("zzz".equals(arg)) {
       Debug.on(3);
       try {
@@ -97,7 +150,7 @@ public class Sikulix {
 
     if ("xxx".equals(arg)) {
       Region reg = new Region(35, 0, 100, 25);
-      Image image = Image.get(reg);
+      Image image = Image.from(reg);
       String text = image.text();
       Debug.info("testxxx: %s", text);
     }
@@ -114,7 +167,7 @@ public class Sikulix {
 
       URL jarimage = aClass.getResource("/jarimages/jarimg.png");
 
-      Image urlimg = Image.create(jarimage);
+      Image urlimg = Image.from(jarimage);
 
       List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
       Match match;
@@ -149,7 +202,7 @@ public class Sikulix {
       Region reg = new Region(0, 0, 500, 600);
       ScreenImage screenImage = scr.capture(reg);
       Image image = new Image(screenImage);
-      image = Image.create("SikulixTest001");
+      image = Image.from("SikulixTest001");
       Commons.pause(1);
 
       reg = scr;
@@ -533,7 +586,7 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static Devices vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
+  public static Device vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
     //TODO finally implement VNCScreen as VNCDevice
     return HelpDevice.startVNC(theIP, thePort, password, cTimeout, timeout);
   }
@@ -548,7 +601,7 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static Devices vncStart(String theIP, int thePort, int cTimeout, int timeout) {
+  public static Device vncStart(String theIP, int thePort, int cTimeout, int timeout) {
     //TODO finally implement VNCScreen as VNCDevice
     return HelpDevice.startVNC(theIP, thePort, cTimeout, timeout);
   }

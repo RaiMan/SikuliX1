@@ -257,16 +257,16 @@ public class EditorPane extends JTextPane {
     return fileSelected;
   }
 
-  private int alreadyOpen(String fileSelected, int currentTab) {
+  private int alreadyOpen(String pathSelected, int currentTab) {
     CloseableTabbedPane tabs = getTabs();
     int nTab = tabs.getTabCount();
     if (nTab > 0) {
-      File possibleBundle = new File(fileSelected);
+      File fileSelected = new File(pathSelected);
       String possibleBundlePath = null;
-      if (EditorPane.isInBundle(possibleBundle)) {
-        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getParent());
-      } else if (possibleBundle.isDirectory()) {
-        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getPath());
+      if (fileSelected.isDirectory()) {
+        possibleBundlePath = FilenameUtils.removeExtension(fileSelected.getPath());
+      } else if (isInBundle(fileSelected)) {
+        possibleBundlePath = FilenameUtils.removeExtension(fileSelected.getParent());
       }
       for (int iTab = 0; iTab < nTab; iTab++) {
         if (currentTab > -1 && iTab == currentTab) {
@@ -275,7 +275,7 @@ public class EditorPane extends JTextPane {
         EditorPane checkedPane = getPaneAtIndex(iTab);
         String paneFile = checkedPane.editorPaneFileSelected;
         if (null == paneFile) continue;
-        if (new File(paneFile).equals(new File(fileSelected))) {
+        if (new File(paneFile).equals(fileSelected)) {
           tabs.setAlreadyOpen(iTab);
           return iTab;
         }
@@ -340,7 +340,7 @@ public class EditorPane extends JTextPane {
     }
     initForScriptType();
     if (readContent(editorPaneFileToRun)) {
-      setFiles(editorPaneFileToRun, file.getAbsolutePath());
+      setFiles(editorPaneFileToRun, file.getAbsolutePath()); // loadfile
       updateDocumentListeners("loadFile");
       if (!isBundle()) {
         checkSource();
@@ -357,6 +357,7 @@ public class EditorPane extends JTextPane {
       }
       setCaretPosition(0);
       setDirty(false);
+      editorPaneRunner.adjustImportPath(getFiles(), null);
     }
   }
 
@@ -531,6 +532,10 @@ public class EditorPane extends JTextPane {
 
   private boolean editorPaneIsTemp = false;
 
+  public boolean isEmpty() {
+    return getText().isEmpty();
+  }
+
   boolean isInBundle() {
     return isInBundle(editorPaneFileToRun);
   }
@@ -581,7 +586,7 @@ public class EditorPane extends JTextPane {
   }
 
   public void setFiles(File editorPaneFile) {
-    setFiles(editorPaneFile, null);
+    setFiles(editorPaneFile, null); // setFiles(file)
   }
 
   public void setFiles(File paneFile, String paneFileSelected) {
@@ -590,23 +595,32 @@ public class EditorPane extends JTextPane {
     }
     editorPaneFileSelected = paneFileSelected;
     editorPaneFile = paneFile;
-    editorPaneFolder = paneFile.getParentFile();
+    editorPaneFolder = editorPaneFile.getParentFile();
     setImageFolder(editorPaneFolder);
     if (null != paneFileSelected) {
       log(3, "setFiles: for: %s", paneFileSelected);
     } else {
       if (!isTemp()) {
         setIsFile();
-        editorPaneFileSelected = paneFile.getAbsolutePath();
-        editorPaneFileToRun = paneFile;
-        log(3, "setFiles: for: %s", paneFile);
+        editorPaneFileSelected = editorPaneFile.getAbsolutePath();
+        editorPaneFileToRun = editorPaneFile;
+        log(3, "setFiles: for: %s", editorPaneFile);
       }
     }
   }
 
   private void changeFiles() {
     String extension = editorPaneRunner.getDefaultExtension();
-    setFiles(changeExtension(editorPaneFileToRun, extension));
+    setFiles(changeExtension(editorPaneFileToRun, extension)); //changeFiles (not used)
+  }
+
+  public Map<String, String> getFiles() {
+    Map<String, String> files = new HashMap<>();
+    files.put("file", editorPaneFile.getAbsolutePath());
+    files.put("folder", editorPaneFolder.getAbsolutePath());
+    files.put("images", editorPaneImageFolder.getAbsolutePath());
+    files.put("isBundle", String.valueOf(isBundle()));
+    return files;
   }
 
   private File changeExtension(File file, String extension) {
@@ -1349,7 +1363,7 @@ public class EditorPane extends JTextPane {
     String scriptName = FilenameUtils.getBaseName(targetFolder) + "." + getRunner().getDefaultExtension();
     File scriptFile = new File(targetFolder, scriptName);
     setIsBundle();
-    setFiles(scriptFile, targetFolder);
+    setFiles(scriptFile, targetFolder); // saveAsBundle
     if (writeSriptFile()) {
       return editorPaneFolder;
     }
@@ -1362,7 +1376,7 @@ public class EditorPane extends JTextPane {
       FileManager.deleteTempDir(editorPaneFolder.getAbsolutePath());
       setTemp(false);
     }
-    setFiles(new File(filename));
+    setFiles(new File(filename)); // saveAsFile
     if (writeSriptFile()) {
       return editorPaneFile;
     }
@@ -1795,8 +1809,6 @@ public class EditorPane extends JTextPane {
   }
 
   public void runLines(String lines) {
-    if (lines.startsWith(" ") || lines.startsWith("\t ")) {
-    }
     SikulixIDE.doHide();
     new Thread(new Runnable() {
       @Override
@@ -1806,7 +1818,7 @@ public class EditorPane extends JTextPane {
         try {
           ide.setCurrentRunner(editorPane.editorPaneRunner);
           ide.setCurrentScript(editorPane.getCurrentFile());
-          ide.setIsRunningScript(true);
+          //TODO ? ide.setIsRunningScript(true);
           ide.clearMessageArea();
           ide.resetErrorMark();
 
@@ -1819,7 +1831,7 @@ public class EditorPane extends JTextPane {
           SikulixIDE.showAgain();
           ide.setCurrentRunner(null);
           ide.setCurrentScript(null);
-          ide.setIsRunningScript(false);
+          //TODO ? ide.setIsRunningScript(false);
         }
       }
     }).start();

@@ -68,7 +68,6 @@ public class Commons {
   private static final String SX_VERSION;
   private static final String SX_VERSION_LONG;
   private static final String SX_VERSION_SHORT;
-  private static final String SX_VERSION_SHORTX;
   private static final String SX_BUILD;
   private static final String SX_BUILD_STAMP;
 
@@ -257,7 +256,6 @@ Software:
         .replace("_", "").replace("-", "").replace(":", "")
         .substring(0, 12);
     SX_VERSION_LONG = SX_VERSION + String.format("-%s", SX_BUILD_STAMP);
-    SX_VERSION_SHORTX = SX_VERSION;
     SX_VERSION_SHORT = SX_VERSION.replace("-SNAPSHOT", "");
     if (SX_VERSION.contains("-SNAPSHOT")) {
       SNAPSHOT = true;
@@ -816,10 +814,6 @@ Software:
     return SX_VERSION_SHORT;
   }
 
-  public static String getSXVersionShortx() {
-    return SX_VERSION_SHORTX;
-  }
-
   public static String getSXBuild() {
     return SX_BUILD;
   }
@@ -827,8 +821,6 @@ Software:
   public static String getSxBuildStamp() {
     return SX_BUILD_STAMP;
   }
-
-  public static String versionFile = "not-valid";
 
   public static boolean hasVersionFile(File folder) {
     String[] resourceList = folder.list((dir, name) -> name.contains("_MadeForSikuliX"));
@@ -839,21 +831,19 @@ Software:
       if (matcher.find()) {
         libVersion = matcher.group(1);
         libStamp = matcher.group(2);
-        versionFile = resourceList[0];
       }
     }
-    return !libVersion.isEmpty() && libVersion.equals(getSXVersionShortx()) &&
+    return !libVersion.isEmpty() && libVersion.equals(getSXVersionShort()) &&
         libStamp.length() == Commons.getSxBuildStamp().length()
         && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
   }
 
-  public static String makeVersionFile(File folder) {
+  public static void makeVersionFile(File folder) {
     String libToken = String.format("%s_%s_MadeForSikuliX%s%s.txt",
-        Commons.getSXVersionShortx(), Commons.getSxBuildStamp(),
+        Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
         Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"),
         Commons.getOSArch());
     FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(folder, libToken));
-    return libToken;
   }
 
   public static String getOSName() {
@@ -1546,32 +1536,31 @@ Software:
     String OPENCV_JAVA = "opencv_java";
     String fpJarLibs = getJarLibsPath();
     File fLibsFolder = getLibsFolder();
-    areLibsExported = false;
-    String libToken = "";
     if (fLibsFolder.exists()) {
-      if(hasVersionFile(fLibsFolder)) {
-        areLibsExported = true;
-        Debug.log(3, "libsFolder: %s (%s)", fLibsFolder, versionFile);
-        return;
+      if (!hasVersionFile(fLibsFolder)) {
+        FileManager.deleteFileOrFolder(fLibsFolder);
+        Debug.log(3, "libsFolder: has wrong content: %s", fLibsFolder);
       }
-      FileManager.deleteFileOrFolder(fLibsFolder);
-      Debug.log(3, "libsFolder: deleting wrong content: %s", fLibsFolder);
     }
     if (!fLibsFolder.exists()) {
       fLibsFolder.mkdirs();
       if (!fLibsFolder.exists()) {
         throw new SikuliXception("libsFolder: folder not available: " + fLibsFolder);
       }
-      libToken = makeVersionFile(fLibsFolder); //TODO
+      makeVersionFile(fLibsFolder); //TODO
+      Debug.log(3, "libsFolder: created %s (%s)", fLibsFolder, getSXVersionLong());
+      didExport = true;
+    }
+    if (!shouldExport()) { //TODO for what needed?
+      areLibsExported = true;
+      return;
     }
     List<String> nativesList = Commons.getFileList(fpJarLibs, COMMONS_CLASS);
     for (String aFile : nativesList) {
-      String copyMsg = ": failed: " + aFile;
+      String copyMsg = "";
       boolean isExecutable = false;
       String inFile;
       File outFile = null;
-      Class<?> aClass = COMMONS_CLASS;
-      int ixSub = 0;
       if (aFile.startsWith("//")) {
         continue;
       } else if (aFile.startsWith("/")) {
@@ -1579,8 +1568,7 @@ Software:
         if (parts.length > 1) {
           inFile = parts[0];
           try {
-            aClass = Class.forName(parts[1]);
-            ixSub = 1;
+            COMMONS_CLASS = Class.forName(parts[1]);
           } catch (ClassNotFoundException e) {
             copyMsg = String.format(": failed: %s", e.getMessage());
             inFile = null;
@@ -1602,23 +1590,18 @@ Software:
           aFile = new File(inFile).getName();
         }
         outFile = new File(fLibsFolder, aFile);
-        InputStream inStream = aClass.getResourceAsStream(inFile.substring(ixSub).replace("\\", "/"));
-        if (inStream == null) {
-          copyMsg = String.format(": failed: resource pointer invalid: %s", inFile);
-        } else {
-          try (FileOutputStream outFileStream = new FileOutputStream(outFile);) {
-            RunTime.copy(inStream, outFileStream);
-            copyMsg = ": exported";
-          } catch (Exception ex) {
-            copyMsg = String.format(": failed: %s", ex.getMessage());
-          }
+        try (FileOutputStream outFileStream = new FileOutputStream(outFile);
+             InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
+          RunTime.copy(inStream, outFileStream);
+        } catch (Exception ex) {
+          copyMsg = String.format(": failed: %s", ex.getMessage());
         }
         copyMsg = String.format("libsExport: %s%s", aFile, copyMsg);
       }
       if (copyMsg.contains("failed")) {
         FileManager.deleteFileOrFolder(fLibsFolder);
         Debug.error(copyMsg);
-        return;
+        break;
       } else {
         if (isExecutable) {
           outFile.setExecutable(true);
@@ -1626,9 +1609,15 @@ Software:
         Debug.log(3, copyMsg);
       }
     }
-    Debug.log(3, "libsFolder: created %s (%s) %s", fLibsFolder, getSXVersionLong(), libToken);
     areLibsExported = true;
   }
+
+  private static boolean didExport = false;
+
+  public static boolean shouldExport() {
+    return didExport;
+  }
+
   //</editor-fold>
 
   //<editor-fold desc="30 Options handling SX_ARG_">

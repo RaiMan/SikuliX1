@@ -1,11 +1,10 @@
 
-Lists of 34 third-party dependencies.
+Lists of 32 third-party dependencies.
      (GNU Lesser General Public License) mac_widgets (com.explodingpixels:mac_widgets:0.9.5 - http://code.google.com/p/macwidgets/)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.9.10 - http://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.9.10 - https://github.com/FasterXML/jackson-core)
      (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.9.10.8 - http://github.com/FasterXML/jackson)
      (BSD 3-clause License w/nuclear disclaimer) Java Advanced Imaging Image I/O Tools API core (standalone) (com.github.jai-imageio:jai-imageio-core:1.4.0 - https://github.com/jai-imageio/jai-imageio-core)
-     (GNU General Public License (GPL), Version 3.0) (GNU Lesser General Public License (LGPL), Version 3.0) JNativeHook (com.github.kwhat:jnativehook:2.2.2 - https://github.com/kwhat/jnativehook)
      (The BSD License) JGoodies Forms (com.jgoodies:forms:1.2.1 - https://forms.dev.java.net/)
      (GNU General Public License v2.0) sikulix2opencv (com.sikulix:sikulix2opencv:4.5.4-20211108.155100-1 - http://www.sikulix.com)
      (MIT License) SikuliX API (com.sikulix:sikulixapi:2.0.6-SNAPSHOT - http://www.sikulix.com)
@@ -16,8 +15,8 @@ Lists of 34 third-party dependencies.
      (Apache License v2.0) (LGPL, version 2.1) Java Native Access Platform (net.java.dev.jna:jna-platform:5.8.0 - https://github.com/java-native-access/jna)
      (The New BSD License) (WTFPL) Reflections8 (net.oneandone.reflections8:reflections8:0.11.6 - http://github.com/aschoerk/reflections8)
      (The New BSD License) Py4J (net.sf.py4j:py4j:0.10.9.7 - http://nexus.sonatype.org/oss-repository-hosting.html/py4j)
-     (Apache License 2.0) Lept4J - Leptonica for Java (net.sourceforge.lept4j:lept4j:1.18.0 - https://github.com/nguyenq/lept4j)
-     (Apache License 2.0) Tess4J - Tesseract for Java (net.sourceforge.tess4j:tess4j:5.7.0 - http://tess4j.sourceforge.net)
+     (Apache License 2.0) Lept4J - Leptonica for Java (net.sourceforge.lept4j:lept4j:1.17.0 - https://github.com/nguyenq/lept4j)
+     (Apache License 2.0) Tess4J - Tesseract for Java (net.sourceforge.tess4j:tess4j:5.5.0 - http://tess4j.sourceforge.net)
      (Apache License, Version 2.0) Apache Commons Exec (org.apache.commons:commons-exec:1.3 - http://commons.apache.org/proper/commons-exec/)
      (Apache License, Version 2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.9 - http://commons.apache.org/proper/commons-lang/)
      (Apache License, Version 2.0) Apache FontBox (org.apache.pdfbox:fontbox:2.0.27 - http://pdfbox.apache.org/)
@@ -29,8 +28,7 @@ Lists of 34 third-party dependencies.
      (asl) JBoss VFS (org.jboss:jboss-vfs:3.2.17.Final - http://www.jboss.org)
      (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.1.4.GA - http://www.jboss.org)
      (EPL-2.0) (GPL-2.0) (LGPL-2.1) JRuby Complete (org.jruby:jruby-complete:9.4.1.0 - https://github.com/jruby/jruby/jruby-artifacts/jruby-complete)
-     (BSD License) OpenPnP OpenCV (org.openpnp:opencv:4.9.0-0 - http://github.com/openpnp/opencv)
      (Jython Software License) Jython (org.python:jython-standalone:2.7.3 - https://www.jython.org/)
-     (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.7 - http://www.slf4j.org)
+     (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.6 - http://www.slf4j.org)
      (MIT License) SLF4J NOP Binding (org.slf4j:slf4j-nop:2.0.6 - http://www.slf4j.org)
      (Lesser General Public License (LGPL)) Swing Layout Extensions (org.swinglabs:swing-layout:1.0.3 - https://swing-layout.dev.java.net/)

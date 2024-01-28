@@ -118,8 +118,8 @@ class PatternPaneTargetOffset extends JPanel implements
 
 		_offset = new Location(dx, dy);
 		if (txtX != null) {
-			txtX.setValue(new Integer(dx));
-			txtY.setValue(new Integer(dy));
+			txtX.setValue(Integer.valueOf(dx));
+			txtY.setValue(Integer.valueOf(dy));
 		}
 		repaint();
 	}

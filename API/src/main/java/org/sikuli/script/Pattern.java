@@ -31,11 +31,11 @@ public class Pattern {
    * creates empty Pattern object at least setFilename() or setBImage() must be used before the
    * Pattern object is ready for anything
    */
-  public Pattern() {
+  private Pattern() {
   }
 
   public static <SFIRBS> Pattern get(SFIRBS whatever, Object... args) {
-    Image image = Image.get(whatever);
+    Image image = Image.from(whatever);
     Pattern pattern = new Pattern().setImage(image);
     Boolean firstInt = null;
     int xoff = 0;
@@ -90,7 +90,7 @@ public class Pattern {
    * @param img Image
    */
   public Pattern(Image img) {
-    image = img.create(img);
+    image = img.from(img);
     image.setIsPattern(false);
     imagePattern = true;
   }
@@ -119,7 +119,7 @@ public class Pattern {
    * @param imgpath image filename
    */
   public Pattern(String imgpath) {
-    image = Image.create(imgpath);
+    image = Image.from(imgpath);
   }
 
   /**
@@ -131,7 +131,7 @@ public class Pattern {
     if (null == url) {
       Commons.terminate(999, "Pattern(URL): given url is null - a resource might not be available");
     }
-    image = Image.create(url);
+    image = Image.from(url);
   }
 
   /**
@@ -165,7 +165,7 @@ public class Pattern {
 
   public Mat getMask() {
     if (patternMask == null) {
-      patternMask = Commons.getNewMat();
+      patternMask = Image.getNewMat();
     }
     return patternMask;
   }
@@ -175,7 +175,7 @@ public class Pattern {
   }
 
   private Mat extractMask() {
-    List<Mat> mats = Finder.Finder2.extractMask(Commons.makeMat(image.get(), false), false);
+    List<Mat> mats = Finder.Finder2.extractMask(Image.makeMat(image.get(), false), false);
     return mats.get(1);
   }
 
@@ -202,7 +202,7 @@ public class Pattern {
   private boolean withMask = false;
 
   public Pattern mask(String sMask) {
-    return withMask(new Pattern(Image.create(sMask)));
+    return withMask(new Pattern(Image.from(sMask)));
   }
 
   public Pattern mask(Image iMask) {
@@ -215,7 +215,7 @@ public class Pattern {
 
   public Pattern withMask(Pattern pMask) {
     if (isValid()) {
-      Mat mask = Commons.getNewMat();
+      Mat mask = Image.getNewMat();
       if (pMask.isValid()) {
         if (pMask.hasMask()) {
           mask = pMask.getMask();
@@ -227,7 +227,7 @@ public class Pattern {
           || image.getSize().getWidth() != mask.width()
           || image.getSize().getHeight() != mask.height()) {
         Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
-        mask = Commons.getNewMat();
+        mask = Image.getNewMat();
       } else {
         Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
       }
@@ -250,7 +250,7 @@ public class Pattern {
    * @return the Pattern itself
    */
   public Pattern setFilename(String fileName) {
-    image = Image.create(fileName);
+    image = Image.from(fileName);
     return this;
   }
 
@@ -261,7 +261,7 @@ public class Pattern {
    * @return the Pattern itself
    */
   public Pattern setFilename(URL fileURL) {
-    image = Image.create(fileURL);
+    image = Image.from(fileURL);
     return this;
   }
 

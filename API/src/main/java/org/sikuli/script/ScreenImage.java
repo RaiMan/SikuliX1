@@ -17,13 +17,16 @@ import java.io.*;
 import javax.imageio.ImageIO;
 
 /**
- * CANDIDATE FOR DEPRECATION
- *
+ * INTERNAL USE: This will be replaced by Image in the long run<br>
+ * Hence do not use it in your application.<br>
+ * <br>
+ * If you want to handle screen captures:<br>
+ * Image = Region.getImage()<br>
+ * ... and then use the Image features<br>
+ *<br>
  * stores a BufferedImage usually ceated by screen capture,
  * the screen rectangle it was taken from and
  * the filename, where it is stored as PNG (only if requested)
- *
- * This will be replaced by Image in the long run
  */
 public class ScreenImage {
 
@@ -35,8 +38,21 @@ public class ScreenImage {
 	protected Rectangle rect;
 	protected BufferedImage _img;
 	protected String _filename = null;
-	public Location start;
-	public Location end;
+
+	public long getTimeCreated() {
+		return timeCreated;
+	}
+
+	public void setTimeCreated(long timeCreated) {
+		this.timeCreated = timeCreated;
+	}
+
+	private long timeCreated = -1;
+
+
+
+	private Location start;
+	private Location end;
 
 	public void setStartEnd(Location start, Location end) {
 		this.start = start;
@@ -69,14 +85,6 @@ public class ScreenImage {
 	public Rectangle getRect() {
 		return rect;
 	}
-
-  public ScreenImage getSub(Rectangle sub) {
-    if (!rect.contains(sub)) {
-      return this;
-    }
-    BufferedImage img = _img.getSubimage(sub.x - x, sub.y - y, sub.width, sub.height);
-    return new ScreenImage(sub, img);
-  }
 
 	/**
 	 * creates the PNG tempfile only when needed.
@@ -256,8 +264,8 @@ public class ScreenImage {
     Mat otherGray = new Mat();
     Mat mDiffAbs = new Mat();
 
-    Imgproc.cvtColor(Commons.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
-    Imgproc.cvtColor(Commons.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Image.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Image.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
     Core.absdiff(thisGray, otherGray, mDiffAbs);
     return Core.countNonZero(mDiffAbs) == 0;
   }

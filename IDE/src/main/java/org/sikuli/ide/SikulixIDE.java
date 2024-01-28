@@ -18,6 +18,7 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.EventObserver;
@@ -43,7 +44,6 @@ import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
 
 public class SikulixIDE extends JFrame {
 
@@ -67,32 +67,36 @@ public class SikulixIDE extends JFrame {
   private static final SikulixIDE sikulixIDE = new SikulixIDE();
 
   static PreferencesUser prefs;
+
+  public static void setIdeWindowState(boolean state) {
+    ideWindowState = state;
+  }
+
+  static Boolean ideWindowState = null;
   static Rectangle ideWindowRect = null;
 
   public static Rectangle getWindowRect() {
-    prefs = PreferencesUser.get();
-
-    Dimension windowSize = prefs.getIdeSize();
-    Point windowLocation = prefs.getIdeLocation();
-    if (windowSize.width < 700) {
-      windowSize.width = 800;
+    if (ideWindowState == null) { //first use - restore from prefs
+      prefs = PreferencesUser.get();
+      Dimension windowSize = prefs.getIdeSize();
+      Point windowLocation = prefs.getIdeLocation();
+      Rectangle rectWindow = new Rectangle(windowLocation, windowSize);
+      int monitor = ScreenDevice.whichMonitor(rectWindow);
+      Rectangle scrRect = ScreenDevice.get(monitor).asRectangle();
+      if (monitor < 0) {
+        log(3, "IDE window reset to primary monitor - was (%d,%d %dx%d)",
+            rectWindow.x, rectWindow.y, rectWindow.width, rectWindow.height);
+        rectWindow.x = 30;
+        rectWindow.y = 30;
+        rectWindow = scrRect.intersection(rectWindow);
+      }
+      setIdeWindowState(false);
+      ideWindowRect = new Rectangle(rectWindow);
+      return ideWindowRect;
+    } else if (!ideWindowState) { // before visible first time
+      return ideWindowRect;
     }
-    if (windowSize.height < 500) {
-      windowSize.height = 600;
-    }
-    Rectangle rectWindow = new Rectangle(windowLocation, windowSize);
-    int monitor = ScreenDevice.whichMonitor(rectWindow);
-    ScreenDevice screen;
-    if (monitor == 0) {
-      log(3, "IDE window reset to primary monitor");
-      screen = ScreenDevice.primary();
-      rectWindow.x = 30;
-      rectWindow.y = 30;
-    } else {
-      screen = ScreenDevice.get(monitor);
-    }
-    //TODO resize to fit screen?
-    return rectWindow;
+    return new Rectangle(get().getLocation(), get().getSize()); // after visible first time
   }
 
   public static Point getWindowCenter() {
@@ -108,7 +112,7 @@ public class SikulixIDE extends JFrame {
 
   protected static void start(String[] args) {
 
-    ideWindowRect = getWindowRect();
+    //ideWindowRect = getWindowRect();
     Commons.setSXIDE(SikulixIDE.get());
 
     IDEDesktopSupport.initGUI();
@@ -232,6 +236,8 @@ public class SikulixIDE extends JFrame {
     if (ideWindow != null) {
       org.sikuli.ide.Sikulix.stopSplash();
       ideWindow.setVisible(true);
+      ideWindow.setLocation(getWindowRect().getLocation());
+      setIdeWindowState(true);
       get().mainPane.setDividerLocation(0.6);
       try {
         EditorPane editorPane = get().getCurrentCodePane();
@@ -294,8 +300,9 @@ public class SikulixIDE extends JFrame {
       Debug.error("IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
     }
 
-    ideWindow.setSize(ideWindowRect.getSize());
-    ideWindow.setLocation(ideWindowRect.getLocation());
+    Rectangle windowRect = getWindowRect();
+    ideWindow.setSize(windowRect.getSize());
+    ideWindow.setLocation(windowRect.getLocation());
 
     Debug.log(4, "Adding components to window");
     initMenuBars(ideWindow);
@@ -393,8 +400,10 @@ public class SikulixIDE extends JFrame {
             }
           }
           editorPane.setBundleFolder();
-          int dot = editorPane.getCaret().getDot();
-          editorPane.setCaretPosition(dot);
+          if (null != editorPane.editorPaneRunner && !editorPane.isEmpty()) {
+            editorPane.editorPaneRunner.adjustImportPath(editorPane.getFiles(), null);
+          }
+          editorPane.setCaretPosition(editorPane.getCaret().getDot());
           if (editorPane.isText()) {
             collapseMessageArea();
           } else {
@@ -616,7 +625,7 @@ public class SikulixIDE extends JFrame {
       //TODO newTabEmpty: temp problem: how should caller react?
       return false;
     }
-    editorPane.setFiles(tempFile);
+    editorPane.setFiles(tempFile); //newTabEmpty (temp)
     editorPane.updateDocumentListeners("empty tab");
     tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
     tabs.setSelectedIndex(0);
@@ -2091,7 +2100,7 @@ public class SikulixIDE extends JFrame {
 
     boolean shouldRun() {
       log(4, "ButtonSubRegion");
-      if (Commons.isCaptureBlocked()) { // Button SubRegion
+      if (Device.isCaptureBlocked()) { // Button SubRegion
         Debug.error("FATAL: Capture is blocked");
         return false;
       }
@@ -2761,34 +2770,22 @@ public class SikulixIDE extends JFrame {
       makingScriptjarPlain = true;
       options.remove(0);
     }
-    File scriptFile = null;
-    File scriptFolder = null;
-    File scriptFolderSikuli = null;
-    String scriptName = null;
-    String[] fileList = new String[]{null, null, null};
-    String[] preList = new String[]{null, null, null};
-    if (options.size() > 0) {
-      scriptFolder = new File(options.get(0));
-      if (!scriptFolder.exists()) {
-        scriptFolderSikuli = new File(scriptFolder.getAbsolutePath() + ".sikuli");
-        if (!scriptFolderSikuli.exists()) {
-          log(-1, "makingScriptJar: script folder invalid: " + scriptFolder.getAbsolutePath());
-          return null;
-        }
-      } else {
-        if (scriptFolder.getAbsolutePath().endsWith(".sikuli")) {
-          scriptFolderSikuli = scriptFolder;
-        } else {
-          scriptFile = new File(scriptFolder, "__run__.py");
-          if (!scriptFile.exists()) {
-            log(-1, "makingScriptJar: script file missing: " + scriptFile.getAbsolutePath());
-            return null;
-          }
-        }
-      }
-    } else {
+    if (!makingScriptjarPlain) {
+      log(-1, "makingScriptJar: adding jars not implemented");
+      return null;
+    }
+
+    if (options.size() == 0) {
       log(-1, "makingScriptJar: no script file given");
       return null;
+    }
+    File scriptFolder = new File(options.get(0)).getAbsoluteFile();
+    if (!scriptFolder.exists()) {
+      scriptFolder = new File(scriptFolder + ".sikuli");
+      if (!scriptFolder.exists()) {
+        log(-1, "makingScriptJar: script folder invalid: " + scriptFolder);
+        return null;
+      }
     }
 
     String fpScriptJar = "";
@@ -2804,44 +2801,42 @@ public class SikulixIDE extends JFrame {
         return true;
       }
     };
-    if (null != scriptFolderSikuli) {
-      log(lvl, "makingScriptJar: compiling sikuli script: %s", scriptFolderSikuli);
-      fWorkdir = scriptFolderSikuli.getParentFile();
-      scriptName = scriptFolder.getName().replace(".sikuli", "");
-      fpScriptJar = scriptName + "_sikuli.jar";
-      scriptFile = new File(scriptFolderSikuli, scriptName + ".py");
-      if (!scriptFile.exists()) {
-        log(-1, "makingScriptJar: script folder invalid: " + scriptFolderSikuli.getAbsolutePath());
-        return null;
-      }
-      FileManager.xcopy(scriptFolderSikuli, fScriptSource, skipCompiled);
-      String script = "";
-      String prolog = "import org.sikuli.script.SikulixForJython\n" +
-          "from sikuli import *\n" +
-          "Debug.on(3)\n" +
-          "for e in sys.path:\n" +
-          "    print e\n" +
-          "    if e.endswith(\".jar\"):\n" +
-          "        jar = e\n" +
-          "        break\n" +
-          "ImagePath.addJar(jar, \"\")\n" +
-          "import " + scriptName + "\n";
-      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__run__.py"));
-      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__main__.py"));
-      script = FileManager.readFileToString(new File(fScriptSource, scriptName + ".py"));
-      prolog = "from sikuli import *\naddImportPath(getBundlePath())\n";
-      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, scriptName + ".py"));
-    } else {
-      log(lvl, "makingScriptJar: compiling plain script: %s", scriptFolder);
-      FileManager.xcopy(scriptFolder, fScriptSource, skipCompiled);
+
+    log(lvl, "makingScriptJar: compiling script folder: %s", scriptFolder);
+    String scriptName = scriptFolder.getName().replace(".sikuli", "");
+    fpScriptJar = scriptName + "_sikuli.jar";
+    File scriptFile = new File(scriptFolder, scriptName + ".py");
+    if (!scriptFile.exists()) {
+      log(-1, "makingScriptJar: script folder invalid: " + scriptFolder);
+      return null;
     }
+    FileManager.xcopy(scriptFolder, fScriptSource, skipCompiled);
+    String script = "";
+    String prolog = "import org.sikuli.script.SikulixForJython\n" +
+        "from sikuli import *\n" +
+        "Debug.on(3)\n" +
+        "for e in sys.path:\n" +
+        "    print e\n" +
+        "    if e.endswith(\".jar\"):\n" +
+        "        jar = e\n" +
+        "        break\n" +
+        "ImagePath.addJar(jar, \"\")\n" +
+        "import " + scriptName + "\n";
+    FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__run__.py"));
+    FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__main__.py"));
+    script = FileManager.readFileToString(new File(fScriptSource, scriptName + ".py"));
+    prolog = "from sikuli import *; addImportPath(getBundlePath())\n# coding: utf-8\n";
+    FileManager.writeStringToFile(prolog + script, new File(fScriptSource, scriptName + ".py"));
+    FileManager.xcopy(scriptFolder, fScriptSource, skipCompiled);
 
     JythonSupport.get().compileJythonFolder(fScriptSource.getAbsolutePath(), fScriptCompiled.getAbsolutePath());
     FileManager.xcopy(fScriptCompiled, fSikulixTemp);
     FileManager.deleteFileOrFolder(fScriptSource);
     FileManager.deleteFileOrFolder(fScriptCompiled);
-    fileList[0] = fSikulixTemp.getAbsolutePath();
+    String[] fileList = new String[]{fSikulixTemp.getAbsolutePath()};
 
+// non-plain jar
+/*
     String[] jarsList = new String[]{null, null};
     if (!makingScriptjarPlain) {
 //      File fJarRunner = new File(runTime.fSikulixExtensions, "archiv");
@@ -2879,17 +2874,10 @@ public class SikulixIDE extends JFrame {
         return null;
       }
     }
+*/
 
     String targetJar = (new File(fWorkdir, fpScriptJar)).getAbsolutePath();
-    if (!FileManager.buildJar(targetJar, jarsList, fileList, preList, new FileManager.JarFileFilter() {
-      @Override
-      public boolean accept(ZipEntry entry, String jarname) {
-        if (entry.getName().startsWith("META-INF")) {
-          return false;
-        }
-        return true;
-      }
-    })) {
+    if (!FileManager.buildJar(targetJar, null, fileList, null, null)) {
       log(-1, "makingScriptJar: problems building jar - for details see logfile");
       return null;
     }

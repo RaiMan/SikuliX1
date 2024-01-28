@@ -47,7 +47,7 @@ public class TextRecognizer {
 
   private static final int lvl = 3;
 
-  private static final String versionTess4J = "5.5.0";
+  private static final String versionTess4J = "5.7.0";
   private static String versionTesseract = "???";
   private static String tesseractStamp = "";
 
@@ -372,7 +372,7 @@ public class TextRecognizer {
   }
 
   private BufferedImage optimize(BufferedImage bimg) {
-    Mat mimg = Commons.makeMat(bimg);
+    Mat mimg = Image.makeMat(bimg);
 
     Imgproc.cvtColor(mimg, mimg, Imgproc.COLOR_BGR2GRAY);
 
@@ -382,7 +382,7 @@ public class TextRecognizer {
     float rFactor = options.factor();
 
     if (rFactor > 0 && rFactor != 1) {
-      Commons.resize(mimg, rFactor, options.resizeInterpolation());
+      Image.resize(mimg, rFactor, options.resizeInterpolation());
       // sharpen the enlarged image again
       unsharpMask(mimg, 5);
     }
@@ -396,7 +396,7 @@ public class TextRecognizer {
 //      Core.bitwise_not(mimg, mimg);
 //    }
 
-    return Commons.getBufferedImage(mimg);
+    return Image.getBufferedImage(mimg);
   }
 
   /*

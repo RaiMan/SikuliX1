@@ -14,7 +14,7 @@ public class SikuliIDEI18N {
    static Locale curLocale = null;
 
    static {
-      Locale locale_en = new Locale("en","US");
+      Locale locale_en = new Locale.Builder().setLanguage("en").setRegion("US").build();
       i18nRB_en = ResourceBundle.getBundle("i18n/IDE",locale_en);
       curLocale = Commons.getLocale();
       if(!setLocale(curLocale)){

@@ -14,17 +14,14 @@ import com.sun.jna.platform.win32.BaseTSD;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 import org.sikuli.script.*;
-import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.script.support.devices.Device;
 import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.util.Highlight;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * INTERNAL USE Implementation of IRobot making a DesktopRobot using java.awt.Robot
@@ -80,7 +77,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public ScreenImage captureScreen(Rectangle rect) {
-    if (Commons.isCaptureBlocked()) { //TODO robot captureScreen
+    if (Device.isCaptureBlocked()) { //TODO robot captureScreen
       Commons.terminate(999, "Capture is blocked");
     }
 //    Rectangle s = scr.getBounds();
@@ -430,7 +427,7 @@ public class RobotDesktop extends Robot implements IRobot {
           hCode = "000".substring(0, 4 - hCode.length()) + hCode;
         }
         retVal = hCode;
-        if (hCode.charAt(0) == '0' && hCode.charAt(3) == '0') {
+        if (false) { //TODO needed on Mac?? (hCode.charAt(0) == '0' && hCode.charAt(3) == '0') {
           Debug.error("Robot::typex: cannot be typed using ALT+ABCD (macOS problem: 0x0..0): %s (0x%s)", (char) nCode, hCode);
         } else {
           Map<Character, int[]> keys = KeyboardLayout.getAwtEnUS();

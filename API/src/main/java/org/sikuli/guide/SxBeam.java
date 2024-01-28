@@ -145,12 +145,7 @@ public class SxBeam extends OverlayTransparentWindow
     corners.add(new Point(r.x + r.width, r.y));
     corners.add(new Point(r.x, r.y + r.height));
 
-    Collections.sort(corners, new Comparator() {
-      @Override
-      public int compare(Object arg0, Object arg1) {
-        return (int) (current.distance((Point) arg0) - current.distance((Point) arg1));
-      }
-    });
+    corners.sort((Comparator<? super Point>) (arg0, arg1) -> (int) (current.distance((Point) arg0) - current.distance((Point) arg1)));
 
     int[] xs;
     int[] ys;

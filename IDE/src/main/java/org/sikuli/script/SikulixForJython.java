@@ -39,12 +39,12 @@ public class SikulixForJython {
     JythonSupport helper = JythonSupport.get();
     helper.log(lvl, "SikulixForJython: init: starting");
     if (null == helper.existsSysPathModule("sikuli/Sikuli")) {
-      URL urlSX = RunTime.resourceLocation("/Lib/sikuli/Sikuli.py");
+      URL urlSX = SikulixForJython.class.getResource("/Lib/sikuli/Sikuli.py");
       if (null == urlSX) {
         throw new SikuliXception(String.format("fatal: " + "Jython: " + "no suitable sikulix...jar on classpath"));
       }
       String pathSX = Commons.asFile(urlSX, "").getParentFile().getParent();
-      helper.addSysPath(pathSX);
+      helper.addSysPath(pathSX); // SikulixForJython::init
     }
     helper.addSitePackages();
 //TODO default ImagePath???

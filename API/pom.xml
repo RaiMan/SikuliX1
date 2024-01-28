@@ -90,23 +90,15 @@
       <version>5.8.0</version>
       <!--License LGPL, version 2.1 - Apache License v2.0-->
     </dependency>
-<!--
     <dependency>
       <groupId>com.sikulix</groupId>
       <artifactId>sikulix2opencv</artifactId>
       <version>4.5.4-SNAPSHOT</version>
     </dependency>
--->
-    <dependency>
-      <groupId>org.openpnp</groupId>
-      <artifactId>opencv</artifactId>
-      <version>[4.9.0,)</version>
-    </dependency>
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
       <version>5.5.0</version>
-<!--      <version>5.10.0</version>-->
       <!--License Apache 2-->
     </dependency>
     <dependency>

@@ -55,7 +55,11 @@ public enum CommandArgsEnum {
 	/**
 	 * run in sandbox, multiple IDE instances allowed
 	 */
-	APPDATA("appdata", "a", "appdata path", "Path for SikuliX AppData (Sandbox)", false);
+	APPDATA("appdata", "a", "appdata path", "Path for SikuliX AppData (Sandbox)", false),
+	/**
+	 *  record a workflow (scrennshots, mouse and keyboard actions)
+	 */
+	RECORD("record", "o", "record", "record a workflow", false);
 	/**
 	 * Longname of the parameter
 	 */

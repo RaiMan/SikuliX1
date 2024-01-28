@@ -13,7 +13,7 @@ import org.sikuli.util.Highlight;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class HelpDevice extends Devices {
+public class HelpDevice extends Device {
 
   public static void stop(TYPE type) {
     if (type != null) {
@@ -64,22 +64,20 @@ public class HelpDevice extends Devices {
     return clazz;
   }
 
-  private static Object invokeMethod(Class clazz, String methodName) {
+  private static Object invokeMethod(Class<?> clazz, String methodName) {
     Method method = null;
     Object result = null;
     if (null != clazz) {
       try {
-        method = clazz.getMethod(methodName, null);
+        method = clazz.getMethod(methodName, (Class<?>[]) null);
       } catch (NoSuchMethodException e) {
       }
     }
     if (null != method) {
       String error = "";
       try {
-        result = method.invoke(null, null);
-      } catch (IllegalAccessException e) {
-        error = e.getMessage();
-      } catch (InvocationTargetException e) {
+        result = method.invoke(null, (Object[]) null);
+      } catch (IllegalAccessException | InvocationTargetException e) {
         error = e.getMessage();
       }
       if (!error.isEmpty()) {
@@ -95,18 +93,18 @@ public class HelpDevice extends Devices {
     invokeMethod(getClazz(classNameVNC), "stopAll");
   }
 
-  public static Devices startVNC(String theIP, int thePort, String password, int cTimeout, int timeout) {
+  public static Device startVNC(String theIP, int thePort, String password, int cTimeout, int timeout) {
     return null;
   }
 
-  public static Devices startVNC(String theIP, int thePort, int cTimeout, int timeout) {
+  public static Device startVNC(String theIP, int thePort, int cTimeout, int timeout) {
     return null;
   }
   //</editor-fold>
 
   //<editor-fold desc="20 Mobile actions (Android)">
   private static void stopAndroid() {
-    Class cADB = null;
+    Class<?> cADB = null;
     Method cADBstop = null;
     try {
       cADB = Class.forName("org.sikuli.vnc.VNCScreen");
@@ -114,17 +112,15 @@ public class HelpDevice extends Devices {
     }
     if (null != cADB) {
       try {
-        cADBstop = cADB.getMethod("stopAll", null);
+        cADBstop = cADB.getMethod("stopAll", (Class<?>[]) null);
       } catch (NoSuchMethodException e) {
       }
     }
     if (null != cADBstop) {
       String error = "";
       try {
-        cADBstop.invoke(null, null);
-      } catch (IllegalAccessException e) {
-        error = e.getMessage();
-      } catch (InvocationTargetException e) {
+        cADBstop.invoke(null, (Object[]) null);
+      } catch (IllegalAccessException | InvocationTargetException e) {
         error = e.getMessage();
       }
       if (!error.isEmpty()) {

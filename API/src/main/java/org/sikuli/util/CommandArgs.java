@@ -84,6 +84,7 @@ public class CommandArgs {
       cmdArgs.addOption(makeOption(CommandArgsEnum.LOAD));
       cmdArgs.addOption(makeOption(CommandArgsEnum.RUN));
       cmdArgs.addOption(makeOption(CommandArgsEnum.RUNSERVER));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.RECORD));
     }
   }
 

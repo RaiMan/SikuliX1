@@ -862,15 +862,11 @@ public abstract class Element {
       searchTime = findTime;
       if (img.isValid()) {
         if (target instanceof String) {
-          finder = runFirstFinder(finder, new Pattern().setImage(img), findtype); // String
+          finder = runFirstFinder(finder, new Pattern(img), findtype); // String
         } else if (target instanceof Pattern) {
-          if (img.isValid()) {
-            finder = runFirstFinder(finder, ((Pattern) target).setImage(img), findtype); // Pattern
-          }
+          finder = runFirstFinder(finder, (Pattern) target, findtype); // Pattern
         } else if (target instanceof Image || target instanceof ScreenImage) {
-          if (img.isValid()) {
-            finder = runFirstFinder(finder, new Pattern().setImage(img), findtype); // image
-          }
+          finder = runFirstFinder(finder, new Pattern(img), findtype); // image
         } else {
           throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
         }
@@ -1336,7 +1332,7 @@ public abstract class Element {
   //<editor-fold desc="17 find text like find image">
   public Match findText(String text) throws FindFailed {
     //TODO implement findText
-    throw new SikuliXception(String.format("Pixels: findText: not implemented for", this.getClass().getCanonicalName()));
+    throw new SikuliXception(String.format("Element: findText: not implemented for", this.getClass().getCanonicalName()));
   }
 
   public Match findT(String text) throws FindFailed {
@@ -1345,7 +1341,7 @@ public abstract class Element {
 
   public Match existsText(String text) {
     //TODO existsText: try: findText:true catch: false
-    throw new SikuliXception(String.format("Pixels: existsText: not implemented for", this.getClass().getCanonicalName()));
+    throw new SikuliXception(String.format("Element: existsText: not implemented for", this.getClass().getCanonicalName()));
   }
 
   public Match existsT(String text) {
@@ -1362,7 +1358,7 @@ public abstract class Element {
 
   public List<Match> findAllText(String text) {
     List<Match> matches = new ArrayList<>();
-    throw new SikuliXception(String.format("Pixels: findAllText: not implemented for", this.getClass().getCanonicalName()));
+    throw new SikuliXception(String.format("Element: findAllText: not implemented for", this.getClass().getCanonicalName()));
     //return matches;
   }
 
@@ -1418,12 +1414,12 @@ public abstract class Element {
     if (target instanceof Pattern) {
       return ((Pattern) target).getImage();
     } else if (target instanceof String) {
-      Image img = Image.create((String) target);
+      Image img = Image.from((String) target);
       return img;
     } else if (target instanceof Image) {
       return (Image) target;
     } else if (target instanceof ScreenImage) {
-      return new Image(((ScreenImage) target).getImage());
+      return Image.from(((ScreenImage) target));
     } else {
       throw new IllegalArgumentException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
     }
@@ -1431,9 +1427,9 @@ public abstract class Element {
 
   protected static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
     if (whatEver instanceof String) {
-      return Image.create((String) whatEver).get();
+      return Image.from((String) whatEver).get();
     } else if (whatEver instanceof File) {
-      return Image.create((File) whatEver).get();
+      return Image.from((File) whatEver).get();
     } else if (whatEver instanceof Match) {
       Region theRegion = new Region((Match) whatEver);
       return theRegion.getImage().get();
@@ -1450,7 +1446,7 @@ public abstract class Element {
   }
 
   protected Image getImage() {
-    throw new SikuliXception(String.format("Pixels: getImage: not implemented for", this.getClass().getCanonicalName()));
+    throw new SikuliXception(String.format("Element: getImage: not implemented for", this.getClass().getCanonicalName()));
   }
 
   protected List<Match> relocate(List<Match> matches) {
@@ -1506,6 +1502,7 @@ public abstract class Element {
    * @see #findLines()
    * @deprecated use findLines() instead
    */
+@Deprecated
   public List<Match> collectLines() {
     return findLines();
   }

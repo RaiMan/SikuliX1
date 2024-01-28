@@ -119,9 +119,9 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     sldSimilar.setPaintTicks(true);
 
     Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-    labelTable.put(new Integer(0), new JLabel("00"));
-    labelTable.put(new Integer(50), new JLabel("50"));
-    labelTable.put(new Integer(100), new JLabel("99"));
+    labelTable.put(Integer.valueOf(0), new JLabel("00"));
+    labelTable.put(Integer.valueOf(50), new JLabel("50"));
+    labelTable.put(Integer.valueOf(100), new JLabel("99"));
     sldSimilar.setLabelTable(labelTable);
     sldSimilar.setPaintLabels(true);
 

@@ -22,6 +22,9 @@
           <exclude>/sikulixlibs/mac/**</exclude>
           <exclude>/sikulixlibs/windows/**</exclude>
           <exclude>/sikulixlibs/linux/**</exclude>
+          <exclude>/nu/pattern/opencv/osx/x86_64/**</exclude>
+          <exclude>/nu/pattern/opencv/linux/**</exclude>
+          <exclude>/nu/pattern/opencv/windows/**</exclude>
         </excludes>
       </unpackOptions>
       <excludes>
