@@ -87,10 +87,12 @@ public class Sikulix {
       Debug.on(3);
       try {
         scr.hover();
+        scr.text();
       } catch (Exception e) {
         Debug.print("%s", e.getMessage());
       }
-      arg = "xxx";
+      //arg = "xxx";
+      arg = "";
     }
 
     if ("xxx".equals(arg)) {
