@@ -781,9 +781,10 @@ public abstract class Element {
       long maxDuration = 0;
       for (Future result : fResults) {
         try {
+          results.add(0L);
           Object[] current = (Object[]) result.get();
           maxDuration = Math.max((Long) current[1], maxDuration);
-          results.add((Integer) current[0], (Long) current[1]);
+          results.set((Integer) current[0], (Long) current[1]);
         } catch (InterruptedException e) {
           e.printStackTrace();
         } catch (ExecutionException e) {

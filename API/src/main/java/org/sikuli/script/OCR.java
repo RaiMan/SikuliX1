@@ -140,6 +140,7 @@ public class OCR {
       options.language = language;
       options.dataPath = dataPath;
       options.isLightFont = isLightFont;
+      options.isGrayFont = isGrayFont;
       options.textHeight = textHeight;
       options.resizeInterpolation = resizeInterpolation;
       options.variables = new LinkedHashMap<>(variables);
@@ -171,6 +172,7 @@ public class OCR {
       language = "eng";
       dataPath = null;
       isLightFont = false;
+      isGrayFont = false;
       textHeight = getDefaultTextHeight();
       resizeInterpolation = Image.Interpolation.LINEAR;
       variables.clear();
@@ -435,6 +437,22 @@ public class OCR {
 
     public boolean isLightFont() {
       return isLightFont;
+    }
+
+    private boolean isGrayFont = false;
+
+    public Options grayFont() {
+      isGrayFont = true;
+      return this;
+    }
+    public boolean isGrayFont() {
+      return isGrayFont;
+    }
+
+    public Options resetFontSetting() {
+      isLightFont = false;
+      isGrayFont = false;
+      return this;
     }
 
     /**

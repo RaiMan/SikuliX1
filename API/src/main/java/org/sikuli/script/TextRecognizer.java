@@ -395,6 +395,11 @@ public class TextRecognizer {
 //    else if (Core.mean(mimg).val[0] < 127) {
 //      Core.bitwise_not(mimg, mimg);
 //    }
+    
+    if (options.isGrayFont()) {
+      Imgproc.adaptiveThreshold(mimg, mimg, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C,
+              Imgproc.THRESH_BINARY, 17, 10);
+    }
 
     return Image.getBufferedImage(mimg);
   }
