@@ -5,31 +5,45 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.FilenameUtils;
+import org.opencv.core.*;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.OpenCV;
 import org.sikuli.script.Options;
 import org.sikuli.script.Region;
+import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
+import org.sikuli.script.support.devices.MouseDevice;
+import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.*;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.file.*;
 import java.nio.file.FileSystem;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -40,14 +54,12 @@ import static org.sikuli.util.CommandArgsEnum.*;
 public class Commons {
 
   //TODO force early Commons static initializer (RunTime)
-  private Commons() {
-  }
-
+  private Commons(){}
   public static void init() {
     Settings.init();
   }
 
-  //<editor-fold desc="00 static / IDE support">
+  //<editor-fold desc="00 static">
   private static Class COMMONS_CLASS = Commons.class;
   private static final long START_MOMENT;
   protected static boolean RUNNINGIDE = false;
@@ -93,7 +105,7 @@ public class Commons {
   private static final String SX_TEMP_DIR = System.getProperty("java.io.tmpdir");
   private static File SX_TEMP_FOLDER = null;
 
-  private static Locale SX_LOCALE = new Locale.Builder().setLanguage("en").setRegion("US").build();
+  private static Locale SX_LOCALE = new Locale("en", "US");
 
   public static boolean isRunningIDE() {
     if (RUNNINGIDE &&
@@ -351,6 +363,57 @@ Software:
     return hasStartArg(APPDATA) && APP_DATA_SANDBOX != null;
   }
 
+  public static void checkAccessibility() {
+    Devices.start(Devices.TYPE.SCREEN);
+    //check Mouse
+    while(MouseDevice.isMoving()) {
+      Commons.pause(1.0);
+    }
+    ExecutorService executorService = Executors.newFixedThreadPool(1);
+    executorService.execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Devices.start(Devices.TYPE.MOUSE);
+        } catch (Exception e) {
+          Debug.error("Start MouseDevice: %s", e.getMessage());
+        }
+      }
+    });
+    long mouseCheckWait = 500;
+    long duration = 0;
+    if (Commons.runningMac()) {
+      //macOS: check Screen capture
+      long start = new Date().getTime();
+      Devices.start(Devices.TYPE.SCREEN);
+      Rectangle srect = ScreenDevice.primary().asRectangle();
+      BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
+      DataBuffer data = screenImage.getData(new Rectangle(200, 10, srect.width - 200, 1)).getDataBuffer();
+      int min = data.getElem(0);
+      int max = data.getElem(0);
+      for (int n = 0; n < data.getSize(); n++) {
+        min = Math.min(min, data.getElem(n));
+        max = Math.max(max, data.getElem(n));
+      }
+      Color cmin = new Color(min);
+      Color cmax = new Color(max);
+      boolean singleColor =
+          (Math.abs(cmax.getRed() - cmin.getRed()) < 2) &&
+              (Math.abs(cmax.getGreen() - cmin.getGreen()) < 2) &&
+              (Math.abs(cmax.getBlue() - cmin.getBlue()) < 2);
+      if (singleColor) {
+        ScreenDevice.isUseable(false);
+      }
+      duration = new Date().getTime() - start;
+    }
+    pause(Math.max(1, (mouseCheckWait - duration)) / 1000.0); //Windows: wait for threaded Mouse check
+    executorService.shutdown();
+  }
+
+  public static boolean isCaptureBlocked() { //TODO
+    return !ScreenDevice.isUseable();
+  }
+
   private static Class startClass = null;
 
   public static Class getStartClass() {
@@ -371,7 +434,7 @@ Software:
     return getMainClassLocation().getAbsolutePath().endsWith(".jar");
   }
 
-  static boolean runningApp = false;
+ static boolean runningApp = false;
 
   public static boolean isRunningApp(Object... state) {
     if (state.length > 0) {
@@ -615,7 +678,7 @@ Software:
   public static File setAppDataPath(String givenAppPath) {
     if (givenAppPath.isEmpty()) {
       appDataPath = Commons.getMainClassLocation().getParentFile();
-      if (!Commons.isRunningFromJar()) {
+      if (!Commons.isRunningFromJar() || appDataPath.getAbsolutePath().contains("IdeaProjects/SikuliX1/IDE/target")) {
         appDataPath = appDataPath.getParentFile();
       }
       appDataPath = new File(appDataPath, "SikulixAppData");
@@ -947,12 +1010,10 @@ Software:
               mainPath = mainPath + "/" + sub;
             }
           }
-          String sUri = "jar:" + mainPath;
           try {
-            mainURL = new URI(sUri).toURL();
-          } catch (IOException | URISyntaxException e) {
-            Debug.error(enter);
-            Debug.error("makeURL: %s -> %s(%s)", sUri, e.getCause(), e.getMessage());
+            mainURL = new URL("jar:" + mainPath);
+          } catch (IOException e) {
+            e.printStackTrace();
           }
           return mainURL;
         } else {
@@ -975,10 +1036,10 @@ Software:
         mainPath += sub;
       }
       try {
-        url = new URI(mainPath).toURL();
-      } catch (IOException | URISyntaxException e) {
+        url = new URL(mainPath);
+      } catch (MalformedURLException e) {
         Debug.error(enter);
-        Debug.error("makeURL: %s -> %s(%s)", mainPath, e.getCause(), e.getMessage());
+        Debug.error("makeURL: net url malformed: %s (%s)", mainPath, e.getMessage());
       }
     } else {
       if (mainFile.getPath().endsWith(".jar") || mainFile.getPath().contains(".jar!")) {
@@ -994,39 +1055,26 @@ Software:
           Debug.error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
         }
       }
-      if (!isJar) {
-        if (!mainFile.isAbsolute()) {
-          mainFile = new File(getWorkDir(), mainFile.getPath());
-        }
-        try {
-          mainFile = mainFile.getCanonicalFile();
-        } catch (IOException e) {
-          Debug.error(enter);
-          Debug.error("makeURL: %s -> %s(%s)", mainFile, e.getCause(), e.getMessage());
-        }
-        if (!mainFile.exists()) {
-          if (main instanceof String) {
-            url = makeClassURL((String) main);
+      try {
+        if (!isJar) {
+          if (!mainFile.isAbsolute()) {
+            mainFile = new File(getWorkDir(), mainFile.getPath());
           }
-          if (url == null) {
-            Debug.error(enter);
-            Debug.error("makeURL(%s): file does not exist and is not a class resource", main);
+          mainFile = mainFile.getCanonicalFile();
+          if (!mainFile.exists()) {
+            if (main instanceof String) {
+              url = makeClassURL((String) main);
+            }
+            if (url == null) {
+              Debug.error(enter);
+              Debug.error("makeURL(%s): file does not exist and is not a class resource", main);
+            }
+          } else {
+            url = mainFile.toURI().toURL();
           }
         } else {
-          try {
-            URI uri = new URI("file:" + mainFile.getPath()); //TODO getURL()
-            url = uri.toURL();
-          } catch (IOException | URISyntaxException e) {
-            Debug.error(enter);
-            Debug.error("makeURL: %s -> %s(%s)", mainFile, e.getCause(), e.getMessage());
-          }
-        }
-      } else {
-        String sJar = "";
-        try {
           String[] parts = mainFile.getPath().split("\\.jar");
           String jarPart = parts[0] + ".jar";
-          sJar = jarPart;
           if (!new File(jarPart).exists()) {
             throw new IOException();
           }
@@ -1039,12 +1087,14 @@ Software:
           }
           subPart = "!/" + subPart.replace("\\", "/");
           subPart = subPart.replace("//", "/");
-          sJar = "jar:file:" + jarPart + subPart;
-          url = new URI(sJar).toURL();
-        } catch (IOException | URISyntaxException e) {
-          Debug.error(enter);
-          Debug.error("makeURL: %s -> %s(%s)", sJar, e.getCause(), e.getMessage());
+          url = new URL("jar:file:" + jarPart + subPart);
         }
+      } catch (MalformedURLException e) {
+        Debug.error(enter);
+        Debug.error("makeURL: malformed: %s", mainFile);
+      } catch (IOException e) {
+        Debug.error(enter);
+        Debug.error("makeURL: not found: %s", mainFile);
       }
     }
 
@@ -1082,19 +1132,17 @@ Software:
 
   private static URL makeURLFromPath(String path) {
     URL dirURL;
-    String sUri = "";
     if (path.startsWith("<appdata>")) {
       String path1 = getAppDataPath().getAbsolutePath();
       path = path.replace("<appdata>", path1);
     }
-    File resFolderFile = new File(path);
-    if (!resFolderFile.isAbsolute()) {
-      resFolderFile = new File(resFolderFile.getAbsolutePath());
-    }
-    sUri = "file:" + (runningWindows() ? "/" : "") + resFolderFile;
     try {
-      dirURL = new URI(sUri).toURL();
-    } catch (IOException | URISyntaxException e) {
+      File resFolderFile = new File(path);
+      if (!resFolderFile.isAbsolute()) {
+        resFolderFile = new File(resFolderFile.getAbsolutePath());
+      }
+      dirURL = new URL("file:" + (runningWindows() ? "/" : "") + resFolderFile);
+    } catch (MalformedURLException e) {
       dirURL = null;
     }
     return dirURL;
@@ -1125,24 +1173,20 @@ Software:
     if (null == option || option.isBlank()) {
       terminate(999, "Commons: asFolder(): not possible for %s", option);
     }
-    File folderOrFile = new File(option);
-    if (!folderOrFile.isAbsolute()) {
-      folderOrFile = new File(Commons.getWorkDir(), option);
+    File folder = new File(option);
+    if (!folder.isAbsolute()) {
+      folder = new File(Commons.getWorkDir(), option);
     }
-    if (folderOrFile.isFile()) {
-      if (folderOrFile.exists()) {
-        return folderOrFile.getParentFile();
+    if (!folder.isDirectory()) {
+      if (folder.exists()) {
+        return folder.getParentFile();
+      }
+      folder.mkdirs();
+      if (!folder.exists()) {
+        terminate(999, "Commons: asFolder(): not possible for %s", folder);
       }
     }
-    folderOrFile.mkdirs();
-    if (!folderOrFile.exists()) {
-      terminate(999, "Commons: asFolder(): not possible for %s", folderOrFile);
-    }
-    return folderOrFile;
-  }
-
-  public static boolean deleteFileOrFolder(File file) {
-    return FileManager.deleteFileOrFolder(file);
+    return folder;
   }
   //</editor-fold>
 
@@ -1319,7 +1363,7 @@ Software:
 
   }
 
-  public static void copy(InputStream in, OutputStream out) throws IOException {
+  private static void copy(InputStream in, OutputStream out) throws IOException {
     byte[] tmp = new byte[8192];
     int len;
     while (true) {
@@ -1407,9 +1451,7 @@ Software:
     }
     return fname + ".png";
   }
-  //</editor-fold>
 
-  //<editor-fold desc="20 library handling">
   public static String jnaPathAdd(String sFolder) {
     String jnaPath = System.getProperty("jna.library.path");
     if (null == jnaPath) {
@@ -1427,6 +1469,18 @@ Software:
     return jnaPath;
   }
 
+  private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+
+  public static boolean loadOpenCV() {
+    if(loadLibrary(libOpenCV))
+      try {
+        new Mat();
+      } catch (Exception e) {
+        terminate(999, "FATAL: loadOpenCV: %s not not useable (%s)", libOpenCV, e.getMessage());
+      }
+    return true;
+  }
+
   public static String getLibFilename(String aFile) {
     if (runningWindows()) {
       aFile += ".dll";
@@ -1440,24 +1494,6 @@ Software:
 
   private static List<String> libsLoaded = new ArrayList<>();
   private static boolean areLibsExported = false;
-
-  public static void loadOpenCV() {
-    if (libsLoaded.contains("OPENCV")) {
-      return;
-    }
-    if (!areLibsExported) {
-      libsExport();
-      if (!areLibsExported) {
-        terminate(999, "loadLib: deferred exporting of libs did not work");
-      }
-    }
-    File lib = OpenCV.load();
-    if (null != loadLib(lib)) {
-      libsLoaded.add("OPENCV");
-    } else {
-      terminate(999, "OpenCV not useable");
-    }
-  }
 
   public static boolean loadLibrary(String libName) {
     Debug.log(3, "loadLibrary: trying: %s", libName);
@@ -1475,24 +1511,24 @@ Software:
       if (!areLibsExported) {
         libsExport();
         if (!areLibsExported) {
-          terminate(999, "loadLib: deferred exporting of libs did not work");
+          throw new SikuliXception("loadLib: deferred exporting of libs did not work");
         }
       }
       fLib = loadLib(new File(getLibsFolder(), libFileName));
     }
     if (fLib == null) {
       //try from system library folders
-      fLib = loadLib(new File(libName));
+      fLib = loadLib(new File(libFileName));
     }
     if (null == fLib) {
-      terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libName);
+      terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libFileName);
     }
     libsLoaded.add(libName);
     Debug.log(3, "loadLibrary: success: %s%s", userLib, fLib);
     return true;
   }
 
-  public static File loadLib(File fLib) {
+  private static File loadLib(File fLib) {
     if (fLib == null) {
       return null;
     }
@@ -1507,13 +1543,14 @@ Software:
         System.loadLibrary("" + fLib);
       }
     } catch (Exception e) {
-      Debug.error("loadLibrary: not useable: %s (%s)", fLib, e.getMessage());
+      Debug.error("loadLibrary: not useable: %s (%s)", fLib.getName(), e.getMessage());
       return null;
     }
     return fLib;
   }
 
   private static void libsExport() {
+    String OPENCV_JAVA = "opencv_java";
     String fpJarLibs = getJarLibsPath();
     File fLibsFolder = getLibsFolder();
     if (fLibsFolder.exists()) {
@@ -1565,10 +1602,14 @@ Software:
         inFile = new File(fpJarLibs, aFile).getPath();
       }
       if (inFile != null) {
+        if (OPENCV_JAVA.equals(aFile)) {
+          inFile = inFile.replace(OPENCV_JAVA, getLibFilename(libOpenCV));
+          aFile = new File(inFile).getName();
+        }
         outFile = new File(fLibsFolder, aFile);
         try (FileOutputStream outFileStream = new FileOutputStream(outFile);
              InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
-          copy(inStream, outFileStream);
+          RunTime.copy(inStream, outFileStream);
         } catch (Exception ex) {
           copyMsg = String.format(": failed: %s", ex.getMessage());
         }
@@ -1582,9 +1623,7 @@ Software:
         if (isExecutable) {
           outFile.setExecutable(true);
         }
-        if (!copyMsg.isEmpty()) {
-          Debug.log(3, copyMsg);
-        }
+        Debug.log(3, copyMsg);
       }
     }
     areLibsExported = true;
@@ -1946,6 +1985,233 @@ Software:
   }
   //</editor-fold>
 
+  //<editor-fold desc="80 image handling">
+  public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
+    final AffineTransform af = new AffineTransform();
+    af.scale((double) width / originalImage.getWidth(),
+        (double) height / originalImage.getHeight());
+    final AffineTransformOp operation = new AffineTransformOp(
+        af, AffineTransformOp.TYPE_BILINEAR);
+    BufferedImage rescaledImage = new BufferedImage(width, height,
+        BufferedImage.TYPE_INT_ARGB);
+    rescaledImage = operation.filter(originalImage, rescaledImage);
+    return rescaledImage;
+  }
+
+  /**
+   * Available resize interpolation algorithms
+   */
+  public enum Interpolation {
+    NEAREST(Imgproc.INTER_NEAREST),
+    LINEAR(Imgproc.INTER_LINEAR),
+    CUBIC(Imgproc.INTER_CUBIC),
+    AREA(Imgproc.INTER_AREA),
+    LANCZOS4(Imgproc.INTER_LANCZOS4),
+    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
+    MAX(Imgproc.INTER_MAX);
+
+    private int value;
+
+    Interpolation(int value) {
+      this.value = value;
+    }
+
+  }
+
+  /**
+   * resize the given image with factor using OpenCV ImgProc.resize()
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param bimg   given image
+   * @param factor resize factor
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public static BufferedImage resize(BufferedImage bimg, float factor) {
+    return resize(bimg, factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the given image with factor using OpenCV ImgProc.resize()
+   *
+   * @param bimg          given image
+   * @param factor        resize factor
+   * @param interpolation algorithm used for pixel interpolation
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
+    return getBufferedImage(cvResize(bimg, factor, interpolation));
+  }
+
+  /**
+   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param mat    given image as cvMat
+   * @param factor resize factor
+   */
+  public static void resize(Mat mat, float factor) {
+    resize(mat, factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
+   *
+   * @param mat           given image as cvMat
+   * @param factor        resize factor
+   * @param interpolation algorithm used for pixel interpolation.
+   */
+  public static void resize(Mat mat, float factor, Interpolation interpolation) {
+    cvResize(mat, factor, interpolation);
+  }
+
+  private static Mat cvResize(BufferedImage bimg, double rFactor, Interpolation interpolation) {
+    Mat mat = makeMat(bimg);
+    cvResize(mat, rFactor, interpolation);
+    return mat;
+  }
+
+  private static void cvResize(Mat mat, double rFactor, Interpolation interpolation) {
+    int newW = (int) (rFactor * mat.width());
+    int newH = (int) (rFactor * mat.height());
+    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, interpolation.value);
+  }
+
+  public static Mat getNewMat() {
+    return new Mat();
+  }
+
+  public static Mat getNewMat(Size size, int type, int fill) {
+    switch (type) {
+      case 1:
+        type = CvType.CV_8UC1;
+        break;
+      case 3:
+        type = CvType.CV_8UC3;
+        break;
+      case 4:
+        type = CvType.CV_8UC4;
+        break;
+      default:
+        type = -1;
+    }
+    if (type < 0) {
+      return new Mat();
+    }
+    Mat result;
+    if (fill < 0) {
+      result = new Mat(size, type);
+    } else {
+      result = new Mat(size, type, new Scalar(fill));
+    }
+    return result;
+  }
+
+  public static List<Mat> getMatList(BufferedImage bImg) {
+    byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+    Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+    aMat.put(0, 0, data);
+    List<Mat> mats = new ArrayList<Mat>();
+    Core.split(aMat, mats);
+    return mats;
+  }
+
+  public static Mat makeMat(BufferedImage bImg) {
+    return makeMat(bImg, true);
+  }
+
+  public static Mat makeMat(BufferedImage bImg, boolean asBGR) {
+    if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
+      int[] data = ((DataBufferInt) bImg.getRaster().getDataBuffer()).getData();
+      ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);
+      IntBuffer intBuffer = byteBuffer.asIntBuffer();
+      intBuffer.put(data);
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+      aMat.put(0, 0, byteBuffer.array());
+      Mat oMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      Mat oMatA = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      List<Mat> mixIn = new ArrayList<Mat>(Arrays.asList(new Mat[]{aMat}));
+      List<Mat> mixOut = new ArrayList<Mat>(Arrays.asList(new Mat[]{oMatA, oMatBGR}));
+      //A 0 - R 1 - G 2 - B 3 -> A 0 - B 1 - G 2 - R 3
+      Core.mixChannels(mixIn, mixOut, new MatOfInt(0, 0, 1, 3, 2, 2, 3, 1));
+      return oMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
+        || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+      String bImgType = "BYTE_BINARY";
+      if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        bImgType = "BYTE_INDEXED";
+      }
+      BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+      Graphics graphics = bimg3b.getGraphics();
+      graphics.drawImage(bImg, 0, 0, null);
+      byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) { //TODO || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
+      List<Mat> mats = getMatList(bImg);
+      Size size = mats.get(0).size();
+      if (!asBGR) {
+        Mat mBGRA = getNewMat(size, 4, -1);
+        mats.add(mats.remove(0));
+        Core.merge(mats, mBGRA);
+        return mBGRA;
+      } else {
+        Mat mBGR = getNewMat(size, 3, -1);
+        mats.remove(0);
+        Core.merge(mats, mBGR);
+        return mBGR;
+      }
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      aMat.put(0, 0, data);
+      return aMat;
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+      BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+      Graphics graphics = bimg3b.getGraphics();
+      graphics.drawImage(bImg, 0, 0, null);
+      byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
+    } else {
+      Debug.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
+    }
+    return getNewMat();
+  }
+
+  public final static String PNG = "png";
+  public final static String dotPNG = "." + PNG;
+
+  public static BufferedImage getBufferedImage(Mat mat) {
+    return getBufferedImage(mat, dotPNG);
+  }
+
+  public static BufferedImage getBufferedImage(Mat mat, String type) {
+    BufferedImage bImg = null;
+    MatOfByte bytemat = new MatOfByte();
+    if (SX.isNull(mat)) {
+      mat = getNewMat();
+    }
+    Imgcodecs.imencode(type, mat, bytemat);
+    byte[] bytes = bytemat.toArray();
+    InputStream in = new ByteArrayInputStream(bytes);
+    try {
+      bImg = ImageIO.read(in);
+    } catch (IOException ex) {
+      Debug.error("getBufferedImage: %s error(%s)", mat, ex.getMessage());
+    }
+    return bImg;
+  }
+  //</editor-fold>
+
   //<editor-fold desc="90 reflections">
   public static Object runFunctionScriptingSupport(String function, Object[] args) {
     return runFunctionScriptingSupport(null, function, args);
@@ -1973,9 +2239,9 @@ Software:
     Object instanceSup = null;
     Method method = null;
     try {
-      instanceSup = classSup.getMethod("get", (Class<?>[]) null).invoke(null, (Object[]) null);
+      instanceSup = classSup.getMethod("get", null).invoke(null, null);
       if (args == null) {
-        method = classSup.getMethod(function, (Class<?>[]) null);
+        method = classSup.getMethod(function, null);
         returnSup = method.invoke(instanceSup);
       } else {
         method = classSup.getMethod(function, Object[].class);
