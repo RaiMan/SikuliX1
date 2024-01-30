@@ -1433,7 +1433,9 @@ Software:
     }
     return asFile(new File(folder, option).getPath());
   }
+  //</editor-fold>
 
+  //<editor-fold desc="20 library handling">
   public static boolean isValidImageFilename(String fname) {
     String validEndings = ".png.jpg.jpeg";
     String ending = "";
