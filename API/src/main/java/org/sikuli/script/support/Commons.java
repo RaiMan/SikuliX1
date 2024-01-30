@@ -38,6 +38,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.*;
+import java.nio.file.FileSystem;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
@@ -1435,6 +1436,24 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="20 library handling">
+  public static boolean isValidImageFilename(String fname) {
+    String validEndings = ".png.jpg.jpeg";
+    String ending = "";
+    try {
+        ending = FilenameUtils.getExtension(fname);
+    } catch(IllegalArgumentException e) {
+        return false;
+    }
+    return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
+  }
+
+  public static String getValidImageFilename(String fname) {
+    if (isValidImageFilename(fname)) {
+      return fname;
+    }
+    return fname + ".png";
+  }
+
   public static String jnaPathAdd(String sFolder) {
     String jnaPath = System.getProperty("jna.library.path");
     if (null == jnaPath) {
