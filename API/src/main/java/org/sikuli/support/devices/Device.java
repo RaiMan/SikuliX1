@@ -229,7 +229,7 @@ public class Device {
   public Location getLocation() {
     PointerInfo mp = MouseInfo.getPointerInfo();
     if (mp != null) {
-      return new Location(MouseInfo.getPointerInfo().getLocation());
+      return new Location(mp.getLocation());
     } else {
       Debug.error("Mouse: not possible to get mouse position (PointerInfo == null)");
       return null;
