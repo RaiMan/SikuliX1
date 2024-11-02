@@ -85,7 +85,7 @@ public class SikulixIDE extends JFrame {
 
   static PreferencesUser prefs;
 
-  private SikulixIDE() {
+  public SikulixIDE() {
     prefs = PreferencesUser.get();
     if (prefs.getUserType() < 0) {
       prefs.setIdeSession("");

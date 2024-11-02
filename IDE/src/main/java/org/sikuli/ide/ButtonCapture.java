@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-class ButtonCapture extends ButtonOnToolbar implements Cloneable, EventObserver {
+public class ButtonCapture extends ButtonOnToolbar implements Cloneable, EventObserver {
 
   private static final String me = "ButtonCapture: ";
   protected EditorPane _codePane;
