@@ -158,6 +158,9 @@ public class SikulixIDE extends JFrame {
     ideWindow.setVisible(true);
     sikulixIDE.getActiveContext().focus();
   }
+  public  PaneContext getContext(){
+    return sikulixIDE.getActiveContext();
+  }
 
   //TODO showAfterStart to be revised
   static String _I(String key, Object... args) {
@@ -394,7 +397,7 @@ public class SikulixIDE extends JFrame {
 
   private SikuliIDEStatusBar _status;
 
-  private JSplitPane mainPane;
+  public JSplitPane mainPane;
 
   private void initTabs() {
     tabs = new CloseableTabbedPane();
@@ -570,7 +573,7 @@ public class SikulixIDE extends JFrame {
     return files;
   }
 
-  class PaneContext {
+  public class PaneContext {
     File folder;
     File imageFolder;
     File file;
