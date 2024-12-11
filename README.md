@@ -1,5 +1,8 @@
-******** Paused (not available) till July 2024 ********
+******** Paused (not available) till somewhen in 2025 ********
 ---
+
+Due to private priorities I did not have the time during 2024 nor could I concentrate on SikuliX.
+I cannot yet predict when or if I continue.
 
 ---
 
