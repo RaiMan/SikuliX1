@@ -1,4 +1,4 @@
-******** Paused (not available) till somewhen in 2025 ********
+******** Paused (not available) till somewhen in later 2025 ********
 ---
 
 Due to private priorities I did not have the time during 2024 nor could I concentrate on SikuliX.
