@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: New File
         run: |
@@ -18,7 +18,7 @@ jobs:
       - name: Commit
         run: |
           git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
+          git config user.email "actions@github.com"
           git add -A
-          git commit -m "test"
+          git commit -m "Test commit from eval workflow [skip ci]"
           git push origin master

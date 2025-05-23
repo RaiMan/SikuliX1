@@ -3,7 +3,7 @@ name: IDE Snapshot
 on:
   push:
     branches:
-      - master
+      - release_2.0.x
     paths:
       - 'IDE/pom*'
   
@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     
     - name: Set up JDK 11
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v4
       with:
         java-version: '11'
         distribution: 'adopt'
@@ -26,7 +26,7 @@ jobs:
 
 # --------------------------------------- Windows
     - name: Windows Build with Maven
-      run: mvn -B -pl IDE -P complete-win-jar package | egrep -v "^\[INFO\].*?Download.*?http"
+      run: mvn -B -pl IDE -P complete-win-jar clean package | egrep -v "^\[INFO\].*?Download.*?http"
 
     - name: Remove thin jar
       run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
@@ -79,7 +79,7 @@ jobs:
     - name: Commit README
       run: |
         git config user.name "GitHub Actions Bot"
-        git config user.email "<>"
+        git config user.email "actions@github.com"
         git add -A
-        git commit -m "test"
+        git commit -m "Update README with latest IDE links [skip ci]"
         git push origin master
