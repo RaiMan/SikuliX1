@@ -597,3 +597,162 @@ SikuliX provides functions to display simple dialogs for user interaction.
 
 ---
 This covers Application/Environment Control and User Interaction Dialogs. The next sections will be Image Path Management and Settings/Advanced.
+
+## Image Path Management
+
+SikuliX scripts often rely on images. These functions help you manage where SikuliX looks for these images. Typically, SikuliX automatically looks for images in the same folder as your `.sikuli` script (the bundle path).
+
+**`addImagePath(path)`**
+*   **Description:** Adds a new path to the list of locations where SikuliX will search for images.
+*   **Parameters:**
+    *   `path`: A string representing the absolute or relative path to a directory containing images.
+*   **Returns:** `True` if the path is valid and added, `False` otherwise.
+*   **Example:**
+    ```python
+    # Add a subfolder named "icons" inside the script's bundle path
+    addImagePath(getBundlePath() + "/icons") 
+    # Add a globally accessible image library
+    addImagePath("/Users/Shared/SikuliX_Images") 
+    ```
+
+**`removeImagePath(path)`**
+*   **Description:** Removes a path from the image search list.
+*   **Parameters:**
+    *   `path`: The string path to remove.
+*   **Returns:** `True` if the path was found and removed, `False` otherwise.
+*   **Example:**
+    ```python
+    removeImagePath("/Users/Shared/SikuliX_Images")
+    ```
+
+**`getImagePath()`**
+*   **Description:** Returns the current list of paths where SikuliX searches for images.
+*   **Returns:** A list of strings, where each string is a path.
+*   **Example:**
+    ```python
+    current_paths = getImagePath()
+    for p in current_paths:
+        print "Image search path:", p
+    ```
+
+**`setBundlePath(path)`**
+*   **Description:** Sets the primary path for image searching (the "bundle path"). By default, this is the path to your `.sikuli` script folder. Changing this can be useful if your images are located elsewhere relative to your main script logic.
+*   **Parameters:**
+    *   `path`: The new bundle path string.
+*   **Returns:** `True` if the path is valid and set, `False` otherwise.
+*   **Example:**
+    ```python
+    # If your images are in a specific project folder
+    setBundlePath("/path/to/my_project_images")
+    ```
+
+**`getBundlePath()`**
+*   **Description:** Returns the absolute path to the current script's bundle (the `.sikuli` folder).
+*   **Returns:** A string.
+*   **Example:**
+    ```python
+    print "This script's bundle path is:", getBundlePath()
+    ```
+
+## Settings and Advanced Topics
+
+### Settings
+
+**`setShowActions(boolean_flag)`**
+*   **Description:** Controls whether SikuliX visually highlights actions (like `click`, `find`) on the screen as they happen. This can be useful for debugging. Default is `False`.
+*   **Parameters:**
+    *   `boolean_flag`: `True` to enable visual highlighting, `False` to disable.
+*   **Example:**
+    ```python
+    setShowActions(True) # Highlights will be shown
+    click("some_button.png")
+    setShowActions(False) # Turn off highlights
+    ```
+
+**`Settings.AutoWaitTimeout` (Attribute)**
+*   **Description:** The default time in seconds that `wait()` and other find operations will wait for a target to appear if no explicit timeout is specified. Default is 3.0 seconds.
+*   **Usage:** Can be read or set directly.
+*   **Example:**
+    ```python
+    print "Current AutoWaitTimeout:", Settings.AutoWaitTimeout
+    Settings.AutoWaitTimeout = 5.0 # Set to 5 seconds
+    wait("image_that_takes_time.png") # Will use the new 5-second timeout
+    ```
+
+**`Settings.ClickDelay` (Attribute)**
+*   **Description:** A delay in seconds (can be fractional) introduced between the mouse down and mouse up events of a click. Default is 0.0. You can set this to a small value (e.g., 0.1 or 0.2) if clicks are not registering properly in some applications. This affects subsequent `click`, `doubleClick`, `rightClick` actions.
+*   **Usage:** Can be set directly.
+*   **Example:**
+    ```python
+    Settings.ClickDelay = 0.2 # Introduce a 0.2 second delay within clicks
+    click("sensitive_button.png")
+    Settings.ClickDelay = 0.0 # Reset to default
+    ```
+    *   **Note:** `Region.delayClick(milliseconds)` can set this for the *next* click only.
+
+### Key Constants (`Key` class)
+
+When using keyboard functions like `type()`, `keyDown()`, or `keyUp()`, special keys are represented by constants available in the `Key` class.
+
+**Common Key Constants:**
+*   `Key.ENTER`
+*   `Key.TAB`
+*   `Key.ESC` (Escape key)
+*   `Key.BACKSPACE`
+*   `Key.DELETE`
+*   `Key.UP`, `Key.DOWN`, `Key.LEFT`, `Key.RIGHT` (Arrow keys)
+*   `Key.HOME`, `Key.END`
+*   `Key.PAGE_UP`, `Key.PAGE_DOWN`
+*   `Key.INSERT`
+*   `Key.F1`, `Key.F2`, ... `Key.F15`
+*   `Key.CAPS_LOCK`, `Key.NUM_LOCK`, `Key.SCROLL_LOCK`
+*   `Key.PRINTSCREEN`, `Key.PAUSE`
+
+**Modifier Keys:**
+These are used with functions that accept `modifiers` (like `click()`, `type()`) or can be combined in `type()` strings (e.g., `Key.CTRL + "a"`).
+*   `Key.SHIFT`
+*   `Key.CTRL` (Control key)
+*   `Key.ALT`
+*   `Key.META` (Command key on macOS, Windows key on Windows)
+*   `Key.CMD` (Alias for `Key.META`, primarily for macOS users)
+*   `Key.WIN` (Alias for `Key.META`, primarily for Windows users)
+*   `Key.ALTGR` (AltGr key, if present)
+
+**Using Modifier Keys in `type()`:**
+To type a combination like Ctrl+A:
+```python
+type("a", Key.CTRL)
+```
+To type a sequence like Shift then 'h' then 'e' then 'l' then 'l' then 'o':
+```python
+keyDown(Key.SHIFT)
+type("hello")
+keyUp(Key.SHIFT)
+# Or for a single modified character: type("H") if shift is not already held.
+```
+
+### Mouse Pointer Location
+
+**`Mouse.at()` or global `at()`**
+*   **Description:** Gets the current location of the mouse pointer.
+*   **Returns:** A `Location` object.
+*   **Example:**
+    ```python
+    current_mouse_pos = Mouse.at()
+    print "Mouse is at: X =", current_mouse_pos.getX(), "Y =", current_mouse_pos.getY()
+    hover(Mouse.at().offset(0, 20)) # Hover 20 pixels below current mouse position
+    ```
+
+### Advanced: Observers (Brief Mention)
+
+SikuliX allows you to react to events like an image appearing, disappearing, or a region changing. This is done using observers.
+
+*   `onAppear(target, handler_function)`: When `target` appears, call `handler_function`.
+*   `onVanish(target, handler_function)`: When `target` vanishes, call `handler_function`.
+*   `onChange(handler_function)` or `onChange(minChangedPixels, handler_function)`: When a change of at least `minChangedPixels` occurs in a region, call `handler_function`.
+*   `region.observe(seconds)`: Starts observing on a specific region for a duration.
+*   `region.stopObserver()`: Stops the observer.
+
+This is an advanced topic; refer to the official SikuliX documentation for detailed usage.
+
+```
